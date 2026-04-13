@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Upgrade to Hisaab Pro</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed-dim": "#76d6d5",
+                    "surface-tint": "#115cb9",
+                    "error-container": "#ffdad6",
+                    "background": "#f8f9fa",
+                    "tertiary-fixed": "#ffdbcc",
+                    "on-primary-fixed": "#001a40",
+                    "surface-bright": "#f8f9fa",
+                    "on-primary": "#ffffff",
+                    "surface-variant": "#e1e3e4",
+                    "on-tertiary": "#ffffff",
+                    "surface-container-lowest": "#ffffff",
+                    "primary-container": "#0056b3",
+                    "on-secondary": "#ffffff",
+                    "secondary-fixed": "#93f2f2",
+                    "on-surface-variant": "#424752",
+                    "primary-fixed-dim": "#acc7ff",
+                    "on-error": "#ffffff",
+                    "on-tertiary-fixed": "#351000",
+                    "surface-container-low": "#f3f4f5",
+                    "surface": "#f8f9fa",
+                    "surface-container-high": "#e7e8e9",
+                    "inverse-surface": "#2e3132",
+                    "outline": "#727784",
+                    "on-primary-fixed-variant": "#004491",
+                    "error": "#ba1a1a",
+                    "on-tertiary-fixed-variant": "#7b2f00",
+                    "surface-container-highest": "#e1e3e4",
+                    "on-secondary-container": "#006e6e",
+                    "on-error-container": "#93000a",
+                    "primary-fixed": "#d7e2ff",
+                    "primary": "#003f87",
+                    "on-tertiary-container": "#ffc2a7",
+                    "tertiary-container": "#983c00",
+                    "secondary": "#006a6a",
+                    "inverse-on-surface": "#f0f1f2",
+                    "on-secondary-fixed-variant": "#004f4f",
+                    "outline-variant": "#c2c6d4",
+                    "surface-container": "#edeeef",
+                    "on-secondary-fixed": "#002020",
+                    "on-surface": "#191c1d",
+                    "secondary-container": "#90efef",
+                    "surface-dim": "#d9dadb",
+                    "inverse-primary": "#acc7ff",
+                    "tertiary-fixed-dim": "#ffb694",
+                    "on-background": "#191c1d",
+                    "tertiary": "#722b00",
+                    "on-primary-container": "#bbd0ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .premium-gradient {
+            background: linear-gradient(135deg, #003f87 0%, #0056b3 100%);
+        }
+        .gold-accent-text {
+            color: #983c00;
+        }
+        .glass-header {
+            background: rgba(248, 249, 250, 0.8);
+            backdrop-filter: blur(24px);
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-40 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-md flex justify-between items-center px-6 py-3 ml-0 md:ml-64">
+<div class="flex items-center gap-4">
+<span class="font-manrope font-bold text-lg tracking-tight text-blue-700 dark:text-blue-400">Upgrade to Pro</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-lg hover:bg-slate-200/50 transition-colors">
+<span class="material-symbols-outlined" data-icon="sync">sync</span>
+</button>
+<button class="p-2 rounded-lg hover:bg-slate-200/50 transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-container-high">
+<img alt="Clinic Administrator Profile" data-alt="professional portrait of a medical clinic administrator in a clean office setting with soft natural light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDuhjCQzhNm6JT4k9jbazOn3lY8QD9gODDPGed3g5GuAbxrWMr5FNtAoJRta339rYLOSqPhfvjtbjrPvM_Nvfws1O6XG9klljO99O_7SqEhY9CcgDyAaqqUDv3SQd-STgIykWuusYL9jkVefJ3yOUCLsG-7fGxSlP1s--s7KwPbTpZBWGi0cOLL5eCxYsHdlsQbARtbSDiM5PPKOImQQQcAfBI0AIa2Isd1kxg3rQRFf6_5wRHOD66SeXR4ImClZfqRKBvLgUvxLOE"/>
+</div>
+</div>
+</nav>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full w-64 z-50 bg-slate-100 dark:bg-slate-950 flex flex-col h-full p-4 space-y-2 hidden md:flex">
+<div class="mb-8">
+<h1 class="font-manrope text-2xl font-black text-blue-900 dark:text-white tracking-tighter">Hisaab</h1>
+<p class="text-xs font-medium tracking-wide text-slate-500">Clinical Architect</p>
+</div>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:text-blue-600 hover:bg-slate-200 dark:hover:bg-slate-900 transition-all duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-inter text-sm font-medium tracking-wide">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:text-blue-600 hover:bg-slate-200 dark:hover:bg-slate-900 transition-all duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-inter text-sm font-medium tracking-wide">Patients</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:text-blue-600 hover:bg-slate-200 dark:hover:bg-slate-900 transition-all duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span class="font-inter text-sm font-medium tracking-wide">Invoices</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:text-blue-600 hover:bg-slate-200 dark:hover:bg-slate-900 transition-all duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-inter text-sm font-medium tracking-wide">Expenses</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-400 rounded-lg shadow-sm font-bold translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-inter text-sm font-medium tracking-wide">Settings</span>
+</a>
+</div>
+<div class="mt-auto pt-4 space-y-1">
+<button class="w-full flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-200 rounded-lg transition-all">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="font-inter text-sm font-medium">Help Center</span>
+</button>
+<button class="w-full flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-200 rounded-lg transition-all">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-inter text-sm font-medium">Logout</span>
+</button>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="pt-20 ml-0 md:ml-64 min-h-screen">
+<div class="max-w-6xl mx-auto px-6 py-8">
+<!-- Bento Hero Section -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Main Promo Card -->
+<div class="md:col-span-8 bg-surface-container-lowest rounded-xl p-10 flex flex-col justify-between relative overflow-hidden">
+<div class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-20 -mt-20"></div>
+<div class="z-10">
+<div class="inline-flex items-center gap-2 px-3 py-1 bg-tertiary-fixed text-tertiary font-label font-bold text-[10px] uppercase tracking-widest rounded-full mb-6">
+                            Limited Offer
+                        </div>
+<h2 class="font-headline text-5xl font-extrabold text-primary mb-4 leading-tight tracking-tighter">
+                            Unlock Hisaab Pro
+                        </h2>
+<p class="font-body text-on-surface-variant text-lg max-w-lg mb-8 leading-relaxed">
+                            Transform your clinic into a high-performance practice with advanced automation, regulatory exports, and premium patient communications.
+                        </p>
+<!-- Benefit Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+<div class="flex items-start gap-4">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary" data-icon="verified">verified</span>
+</div>
+<div>
+<h4 class="font-headline text-sm font-bold text-on-surface">Custom Branding</h4>
+<p class="text-xs text-on-surface-variant leading-normal">Your clinic logo on every digital and printed invoice.</p>
+</div>
+</div>
+<div class="flex items-start gap-4">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary" data-icon="supervised_user_circle">supervised_user_circle</span>
+</div>
+<div>
+<h4 class="font-headline text-sm font-bold text-on-surface">Staff Accounts</h4>
+<p class="text-xs text-on-surface-variant leading-normal">Add multi-user access with role-based permissions.</p>
+</div>
+</div>
+<div class="flex items-start gap-4">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary" data-icon="table_chart">table_chart</span>
+</div>
+<div>
+<h4 class="font-headline text-sm font-bold text-on-surface">GSTR Excel Exports</h4>
+<p class="text-xs text-on-surface-variant leading-normal">One-click compliance ready reports for your CA.</p>
+</div>
+</div>
+<div class="flex items-start gap-4">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary" data-icon="chat">chat</span>
+</div>
+<div>
+<h4 class="font-headline text-sm font-bold text-on-surface">WhatsApp API</h4>
+<p class="text-xs text-on-surface-variant leading-normal">Automated invoice &amp; receipt delivery via WhatsApp.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Pricing Card -->
+<div class="md:col-span-4 flex flex-col gap-6">
+<div class="bg-surface-container-highest rounded-xl p-8 flex flex-col items-center text-center border-b-4 border-primary">
+<span class="font-label text-[10px] font-bold text-primary tracking-[0.2em] uppercase mb-2">Annual Savings</span>
+<div class="flex items-baseline gap-1 mb-2">
+<span class="text-3xl font-headline font-black text-on-surface">₹1,499</span>
+<span class="text-on-surface-variant font-medium">/yr</span>
+</div>
+<p class="text-xs text-secondary font-bold mb-6 italic">Save ₹889 every year</p>
+<button class="w-full py-4 premium-gradient text-white font-headline font-bold rounded-lg shadow-lg hover:opacity-90 transition-opacity active:scale-[0.98]">
+                            Upgrade Now
+                        </button>
+</div>
+<div class="bg-surface-container-low rounded-xl p-8 flex flex-col items-center text-center">
+<span class="font-label text-[10px] font-bold text-on-surface-variant tracking-[0.2em] uppercase mb-2">Monthly Flexibility</span>
+<div class="flex items-baseline gap-1 mb-6">
+<span class="text-2xl font-headline font-bold text-on-surface">₹199</span>
+<span class="text-on-surface-variant font-medium">/mo</span>
+</div>
+<button class="w-full py-3 bg-white text-primary border border-primary/20 font-headline font-bold rounded-lg hover:bg-primary-fixed transition-colors">
+                            Start Monthly
+                        </button>
+</div>
+</div>
+</div>
+<!-- Deep Dive Feature Section -->
+<div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Branding Showcase -->
+<div class="bg-surface-container-lowest p-6 rounded-xl relative overflow-hidden group">
+<h5 class="font-headline font-bold text-on-surface mb-2">Signature Professionalism</h5>
+<p class="text-sm text-on-surface-variant mb-6">Replace 'Hisaab' branding with your own hospital or clinic logo for a native patient experience.</p>
+<div class="rounded-lg bg-surface-container-low p-4 transform transition-transform group-hover:scale-105">
+<div class="flex items-center gap-3 mb-3">
+<div class="w-8 h-8 rounded bg-white flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="add_business">add_business</span>
+</div>
+<div class="h-2 w-24 bg-surface-variant rounded"></div>
+</div>
+<div class="space-y-2">
+<div class="h-1.5 w-full bg-surface-variant rounded-full"></div>
+<div class="h-1.5 w-3/4 bg-surface-variant rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- API Connectivity -->
+<div class="bg-surface-container-lowest p-6 rounded-xl relative overflow-hidden">
+<h5 class="font-headline font-bold text-on-surface mb-2">Direct WhatsApp Cloud</h5>
+<p class="text-sm text-on-surface-variant mb-6">Official Meta API integration ensures your messages land in the 'Main' inbox, not 'Spam'.</p>
+<div class="flex justify-center gap-4">
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary" data-icon="forum">forum</span>
+</div>
+<div class="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-white" data-icon="send">send</span>
+</div>
+</div>
+</div>
+<!-- Tax Ready -->
+<div class="bg-surface-container-lowest p-6 rounded-xl">
+<h5 class="font-headline font-bold text-on-surface mb-2">Audit-Ready Ledger</h5>
+<p class="text-sm text-on-surface-variant mb-6">Export structured data compatible with Tally and SAP. Spend minutes, not hours, on accounting.</p>
+<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between text-[10px] font-bold text-on-surface-variant uppercase tracking-tighter px-2">
+<span>Report Name</span>
+<span>Format</span>
+</div>
+<div class="bg-surface-container-low px-3 py-2 rounded flex items-center justify-between">
+<span class="text-xs font-medium">GSTR-1 Summary</span>
+<span class="text-[10px] bg-green-100 text-green-800 px-1.5 py-0.5 rounded font-bold">.XLSX</span>
+</div>
+<div class="bg-surface-container-low px-3 py-2 rounded flex items-center justify-between">
+<span class="text-xs font-medium">Doctor Commission</span>
+<span class="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-bold">.PDF</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Testimonial / Assurance -->
+<div class="mt-12 text-center max-w-2xl mx-auto">
+<p class="text-on-surface-variant font-medium italic">
+                    "Transitioning to Hisaab Pro reduced our month-end accounting errors by 90% and patients love receiving their receipts instantly on WhatsApp."
+                </p>
+<div class="mt-4 flex items-center justify-center gap-3">
+<img alt="Clinic Director" class="w-10 h-10 rounded-full grayscale opacity-70" data-alt="headshot of a mature female doctor with a confident smile in a hospital corridor" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBeKlKvQF_wnuGDdZW3z3ej_GBoQqIt-KZluTMBm61nV_MxyFhJVQK6mbT5CbzUZTlkFzzVig6kLhlUE-KRuGBQ1gno4-EqVAqo1MN5qDZAI-eaf8e5Q0JaudFF7f5hlHHpHdXj5LPDOqJMOdQuSCkpW2RICyI39pzhH7AZenvbBCJY1BOjRLoSTLI5O1R84PW7BvpOMdhRYcGM-VU1Q0HZBxxf_CRbjKmsQutHof_rFZjBODdSFZ_EtvOB-TqWfq5NbLK-VzBn1TY"/>
+<div class="text-left">
+<div class="text-xs font-bold text-on-surface">Dr. Arpit Sharma</div>
+<div class="text-[10px] text-on-surface-variant uppercase">Metro Dental Care</div>
+</div>
+</div>
+</div>
+<footer class="mt-20 py-8 border-t border-outline-variant/10 text-center">
+<p class="text-xs text-on-surface-variant mb-4">Secured by clinical-grade encryption. 30-day money-back guarantee.</p>
+<div class="flex justify-center gap-6 opacity-30">
+<span class="material-symbols-outlined" data-icon="security">security</span>
+<span class="material-symbols-outlined" data-icon="lock">lock</span>
+<span class="material-symbols-outlined" data-icon="verified_user">verified_user</span>
+</div>
+</footer>
+</div>
+</main>
+</body></html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Hisaab - Personalize Your Experience</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-container": "#983c00",
+                        "on-secondary-container": "#006e6e",
+                        "secondary-fixed-dim": "#76d6d5",
+                        "outline-variant": "#c2c6d4",
+                        "on-secondary-fixed": "#002020",
+                        "inverse-primary": "#acc7ff",
+                        "background": "#f8f9fa",
+                        "surface-container": "#edeeef",
+                        "surface-variant": "#e1e3e4",
+                        "on-secondary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "surface": "#f8f9fa",
+                        "on-tertiary-fixed": "#351000",
+                        "on-primary": "#ffffff",
+                        "inverse-on-surface": "#f0f1f2",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-high": "#e7e8e9",
+                        "on-primary-fixed": "#001a40",
+                        "on-primary-container": "#bbd0ff",
+                        "outline": "#727784",
+                        "on-tertiary-container": "#ffc2a7",
+                        "on-background": "#191c1d",
+                        "surface-dim": "#d9dadb",
+                        "secondary": "#006a6a",
+                        "surface-tint": "#115cb9",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed-variant": "#004f4f",
+                        "tertiary": "#722b00",
+                        "on-surface": "#191c1d",
+                        "error": "#ba1a1a",
+                        "secondary-container": "#90efef",
+                        "primary": "#003f87",
+                        "on-surface-variant": "#424752",
+                        "inverse-surface": "#2e3132",
+                        "primary-container": "#0056b3",
+                        "surface-container-highest": "#e1e3e4",
+                        "surface-container-low": "#f3f4f5",
+                        "primary-fixed": "#d7e2ff",
+                        "tertiary-fixed": "#ffdbcc",
+                        "on-primary-fixed-variant": "#004491",
+                        "tertiary-fixed-dim": "#ffb694",
+                        "on-tertiary-fixed-variant": "#7b2f00",
+                        "error-container": "#ffdad6",
+                        "primary-fixed-dim": "#acc7ff",
+                        "on-error": "#ffffff",
+                        "surface-bright": "#f8f9fa",
+                        "secondary-fixed": "#93f2f2"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .business-card-active {
+            box-shadow: 0px 12px 32px rgba(25, 28, 29, 0.06);
+        }
+    </style>
+</head>
+<body class="bg-background font-body text-on-surface antialiased">
+<!-- Onboarding Shell Suppression: Navigation removed as per Task-Focused/Linear logic -->
+<main class="min-h-screen flex flex-col items-center justify-center p-6 lg:p-12">
+<div class="max-w-5xl w-full">
+<!-- Header Section -->
+<div class="mb-10 text-center lg:text-left">
+<div class="inline-flex items-center gap-2 mb-4">
+<div class="w-8 h-8 rounded bg-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-lg">account_balance_wallet</span>
+</div>
+<span class="font-headline font-bold text-xl tracking-tight text-primary">Hisaab</span>
+</div>
+<h1 class="font-headline font-extrabold text-3xl md:text-4xl text-on-surface tracking-tight mb-3">
+                    Personalize Your Experience
+                </h1>
+<p class="text-on-surface-variant max-w-2xl text-lg">
+                    Select your business type so we can tailor Hisaab to your specific needs.
+                </p>
+</div>
+<!-- Tax Registration Toggle Section -->
+<div class="mb-12 p-6 bg-surface-container-low rounded-xl">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+<div>
+<h3 class="font-headline font-bold text-on-surface">Tax Registration Type</h3>
+<p class="text-on-surface-variant text-sm font-label uppercase tracking-widest mt-1">Required for GST Compliance</p>
+</div>
+<div class="flex p-1 bg-surface-container-high rounded-full w-full md:w-auto">
+<button class="flex-1 px-6 py-2 rounded-full text-sm font-semibold bg-surface-container-lowest text-primary shadow-sm transition-all">
+                            GST Registered
+                        </button>
+<button class="flex-1 px-6 py-2 rounded-full text-sm font-medium text-on-surface-variant hover:text-on-surface transition-all">
+                            Composition Scheme
+                        </button>
+<button class="flex-1 px-6 py-2 rounded-full text-sm font-medium text-on-surface-variant hover:text-on-surface transition-all">
+                            Unregistered
+                        </button>
+</div>
+</div>
+</div>
+<!-- Business Type Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+<!-- Card 1 -->
+<div class="group cursor-pointer bg-surface-container-lowest p-5 rounded-xl border border-transparent hover:bg-surface-container-low transition-all duration-200">
+<div class="mb-4 text-primary bg-primary-fixed w-12 h-12 flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined">store</span>
+</div>
+<h3 class="font-headline font-bold text-sm leading-tight text-on-surface">Kirana &amp; General Store</h3>
+</div>
+<!-- Card 2: Selected/Previously Used -->
+<div class="group cursor-pointer bg-surface-container-lowest p-5 rounded-xl border-2 border-primary business-card-active relative">
+<div class="absolute top-3 right-3 bg-secondary px-2 py-0.5 rounded-full flex items-center gap-1">
+<span class="material-symbols-outlined text-[10px] text-white" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-[10px] font-bold text-white uppercase tracking-tighter">Selected</span>
+</div>
+<div class="mb-4 text-primary bg-primary-fixed w-12 h-12 flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">medical_services</span>
+</div>
+<h3 class="font-headline font-bold text-sm leading-tight text-on-surface">Medical Clinic</h3>
+</div>
+<!-- Card 3 -->
+<div class="group cursor-pointer bg-surface-container-lowest p-5 rounded-xl border border-transparent hover:bg-surface-container-low transition-all duration-200">
+<div class="mb-4 text-primary bg-primary-fixed w-12 h-12 flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined">construction</span>
+</div>
+<h3 class="font-headline font-bold text-sm leading-tight text-on-surface">Construction &amp; Hardware</h3>
+</div>
+<!-- Card 4 -->
+<div class="group cursor-pointer bg-surface-container-lowest p-5 rounded-xl border border-transparent hover:bg-surface-container-low transition-all duration-200">
+<div class="mb-4 text-primary bg-primary-fixed w-12 h-12 flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined">person</span>
+</div>
+<h3 class="font-headline font-bold text-sm leading-tight text-on-surface">Freelancer/Consultant</h3>
+</div>
+<!-- Card 5 -->
+<div class="group cursor-pointer bg-surface-container-lowest p-5 rounded-xl border border-transparent hover:bg-surface-container-low transition-all duration-200">
+<div class="mb-4 text-primary bg-primary-fixed w-12 h-12 flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined">restaurant</span>
+</div>
+<h3 class="font-headline font-bold text-sm leading-tight text-on-surface">Restaurant &amp; Cafe</h3>
+</div>
+<!-- Card 6 -->
+<div class="group cursor-pointer bg-surface-container-lowest p-5 rounded-xl border border-transparent hover:bg-surface-container-low transition-all duration-200">
+<div class="mb-4 text-primary bg-primary-fixed w-12 h-12 flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined">checkroom</span>
+</div>
+<h3 class="font-headline font-bold text-sm leading-tight text-on-surface">Clothing &amp; Boutique</h3>
+</div>
+<!-- Card 7 -->
+<div class="group cursor-pointer bg-surface-container-lowest p-5 rounded-xl border border-transparent hover:bg-surface-container-low transition-all duration-200">
+<div class="mb-4 text-primary bg-primary-fixed w-12 h-12 flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined">smartphone</span>
+</div>
+<h3 class="font-headline font-bold text-sm leading-tight text-on-surface">Electronics &amp; Mobile Shop</h3>
+</div>
+<!-- Card 8 -->
+<div class="group cursor-pointer bg-surface-container-lowest p-5 rounded-xl border border-transparent hover:bg-surface-container-low transition-all duration-200">
+<div class="mb-4 text-primary bg-primary-fixed w-12 h-12 flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined">school</span>
+</div>
+<h3 class="font-headline font-bold text-sm leading-tight text-on-surface">Education &amp; Coaching</h3>
+</div>
+<!-- Card 9 -->
+<div class="group cursor-pointer bg-surface-container-lowest p-5 rounded-xl border border-transparent hover:bg-surface-container-low transition-all duration-200">
+<div class="mb-4 text-primary bg-primary-fixed w-12 h-12 flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined">precision_manufacturing</span>
+</div>
+<h3 class="font-headline font-bold text-sm leading-tight text-on-surface">Manufacturing</h3>
+</div>
+<!-- Card 10 -->
+<div class="group cursor-pointer bg-surface-container-lowest p-5 rounded-xl border border-transparent hover:bg-surface-container-low transition-all duration-200">
+<div class="mb-4 text-primary bg-primary-fixed w-12 h-12 flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined">business_center</span>
+</div>
+<h3 class="font-headline font-bold text-sm leading-tight text-on-surface">Professional Services</h3>
+</div>
+</div>
+<!-- Footer Action Section -->
+<div class="mt-16 pt-8 border-t border-outline-variant/10 flex flex-col md:flex-row items-center justify-between gap-6">
+<div class="flex items-center gap-4">
+<div class="flex -space-x-2">
+<img alt="Professional User" class="w-10 h-10 rounded-full border-2 border-surface" data-alt="close up headshot of a friendly Indian doctor in professional clinical setting with soft natural light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDyIkhsmsQNiJWA2gN6cZGrDCSz-XqA4SUp3cP6XsOb95rkqpbK5vpT8K0lG0wx1tOXP_9KBRr3tQaDWf6GjdCF0MYEEKEBfW-KuWsrtmkQy9hXrEW1gfk9pdYbF8vEJfgmIeiDzv3tEIKP8_7QJbOR4jDQ8Il3aGFbSXLITDzvjQzXtI8ZjBApx-P3S6IbsmCKg2LCYU73B2Ocrso42r2x9t0iKHfsEDJoMMyQCt4CDRaiIp8NviiJOUJThN4gRpGWyfKVzpxAKVc"/>
+<img alt="Business Owner" class="w-10 h-10 rounded-full border-2 border-surface" data-alt="portrait of a confident retail business owner standing in a modern boutique with warm ambient lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6moefKWgz6Z7jI6dx_C3YO1U-IfZQBZxrnkTGLJo7VhB3GCjgtS34dl4qOirbvT3j0JLLRiGQ1ZM7dYcpmKTJyC-QARe3tRV9NuhsdLhiSUKj_mAzhE4FVns9k2c_wv47-RzcwvpHCH2fbT8GW11g3sbgcQRjhRvcqNnZHuWHrSPucnJx7GRrGFhy-KDaWyhXPorFAvEVMYb1HB0aUF6BT8_ce1NkdGs28kOTzR1kLdydTLrjsVeHow99fMCCSj6umWzEbxMeOP0"/>
+</div>
+<p class="text-sm font-medium text-on-surface-variant">
+                        Join <span class="text-on-surface font-bold">12,000+</span> business owners in India.
+                    </p>
+</div>
+<div class="flex items-center gap-6 w-full md:w-auto">
+<button class="text-on-surface-variant font-semibold text-sm hover:text-on-surface transition-colors">
+                        Skip for now
+                    </button>
+<button class="flex-1 md:flex-none px-12 py-4 rounded-lg bg-gradient-to-br from-primary to-primary-container text-white font-bold tracking-tight shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform flex items-center justify-center gap-2">
+                        Next
+                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Visual Texture / Gradient Blobs -->
+<div class="fixed top-0 right-0 -z-10 w-[500px] h-[500px] bg-primary/5 blur-[120px] rounded-full pointer-events-none"></div>
+<div class="fixed bottom-0 left-0 -z-10 w-[400px] h-[400px] bg-secondary/5 blur-[100px] rounded-full pointer-events-none"></div>
+</body></html>

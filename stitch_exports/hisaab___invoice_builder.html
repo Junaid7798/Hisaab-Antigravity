@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Hisaab - GST-Compliant Invoice Builder</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-error-container": "#93000a",
+                    "primary": "#003f87",
+                    "surface": "#f8f9fa",
+                    "on-tertiary-fixed": "#351000",
+                    "on-secondary": "#ffffff",
+                    "on-surface-variant": "#424752",
+                    "surface-dim": "#d9dadb",
+                    "surface-container-high": "#e7e8e9",
+                    "surface-container-lowest": "#ffffff",
+                    "primary-fixed-dim": "#acc7ff",
+                    "on-primary-container": "#bbd0ff",
+                    "on-surface": "#191c1d",
+                    "on-secondary-container": "#006e6e",
+                    "inverse-primary": "#acc7ff",
+                    "tertiary-fixed": "#ffdbcc",
+                    "surface-variant": "#e1e3e4",
+                    "on-error": "#ffffff",
+                    "surface-container": "#edeeef",
+                    "on-primary-fixed": "#001a40",
+                    "tertiary-fixed-dim": "#ffb694",
+                    "secondary": "#006a6a",
+                    "on-secondary-fixed": "#002020",
+                    "on-primary-fixed-variant": "#004491",
+                    "primary-container": "#0056b3",
+                    "on-secondary-fixed-variant": "#004f4f",
+                    "on-tertiary-fixed-variant": "#7b2f00",
+                    "on-primary": "#ffffff",
+                    "primary-fixed": "#d7e2ff",
+                    "surface-container-low": "#f3f4f5",
+                    "tertiary": "#722b00",
+                    "error": "#ba1a1a",
+                    "error-container": "#ffdad6",
+                    "secondary-fixed-dim": "#76d6d5",
+                    "inverse-on-surface": "#f0f1f2",
+                    "outline-variant": "#c2c6d4",
+                    "secondary-fixed": "#93f2f2",
+                    "secondary-container": "#90efef",
+                    "surface-bright": "#f8f9fa",
+                    "on-tertiary-container": "#ffc2a7",
+                    "tertiary-container": "#983c00",
+                    "background": "#f8f9fa",
+                    "surface-tint": "#115cb9",
+                    "on-background": "#191c1d",
+                    "on-tertiary": "#ffffff",
+                    "surface-container-highest": "#e1e3e4",
+                    "inverse-surface": "#2e3132",
+                    "outline": "#727784"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface">
+<!-- SideNavBar (Shared Component) -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-slate-50 dark:bg-slate-900 flex flex-col p-4 gap-2 z-50">
+<div class="mb-8 px-2">
+<h1 class="text-2xl font-manrope font-extrabold text-blue-900 dark:text-blue-100">Hisaab</h1>
+<p class="font-inter text-sm text-slate-500">City General Clinic</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:text-blue-600 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-inter text-sm">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:text-blue-600 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-inter text-sm">Patients</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 bg-white dark:bg-slate-950 text-blue-700 dark:text-blue-400 font-semibold rounded-lg shadow-sm scale-[0.99] duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span class="font-inter text-sm">Invoices</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:text-blue-600 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-inter text-sm">Expenses</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:text-blue-600 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-inter text-sm">Settings</span>
+</a>
+</nav>
+<button class="mt-auto w-full bg-primary text-on-primary py-3 px-4 rounded-xl flex items-center justify-center gap-2 font-headline font-bold text-sm shadow-md transition-all hover:brightness-110 active:scale-[0.98]">
+<span class="material-symbols-outlined text-base" data-icon="add">add</span>
+            New Invoice
+        </button>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 min-h-screen">
+<!-- TopNavBar (Shared Component) -->
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md flex items-center justify-between px-8 z-40 border-b border-slate-100 dark:border-slate-800">
+<div class="flex items-center bg-surface-container-low rounded-full px-4 py-1.5 w-96">
+<span class="material-symbols-outlined text-outline" data-icon="search">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-full font-inter" placeholder="Search patients or invoices..." type="text"/>
+</div>
+<div class="flex items-center gap-6">
+<button class="text-slate-500 hover:text-blue-600 transition-all duration-200">
+<span class="material-symbols-outlined" data-icon="sync">sync</span>
+</button>
+<button class="text-slate-500 hover:text-blue-600 transition-all duration-200 relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<div class="flex items-center gap-3 pl-4 border-l border-outline-variant/30">
+<div class="text-right">
+<p class="text-xs font-bold font-headline leading-none">Clinic Admin</p>
+<p class="text-[10px] text-on-surface-variant font-label uppercase tracking-widest mt-1">Super User</p>
+</div>
+<span class="material-symbols-outlined text-3xl text-slate-400" data-icon="account_circle">account_circle</span>
+</div>
+</div>
+</header>
+<!-- Invoice Builder Content -->
+<div class="pt-24 pb-12 px-10">
+<div class="flex items-end justify-between mb-10">
+<div>
+<h2 class="text-3xl font-headline font-bold text-on-surface tracking-tight">Create GST Invoice</h2>
+<p class="text-on-surface-variant font-body mt-1">Generate tax-compliant bills for patient services.</p>
+</div>
+<div class="flex gap-3">
+<button class="px-6 py-2.5 rounded-lg border border-outline-variant font-headline font-semibold text-sm hover:bg-surface-container-low transition-colors">
+                        Save as Draft
+                    </button>
+<button class="px-6 py-2.5 rounded-lg bg-gradient-to-br from-primary to-primary-container text-on-primary font-headline font-bold text-sm shadow-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="print">print</span>
+                        Generate PDF &amp; Print
+                    </button>
+</div>
+</div>
+<!-- Invoice Canvas -->
+<div class="grid grid-cols-12 gap-8">
+<!-- Main Form Section -->
+<div class="col-span-12 lg:col-span-8 space-y-8">
+<!-- Patient Selection Card -->
+<div class="bg-surface-container-lowest p-8 rounded-xl shadow-sm border border-outline-variant/10">
+<h3 class="font-headline font-bold text-lg mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="person">person</span>
+                            Patient Information
+                        </h3>
+<div class="grid grid-cols-2 gap-6">
+<div class="space-y-2">
+<label class="text-[11px] font-label font-bold text-on-surface-variant uppercase tracking-wider">Select Patient</label>
+<div class="relative">
+<select class="w-full bg-surface-container-highest border-none rounded-lg py-3 px-4 text-sm appearance-none focus:ring-2 focus:ring-primary/20">
+<option>Rahul Sharma (ID: #4402)</option>
+<option>Priya Verma (ID: #4415)</option>
+<option>Amit Patel (ID: #4429)</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-2.5 pointer-events-none text-outline" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+<div class="space-y-2">
+<label class="text-[11px] font-label font-bold text-on-surface-variant uppercase tracking-wider">Billing Date</label>
+<input class="w-full bg-surface-container-highest border-none rounded-lg py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20" type="date" value="2023-11-24"/>
+</div>
+<div class="col-span-2 space-y-2">
+<label class="text-[11px] font-label font-bold text-on-surface-variant uppercase tracking-wider">Place of Supply</label>
+<input class="w-full bg-surface-container-highest border-none rounded-lg py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20" placeholder="State/UT Name" type="text" value="Maharashtra (27)"/>
+</div>
+</div>
+</div>
+<!-- Itemized Billing Table -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/10 overflow-hidden">
+<div class="p-6 border-b border-surface-container">
+<h3 class="font-headline font-bold text-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="medical_services">medical_services</span>
+                                Itemized Billing
+                            </h3>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-surface-container-low">
+<tr>
+<th class="px-6 py-4 text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest">Description</th>
+<th class="px-4 py-4 text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest">HSN/SAC</th>
+<th class="px-4 py-4 text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest text-center">Qty</th>
+<th class="px-4 py-4 text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest text-right">Rate</th>
+<th class="px-4 py-4 text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest text-center">Tax %</th>
+<th class="px-6 py-4 text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest text-right">Total</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-low">
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-4">
+<input class="bg-transparent border-none p-0 text-sm focus:ring-0 w-full font-medium" type="text" value="Specialist Consultation"/>
+</td>
+<td class="px-4 py-4">
+<input class="bg-transparent border-none p-0 text-xs focus:ring-0 w-20 text-on-surface-variant" type="text" value="999311"/>
+</td>
+<td class="px-4 py-4">
+<input class="bg-transparent border-none p-0 text-sm focus:ring-0 w-12 text-center" type="number" value="1"/>
+</td>
+<td class="px-4 py-4 text-right">
+<input class="bg-transparent border-none p-0 text-sm focus:ring-0 w-24 text-right" type="text" value="800.00"/>
+</td>
+<td class="px-4 py-4">
+<select class="bg-transparent border-none p-0 text-xs focus:ring-0 w-16 mx-auto block text-center">
+<option>0%</option>
+<option>5%</option>
+<option selected="">12%</option>
+<option>18%</option>
+</select>
+</td>
+<td class="px-6 py-4 text-right font-semibold text-sm">₹896.00</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-4">
+<input class="bg-transparent border-none p-0 text-sm focus:ring-0 w-full font-medium" type="text" value="Blood Test (CBC)"/>
+</td>
+<td class="px-4 py-4">
+<input class="bg-transparent border-none p-0 text-xs focus:ring-0 w-20 text-on-surface-variant" type="text" value="999321"/>
+</td>
+<td class="px-4 py-4">
+<input class="bg-transparent border-none p-0 text-sm focus:ring-0 w-12 text-center" type="number" value="1"/>
+</td>
+<td class="px-4 py-4 text-right">
+<input class="bg-transparent border-none p-0 text-sm focus:ring-0 w-24 text-right" type="text" value="450.00"/>
+</td>
+<td class="px-4 py-4">
+<select class="bg-transparent border-none p-0 text-xs focus:ring-0 w-16 mx-auto block text-center">
+<option selected="">0%</option>
+<option>5%</option>
+<option>12%</option>
+<option>18%</option>
+</select>
+</td>
+<td class="px-6 py-4 text-right font-semibold text-sm">₹450.00</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-4 bg-surface-container-low/50">
+<button class="text-primary text-xs font-headline font-bold flex items-center gap-1 hover:underline">
+<span class="material-symbols-outlined text-sm" data-icon="add_circle">add_circle</span>
+                                Add Row
+                            </button>
+</div>
+</div>
+</div>
+<!-- Summary Section -->
+<div class="col-span-12 lg:col-span-4 space-y-6">
+<!-- Billing Summary Card -->
+<div class="bg-primary text-on-primary rounded-xl p-8 shadow-xl overflow-hidden relative">
+<div class="absolute -right-10 -top-10 opacity-10">
+<span class="material-symbols-outlined text-[160px]" data-icon="receipt_long">receipt_long</span>
+</div>
+<h3 class="text-[11px] font-label font-bold uppercase tracking-[0.2em] opacity-80 mb-8">Billing Summary</h3>
+<div class="space-y-4">
+<div class="flex justify-between items-center text-sm">
+<span class="opacity-70 font-inter">Subtotal</span>
+<span class="font-headline font-semibold">₹1,250.00</span>
+</div>
+<div class="pt-4 border-t border-white/10 space-y-3">
+<div class="flex justify-between items-center text-xs">
+<span class="opacity-70 font-inter italic">CGST (6% on ₹800)</span>
+<span class="font-headline font-medium">₹48.00</span>
+</div>
+<div class="flex justify-between items-center text-xs">
+<span class="opacity-70 font-inter italic">SGST (6% on ₹800)</span>
+<span class="font-headline font-medium">₹48.00</span>
+</div>
+<div class="flex justify-between items-center text-xs">
+<span class="opacity-70 font-inter">IGST (0%)</span>
+<span class="font-headline font-medium">₹0.00</span>
+</div>
+</div>
+<div class="flex justify-between items-center text-sm pt-4">
+<span class="opacity-70 font-inter">Total Tax Amount</span>
+<span class="font-headline font-semibold text-secondary-fixed">₹96.00</span>
+</div>
+<div class="pt-8 flex justify-between items-end">
+<div>
+<p class="text-[10px] font-label font-bold uppercase tracking-widest opacity-60">Grand Total</p>
+<p class="text-4xl font-headline font-extrabold tracking-tighter">₹1,346.00</p>
+</div>
+<div class="bg-white/10 p-2 rounded-lg">
+<span class="material-symbols-outlined text-3xl" data-icon="verified">verified</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Tax Compliance Info -->
+<div class="bg-tertiary-fixed rounded-xl p-6 text-on-tertiary-fixed">
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined" data-icon="info">info</span>
+<div class="space-y-1">
+<p class="text-xs font-headline font-bold">GST Compliance Note</p>
+<p class="text-[11px] leading-relaxed opacity-80">This invoice follows the GST rules for Intra-state supply. Tax is bifurcated into CGST and SGST as per the recipient's location (Maharashtra).</p>
+</div>
+</div>
+</div>
+<!-- Quick Actions -->
+<div class="bg-surface-container-lowest border border-outline-variant/10 rounded-xl p-4 flex flex-col gap-2">
+<label class="text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest px-2 mb-1">Quick Options</label>
+<label class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-container-low cursor-pointer transition-colors">
+<input class="rounded text-primary focus:ring-primary h-4 w-4" type="checkbox"/>
+<span class="text-sm font-medium">Send copy to patient email</span>
+</label>
+<label class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-container-low cursor-pointer transition-colors">
+<input checked="" class="rounded text-primary focus:ring-primary h-4 w-4" type="checkbox"/>
+<span class="text-sm font-medium">Mark as paid immediately</span>
+</label>
+<label class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-container-low cursor-pointer transition-colors">
+<input class="rounded text-primary focus:ring-primary h-4 w-4" type="checkbox"/>
+<span class="text-sm font-medium">Add signature to PDF</span>
+</label>
+</div>
+</div>
+</div>
+<!-- Bottom Logo/Branding -->
+<div class="mt-16 flex items-center justify-between border-t border-outline-variant/20 pt-8 opacity-50">
+<div class="flex items-center gap-4">
+<img alt="Hisaab Logo" class="h-6 opacity-80" data-alt="minimalist professional medical software logo with a stylized plus sign and the text Hisaab in dark blue" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAr7lIq4nTc3xUwF88toldbZJLMzZZOBEZCtCSetICfP5IuwRynUbLe_59SUxNFPETHaxj2PSg5Wo_x9xIPXdGT7Klb6AfHe_NtcktrP9itiqP9mspvAupdfGLXj9dmKPh8L61XpwgQ6CRi_LobxoDw8ecu46v-sVvMohvfQfsniZMRL1iFP5ypWN_aksIrfhwRQ4iqqEip3I_uh0WzCCXqaWO3BglIyCC8Z2MKrLFwEufFhTLkg7R06PgccvBCWb5A97VkDvcTP1o"/>
+<p class="text-[10px] font-inter uppercase tracking-widest">Digitizing Indian Healthcare</p>
+</div>
+<p class="text-[10px] font-inter">Securely encrypted &amp; GST council compliant.</p>
+</div>
+</div>
+</main>
+</body></html>
