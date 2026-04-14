@@ -230,6 +230,12 @@
 					Record Payment
 				</button>
 			{/if}
+			{#if invoice.status !== 'PAID' && invoice.document_type !== 'CREDIT_NOTE'}
+				<a href="/invoices/{invoice.id}/edit" class="px-5 py-2.5 bg-surface-container-low text-on-surface rounded-xl font-bold text-sm border border-outline-variant/20 hover:bg-surface-container transition-all active:scale-[0.98] flex items-center gap-2">
+					<span class="material-symbols-outlined text-sm">edit</span>
+					Edit
+				</a>
+			{/if}
 			{#if invoice.document_type === 'INVOICE'}
 				<a href="/invoices/{invoice.id}/return" class="px-5 py-2.5 bg-error/10 text-error rounded-xl font-bold text-sm hover:bg-error/20 transition-all active:scale-[0.98] flex items-center gap-2">
 					<span class="material-symbols-outlined text-sm">assignment_return</span>

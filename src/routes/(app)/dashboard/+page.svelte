@@ -5,7 +5,7 @@
 	import PatientAvatar from '$lib/components/PatientAvatar.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import Skeleton from '$lib/components/Skeleton.svelte';
-	import { getBusiness, getRevenueTotal, getOutstandingTotal, countPatients, getRecentInvoices } from '$lib/db/crud';
+	import { getBusiness, getRevenueTotal, getOutstandingTotal, countPatients, getRecentInvoices, getDashboardAlerts } from '$lib/db/crud';
 	import { activeBusinessId, activeTerminology } from '$lib/stores/session';
 	import { formatINRCompact, formatINR } from '$lib/utils/currency';
 	import { formatDate, timeAgo } from '$lib/utils/helpers';
@@ -19,6 +19,10 @@
 	let businessName = $state('');
 	let loading = $state(true);
 
+	let lowStockProducts = $state<any[]>([]);
+	let overdueInvoices = $state<any[]>([]);
+	let revenueChange = $state<number | null>(null);
+
 	async function loadDashboard(businessId: string) {
 		loading = true;
 		const biz = await getBusiness(businessId);
@@ -28,6 +32,11 @@
 			outstanding = await getOutstandingTotal(biz.id);
 			patientCount = await countPatients(biz.id);
 			recentInvoices = await getRecentInvoices(biz.id, 5);
+
+			const alerts = await getDashboardAlerts(biz.id);
+			lowStockProducts = alerts.lowStock;
+			overdueInvoices = alerts.overdueInvoices;
+			revenueChange = alerts.revenueChangePercentage;
 		}
 		loading = false;
 	}
@@ -98,8 +107,18 @@
 			<p class="text-xs font-label uppercase tracking-widest text-primary-fixed-dim opacity-80">{$_('dashboard.total_revenue', { default: 'Total Revenue' })}</p>
 			<h3 class="text-4xl font-headline font-extrabold mt-2">{formatINRCompact(revenue)}</h3>
 			<div class="mt-4 flex items-center gap-2 text-sm text-primary-fixed">
-				<span class="material-symbols-outlined text-sm">trending_up</span>
-				<span>{$_('dashboard.all_time', { default: 'All time' })}</span>
+				{#if revenueChange !== null}
+					{#if revenueChange >= 0}
+						<span class="material-symbols-outlined text-sm">trending_up</span>
+						<span>+{revenueChange.toFixed(1)}% vs last month</span>
+					{:else}
+						<span class="material-symbols-outlined text-sm text-error">trending_down</span>
+						<span class="text-error">{revenueChange.toFixed(1)}% vs last month</span>
+					{/if}
+				{:else}
+					<span class="material-symbols-outlined text-sm">trending_up</span>
+					<span>{$_('dashboard.all_time', { default: 'All time' })}</span>
+				{/if}
 			</div>
 		</div>
 		<div class="absolute -right-4 -bottom-4 opacity-10">
@@ -127,6 +146,35 @@
 		</div>
 	</div>
 </div>
+
+	<!-- Smart Alerts -->
+	{#if lowStockProducts.length > 0 || overdueInvoices.length > 0}
+		<div class="col-span-12 mb-10 space-y-4">
+			<h4 class="font-headline font-bold text-xl mb-4">Smart Alerts</h4>
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+				{#if overdueInvoices.length > 0}
+					<div class="bg-error-container text-on-error-container p-4 rounded-xl flex items-start gap-4 shadow-sm border border-error/20">
+						<span class="material-symbols-outlined text-error mt-0.5">warning</span>
+						<div class="flex-1">
+							<p class="font-headline font-bold text-sm">Overdue Invoices</p>
+							<p class="text-sm opacity-80 mb-2">{overdueInvoices.length} {overdueInvoices.length === 1 ? 'invoice is' : 'invoices are'} past their due date.</p>
+							<a href="/invoices" class="text-xs font-bold text-error flex items-center gap-1 hover:underline">View Invoices <span class="material-symbols-outlined text-[14px]">arrow_forward</span></a>
+						</div>
+					</div>
+				{/if}
+				{#if lowStockProducts.length > 0}
+					<div class="bg-amber-50 text-amber-900 p-4 rounded-xl flex items-start gap-4 shadow-sm border border-amber-200">
+						<span class="material-symbols-outlined text-amber-600 mt-0.5">inventory</span>
+						<div class="flex-1">
+							<p class="font-headline font-bold text-sm">Low Stock Alert</p>
+							<p class="text-sm opacity-80 mb-2">{lowStockProducts.length} {lowStockProducts.length === 1 ? 'product is' : 'products are'} low on stock.</p>
+							<a href="/inventory" class="text-xs font-bold text-amber-600 flex items-center gap-1 hover:underline">View Inventory <span class="material-symbols-outlined text-[14px]">arrow_forward</span></a>
+						</div>
+					</div>
+				{/if}
+			</div>
+		</div>
+	{/if}
 
 	<!-- Recent Invoices -->
 <div class="grid grid-cols-12 gap-6">

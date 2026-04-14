@@ -145,11 +145,11 @@
 		<!-- Header -->
 		<div class="flex items-center justify-between">
 			<div>
-				<h1 class="text-3xl font-headline font-extrabold text-on-surface tracking-tight">Business Intelligence</h1>
-				<p class="text-on-surface-variant font-body mt-1">AI-powered insights into your business performance</p>
+				<h1 class="text-3xl font-headline font-extrabold text-on-surface tracking-tight">{$_('analytics.title', { default: 'Business Intelligence' })}</h1>
+				<p class="text-on-surface-variant font-body mt-1">{$_('analytics.subtitle', { default: 'AI-powered insights into your business performance' })}</p>
 			</div>
 			<div class="text-right">
-				<div class="text-[10px] font-label font-bold uppercase tracking-widest text-on-surface-variant/60 mb-1">Health Score</div>
+				<div class="text-[10px] font-label font-bold uppercase tracking-widest text-on-surface-variant/60 mb-1">{$_('analytics.health_score', { default: 'Health Score' })}</div>
 				<div class="text-4xl font-headline font-extrabold {health.color}">{health.score}</div>
 				<div class="text-xs font-bold {health.color}">{health.label}</div>
 			</div>
@@ -160,14 +160,14 @@
 			<div class="space-y-3" in:fly={{ y: 20, duration: 400 }}>
 				<h2 class="text-sm font-label font-bold uppercase tracking-widest text-on-surface-variant/60 flex items-center gap-2">
 					<span class="material-symbols-outlined text-base text-amber-400">notifications_active</span>
-					Smart Alerts
+					{$_('analytics.smart_alerts', { default: 'Smart Alerts' })}
 				</h2>
 
 				{#if expenseAnomaly}
 					<div class="bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex items-start gap-3">
 						<span class="material-symbols-outlined text-red-400 mt-0.5">warning</span>
 						<div>
-							<p class="font-bold text-sm text-red-400">Expense Anomaly Detected</p>
+							<p class="font-bold text-sm text-red-400">{$_('analytics.expense_anomaly', { default: 'Expense Anomaly Detected' })}</p>
 							<p class="text-xs text-on-surface-variant mt-0.5">This month's expenses ({formatINRCompact(toRupees(currentMonthExpense))}) are more than 2x your average ({formatINRCompact(toRupees(avgMonthlyExpense))}). Review your recent spending.</p>
 						</div>
 					</div>

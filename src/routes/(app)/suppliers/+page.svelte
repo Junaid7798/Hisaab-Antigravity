@@ -104,15 +104,15 @@
 <!-- Header -->
 <div class="flex flex-col md:flex-row md:justify-between md:items-end gap-4 mb-8">
 	<div>
-		<h1 class="text-3xl font-headline font-extrabold text-on-surface tracking-tight">Suppliers</h1>
-		<p class="text-on-surface-variant font-body mt-1">Manage vendors and payables.</p>
+		<h1 class="text-3xl font-headline font-extrabold text-on-surface tracking-tight">{$_('suppliers.title', { default: 'Suppliers' })}</h1>
+		<p class="text-on-surface-variant font-body mt-1">{$_('suppliers.subtitle', { default: 'Manage vendors and payables.' })}</p>
 	</div>
 	<button
 		onclick={() => (showModal = true)}
 		class="w-full md:w-auto flex items-center justify-center gap-2 bg-primary text-on-primary px-5 py-2.5 rounded-xl font-semibold shadow-md inline-flex hover:opacity-90 transition-all active:scale-95"
 	>
 		<span class="material-symbols-outlined">person_add</span>
-		<span>Add Supplier</span>
+		<span>{$_('suppliers.add_supplier', { default: 'Add Supplier' })}</span>
 	</button>
 </div>
 
@@ -120,7 +120,7 @@
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
 	<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/15 flex items-center justify-between">
 		<div>
-			<p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Total Suppliers</p>
+			<p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">{$_('suppliers.total_suppliers', { default: 'Total Suppliers' })}</p>
 			<p class="text-2xl font-headline font-bold text-on-surface">{totalSuppliers.toLocaleString('en-IN')}</p>
 		</div>
 		<div class="w-12 h-12 rounded-full bg-primary-fixed flex items-center justify-center text-primary">
@@ -129,7 +129,7 @@
 	</div>
 	<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/15 flex items-center justify-between">
 		<div>
-			<p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Total Payable</p>
+			<p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">{$_('suppliers.total_payable', { default: 'Total Payable' })}</p>
 			<p class="text-2xl font-headline font-bold text-error">{formatINRCompact(totalPayable)}</p>
 		</div>
 		<div class="w-12 h-12 rounded-full bg-error-container flex items-center justify-center text-error">
@@ -142,7 +142,7 @@
 <div class="mb-6 max-w-md">
 	<Input
 		bind:value={searchQuery}
-		placeholder="Search suppliers by name, phone, or GSTIN..."
+		placeholder={$_('suppliers.search_placeholder', { default: 'Search suppliers by name, phone, or GSTIN...' })}
 		icon="search"
 	/>
 </div>

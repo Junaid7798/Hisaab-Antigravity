@@ -20,6 +20,7 @@
 	let businessStateCode = $state('27');
 	let invoiceCounter = $state(1);
 	let businessName = $state('');
+	let business = $state<any>(null);
 	let loading = $state(true);
 	let processing = $state(false);
 
@@ -61,6 +62,7 @@
 				businessStateCode = biz.state_code;
 				invoiceCounter = biz.invoice_counter;
 				businessName = biz.name;
+				business = biz;
 				patients = await getPatients(biz.id);
 				products = await getProducts(biz.id);
 				if (patients.length > 0) selectedPatientId = patients[0].id;
@@ -164,7 +166,10 @@
 					isPrinting = true;
 					await printReceipt({
 						businessName: businessName,
-						invoiceNumber: invoiceNum,
+						businessAddress: business?.address,
+						businessPhone: business?.phone,
+						gstin: business?.gstin,
+						invoiceNumber: invoiceNumber,
 						date: today(),
 						customerName: patients.find(p => p.id === selectedPatientId)?.name || 'Walk-in Customer',
 						items: cart.map(item => ({
@@ -209,7 +214,7 @@
 		}
 		if (e.key === 'F9') {
 			e.preventDefault();
-			handleCheckout();
+			checkout();
 		}
 		if (e.key === 'Escape') {
 			searchQuery = '';
@@ -258,7 +263,7 @@
 						bind:this={searchInputRef}
 						bind:value={searchQuery}
 						type="text"
-						placeholder="Search products (F2)..."
+						placeholder={$_('pos.search_placeholder', { default: 'Search products (F2)...' })}
 						class="w-full pl-10 pr-4 py-3 bg-surface-container-low rounded-xl border-none text-sm font-body focus:ring-2 focus:ring-primary/30 placeholder:text-on-surface-variant/40"
 					/>
 					{#if searchQuery}
@@ -308,7 +313,7 @@
 				{#if filteredProducts.length === 0}
 					<div class="flex flex-col items-center justify-center py-16 text-on-surface-variant/50">
 						<span class="material-symbols-outlined text-5xl mb-3">search_off</span>
-						<p class="text-sm">No products found</p>
+						<p class="text-sm">{$_('pos.no_products', { default: 'No products found' })}</p>
 					</div>
 				{/if}
 			</div>
@@ -320,7 +325,7 @@
 			<div class="p-4 border-b border-outline-variant/10 flex items-center justify-between">
 				<div class="flex items-center gap-2">
 					<span class="material-symbols-outlined text-primary">shopping_cart</span>
-					<h2 class="font-headline font-bold text-lg">Cart</h2>
+					<h2 class="font-headline font-bold text-lg">{$_('pos.cart', { default: 'Cart' })}</h2>
 					{#if cartItemCount > 0}
 						<span class="bg-primary/10 text-primary text-xs font-bold px-2 py-0.5 rounded-full">{cartItemCount}</span>
 					{/if}
@@ -341,8 +346,8 @@
 				{#if cart.length === 0}
 					<div class="flex flex-col items-center justify-center h-full text-on-surface-variant/40">
 						<span class="material-symbols-outlined text-5xl mb-3">add_shopping_cart</span>
-						<p class="text-sm font-body">Tap products to add</p>
-						<p class="text-[10px] mt-1 font-mono opacity-60">F2 = Search &bull; F9 = Checkout</p>
+						<p class="text-sm font-body">{$_('pos.tap_products', { default: 'Tap products to add' })}</p>
+						<p class="text-[10px] mt-1 font-mono opacity-60">{$_('pos.shortcuts', { default: 'F2 = Search • F9 = Checkout' })}</p>
 					</div>
 				{:else}
 					<div class="divide-y divide-surface-container-low">
@@ -350,7 +355,7 @@
 							<div class="px-4 py-3 flex items-center gap-3" in:slide={{ duration: 200 }}>
 								<div class="flex-1 min-w-0">
 									<p class="text-sm font-bold truncate">{item.product.name}</p>
-									<p class="text-xs text-on-surface-variant">{formatINR(item.product.selling_price)} each</p>
+									<p class="text-xs text-on-surface-variant">{formatINR(item.product.selling_price)} {$_('pos.each', { default: 'each' })}</p>
 								</div>
 								<div class="flex items-center gap-1.5 shrink-0">
 									<button onclick={() => updateQty(i, -1)} class="w-7 h-7 rounded-lg bg-surface-container-low flex items-center justify-center text-on-surface-variant hover:bg-error/10 hover:text-error transition-colors">
@@ -373,15 +378,15 @@
 				<div class="border-t border-outline-variant/10 p-4 space-y-3" in:slide={{ duration: 200 }}>
 					<div class="space-y-1.5 text-sm">
 						<div class="flex justify-between text-on-surface-variant">
-							<span>Subtotal</span>
+							<span>{$_('pos.subtotal', { default: 'Subtotal' })}</span>
 							<span>{formatINR(cartTotal.subtotal)}</span>
 						</div>
 						<div class="flex justify-between text-on-surface-variant">
-							<span>Tax</span>
+							<span>{$_('pos.tax', { default: 'Tax' })}</span>
 							<span>{formatINR(cartTotal.total_tax)}</span>
 						</div>
 						<div class="flex justify-between font-headline font-extrabold text-on-surface text-lg pt-2 border-t border-outline-variant/10">
-							<span>Total</span>
+							<span>{$_('pos.total', { default: 'Total' })}</span>
 							<span class="text-primary">{formatINR(cartTotal.grand_total)}</span>
 						</div>
 					</div>
@@ -397,7 +402,7 @@
 							class="flex items-center gap-2 px-3 py-2 rounded-lg {getConnectionStatus() ? 'bg-emerald-500/10 text-emerald-600' : 'bg-surface-container-low text-on-surface-variant'} text-xs font-bold transition-colors"
 						>
 							<span class="material-symbols-outlined text-sm">{getConnectionStatus() ? 'print_connect' : 'bluetooth'}</span>
-							{getConnectionStatus() ? 'Printer Connected' : 'Connect Printer'}
+							{getConnectionStatus() ? $_('pos.printer_connected', { default: 'Printer Connected' }) : $_('pos.connect_printer', { default: 'Connect Printer' })}
 						</button>
 					{/if}
 				</div>
@@ -407,15 +412,15 @@
 						class="px-4 py-2 text-xs font-bold text-error hover:bg-error/5 rounded-lg"
 						disabled={cart.length === 0}
 					>
-						Clear Cart
+						{$_('pos.clear_cart', { default: 'Clear Cart' })}
 					</button>
 					<button
-						onclick={handleCheckout}
+						onclick={checkout}
 						disabled={processing || cart.length === 0}
 						class="flex items-center gap-2 px-6 py-2.5 bg-primary text-on-primary rounded-xl font-headline font-bold text-sm shadow-md hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
 					>
 						<span class="material-symbols-outlined text-sm">{isPrinting ? 'print' : 'receipt_long'}</span>
-						{isPrinting ? 'Printing...' : processing ? 'Processing...' : 'Checkout (F9)'}
+						{isPrinting ? $_('pos.printing', { default: 'Printing...' }) : processing ? $_('pos.processing', { default: 'Processing...' }) : $_('pos.checkout_button', { default: 'Checkout (F9)' })}
 					</button>
 				</div>
 			</div>

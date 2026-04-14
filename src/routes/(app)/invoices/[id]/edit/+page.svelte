@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
-	import { getBusiness, getPatients, createInvoice, getProducts, updateProduct, createPayment } from '$lib/db/crud';
+	import { getBusiness, getPatients, getInvoice, getInvoiceItems, updateInvoice, getProducts, updateProduct, createPayment } from '$lib/db/crud';
 	import { activeBusinessId, activeTerminology } from '$lib/stores/session';
 	import { calculateInvoiceTax, GST_RATES, type LineItem } from '$lib/utils/gst';
 	import { formatINR, toPaise, toRupees } from '$lib/utils/currency';
@@ -37,11 +37,39 @@
 	let markPaid = $state(true);
 	let amountReceived = $state('');
 
-	let paymentTerms = $state('0'); // 0 = Due on Receipt, 7 = Net 7, 15 = Net 15, 30 = Net 30
+	let invoice = $state<any>(null);
 
 	onMount(async () => {
-		if ($activeBusinessId) {
-			await loadInvoiceContext($activeBusinessId);
+		if ($page.params.id) {
+			const inv = await getInvoice($page.params.id);
+			if (inv) {
+				invoice = inv;
+				if (inv.status !== 'UNPAID' && inv.status !== 'DRAFT') {
+					toast.error('Only unpaid invoices can be edited.');
+					goto(`/invoices/${inv.id}`);
+					return;
+				}
+				issueDate = inv.issue_date;
+				placeOfSupply = inv.tax_type === 'INTRA_STATE' ? '27' : '01';
+				invoiceCounter = parseInt(inv.invoice_number.split('/').pop() || '1');
+				selectedPatientId = inv.patient_id;
+
+				const invItems = await getInvoiceItems(inv.id);
+				if (invItems.length > 0) {
+					items = invItems.map(it => ({
+						product_id: null,
+						description: it.description,
+						hsn_sac: it.hsn_sac,
+						quantity: (it.quantity / 100).toString(),
+						rate: (it.rate / 100).toString(),
+						tax_rate: it.tax_rate
+					}));
+				}
+				
+				if ($activeBusinessId) {
+					await loadInvoiceContext($activeBusinessId);
+				}
+			}
 		}
 	});
 
@@ -51,18 +79,8 @@
 		if (biz) {
 			businessId = biz.id;
 			businessStateCode = biz.state_code;
-			placeOfSupply = biz.state_code;
-			invoiceCounter = biz.invoice_counter;
 			patients = await getPatients(biz.id);
 			products = await getProducts(biz.id);
-			
-			// Pre-select patient from URL query param
-			const queryPatientId = $page.url.searchParams.get('patient_id');
-			if (queryPatientId && patients.some(p => p.id === queryPatientId)) {
-				selectedPatientId = queryPatientId;
-			} else if (patients.length > 0) {
-				selectedPatientId = patients[0].id;
-			}
 		}
 		loading = false;
 	}
@@ -110,28 +128,8 @@
 	let selectedPatient = $derived(patients.find((p) => p.id === selectedPatientId));
 
 	async function handleSubmit() {
-		if (!selectedPatientId || !businessId) return;
+		if (!selectedPatientId || !businessId || !invoice) return;
 		if (items.every((it) => !it.description.trim() || !it.rate)) return;
-
-		// Check stock limits before proceeding
-		let stockWarnings = [];
-		for (const item of items) {
-			if (item.product_id) {
-				const product = products.find(p => p.id === item.product_id);
-				if (product && !product.is_service) {
-					const reqQty = Math.round(parseFloat(item.quantity || '0') * 100);
-					if (reqQty > product.stock_quantity) {
-						stockWarnings.push(`- ${product.name} has only ${product.stock_quantity / 100} in stock (requested ${reqQty / 100}).`);
-					}
-				}
-			}
-		}
-		
-		if (stockWarnings.length > 0) {
-			const proceed = confirm('Low Stock Warning:\n' + stockWarnings.join('\n') + '\n\nDo you want to proceed anyway?');
-			if (!proceed) return;
-		}
-
 		saving = true;
 
 		try {
@@ -141,84 +139,30 @@
 				quantity: Math.round(parseFloat(it.quantity || '0') * 100),
 				rate: toPaise(parseFloat(it.rate || '0')),
 				tax_rate: it.tax_rate,
-				amount: Math.round(toPaise(parseFloat(it.rate || '0')) * parseFloat(it.quantity || '0')),
-				invoice_id: '' // will be set in createInvoice
+				amount: Math.round(toPaise(parseFloat(it.rate || '0')) * parseFloat(it.quantity || '0'))
 			}));
 
-			// Calculate payment amount & status
-			let paymentAmount = 0;
-			let invStatus = 'PENDING';
-			
-			if (markPaid) {
-				paymentAmount = taxSummary.grand_total;
-				invStatus = 'PAID';
-			} else {
-				const amt = parseFloat(amountReceived || '0');
-				if (amt > 0) {
-					paymentAmount = toPaise(amt);
-					if (paymentAmount >= taxSummary.grand_total) {
-						invStatus = 'PAID';
-					} else {
-						invStatus = 'PARTIAL';
-					}
-				}
-			}
-
-			// Calculate Due Date based on Payment Terms
-			let computedDueDate = new Date(issueDate);
-			const addDays = parseInt(paymentTerms, 10);
-			computedDueDate.setDate(computedDueDate.getDate() + addDays);
-			const finalDueDate = computedDueDate.toISOString().split('T')[0];
-
-			const invoice = await createInvoice(
+			await updateInvoice(
+				invoice.id,
 				{
-					business_id: businessId,
 					patient_id: selectedPatientId,
-					invoice_number: invoiceNumber,
 					issue_date: issueDate,
-					due_date: finalDueDate,
+					due_date: issueDate,
 					tax_type: taxSummary.tax_type,
 					subtotal: taxSummary.subtotal,
 					total_tax: taxSummary.total_tax,
 					grand_total: taxSummary.grand_total,
 					cgst: taxSummary.total_cgst,
 					sgst: taxSummary.total_sgst,
-					igst: taxSummary.total_igst,
-					status: invStatus as any,
-					notes: ''
+					igst: taxSummary.total_igst
 				},
-				lineItems
+				lineItems as any
 			);
 
-			if (paymentAmount > 0) {
-				await createPayment(businessId, {
-					patient_id: selectedPatientId,
-					invoice_id: invoice.id,
-					amount: paymentAmount,
-					payment_date: issueDate,
-					method: 'CASH',
-					reference: markPaid ? 'Auto-marked Paid on Creation' : 'Partial Payment'
-				});
-			}
-
-			// Deduct inventory stock (with negative guard)
-			for (const item of items) {
-				if (item.product_id) {
-					const product = products.find(p => p.id === item.product_id);
-					if (product && !product.is_service) {
-						const deduction = Math.round(parseFloat(item.quantity || '0') * 100);
-						const newStock = Math.max(0, product.stock_quantity - deduction);
-						await updateProduct(product.id, {
-							stock_quantity: newStock
-						});
-					}
-				}
-			}
-
-			toast.success($_('toast.invoice_created', { default: 'Invoice created successfully' }));
+			toast.success('Invoice updated successfully');
 			
 			setTimeout(() => {
-				goto('/dashboard');
+				goto(`/invoices/${invoice.id}`);
 			}, 300);
 		} catch (err) {
 			console.error('Failed to save invoice:', err);
@@ -235,17 +179,17 @@
 
 <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
 	<div>
-		<h2 class="text-3xl font-headline font-bold text-on-surface tracking-tight">{$_('invoices.title', { default: `New ${$activeTerminology.document}` })}</h2>
-		<p class="text-on-surface-variant font-body mt-1">{$_('invoices.subtitle', { default: 'Create a new GST-compliant bill' })}</p>
+		<h2 class="text-3xl font-headline font-bold text-on-surface tracking-tight">Edit {$activeTerminology.document}</h2>
+		<p class="text-on-surface-variant font-body mt-1">Modify your existing invoice</p>
 	</div>
 	<!-- Desktop Actions -->
 	<div class="hidden lg:flex gap-3">
-		<button onclick={() => goto('/dashboard')} class="px-6 py-2.5 rounded-lg border border-outline-variant font-headline font-semibold text-sm hover:bg-surface-container-low transition-colors">
+		<button onclick={() => goto(`/invoices/${invoice?.id}`)} class="px-6 py-2.5 rounded-lg border border-outline-variant font-headline font-semibold text-sm hover:bg-surface-container-low transition-colors">
 			{$_('invoices.btn_cancel', { default: 'Cancel' })}
 		</button>
 		<button onclick={handleSubmit} disabled={saving} class="px-6 py-2.5 rounded-lg bg-gradient-to-br from-primary to-primary-container text-on-primary font-headline font-bold text-sm shadow-lg flex items-center gap-2 disabled:opacity-50 hover:opacity-90 transition-all active:scale-95">
 			<span class="material-symbols-outlined text-sm">save</span>
-			{saving ? $_('invoices.btn_saving', { default: 'Saving...' }) : $_('invoices.btn_save', { default: 'Save & Print' })}
+			{saving ? $_('invoices.btn_saving', { default: 'Saving...' }) : 'Update Invoice'}
 		</button>
 	</div>
 </div>
@@ -278,16 +222,6 @@
 						label={$_('invoices.billing_date', { default: 'Billing Date' })}
 						bind:value={issueDate}
 						type="date"
-					/>
-					<Select
-						label="Payment Terms"
-						bind:value={paymentTerms}
-						options={[
-							{ value: '0', label: 'Due on Receipt' },
-							{ value: '7', label: 'Net 7' },
-							{ value: '15', label: 'Net 15' },
-							{ value: '30', label: 'Net 30' }
-						]}
 					/>
 					<Select
 						label={$_('invoices.place_of_supply', { default: 'Place of Supply' })}
@@ -451,36 +385,18 @@
 				</div>
 			</div>
 
-			<!-- Options -->
-			<div class="bg-surface-container-lowest border border-outline-variant/10 rounded-xl p-4 flex flex-col gap-2 mb-20 lg:mb-0">
-				<label class="text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest px-2 mb-1">{$_('invoices.options', { default: 'Options' })}</label>
-				<label class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-container-low cursor-pointer transition-colors">
-					<input type="checkbox" bind:checked={markPaid} class="rounded text-primary focus:ring-primary h-4 w-4" />
-					<span class="text-sm font-medium">{$_('invoices.mark_paid', { default: 'Mark as Paid' })}</span>
-				</label>
-				{#if !markPaid}
-					<div class="px-3 pb-3">
-						<Input
-							label="Amount Received (Optional)"
-							bind:value={amountReceived}
-							type="number"
-							min="0"
-							step="0.01"
-						/>
-					</div>
-				{/if}
-			</div>
+			<!-- Options excluded during edit to prevent confusing status issues -->
 		</div>
 	</div>
 
 	<!-- Mobile Sticky Action Bar -->
 	<div class="fixed bottom-0 left-0 right-0 p-4 bg-surface-container-lowest border-t border-outline-variant/20 z-30 lg:hidden shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] flex gap-3">
-		<button onclick={() => goto('/dashboard')} class="flex-1 py-3.5 rounded-xl border border-outline-variant font-headline font-semibold text-[15px] hover:bg-surface-container-low transition-colors active:scale-95 bg-surface-container-lowest">
+		<button onclick={() => goto(`/invoices/${invoice?.id}`)} class="flex-1 py-3.5 rounded-xl border border-outline-variant font-headline font-semibold text-[15px] hover:bg-surface-container-low transition-colors active:scale-95 bg-surface-container-lowest">
 			{$_('invoices.btn_cancel', { default: 'Cancel' })}
 		</button>
 		<button onclick={handleSubmit} disabled={saving} class="flex-[2] py-3.5 rounded-xl bg-gradient-to-br from-primary to-primary-container text-on-primary font-headline font-bold text-[15px] shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95">
 			<span class="material-symbols-outlined text-base">save</span>
-			{saving ? $_('invoices.btn_saving', { default: 'Saving...' }) : $_('invoices.btn_save', { default: 'Save & Print' })}
+			{saving ? $_('invoices.btn_saving', { default: 'Saving...' }) : 'Update Invoice'}
 		</button>
 	</div>
 {/if}

@@ -61,7 +61,7 @@
 			onclick={() => switcherOpen = !switcherOpen}
 		>
 			<div class="flex flex-col overflow-hidden">
-				<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-0.5">{$_('switcher.active_clinic', { default: 'Active Clinic' })}</span>
+				<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-0.5">{$_('switcher.active_clinic', { default: `Active ${$activeTerminology.venue}` })}</span>
 				<span class="text-sm font-semibold truncate text-on-surface">{activeBusiness ? activeBusiness.name : 'Select Clinic'}</span>
 			</div>
 			<span class="material-symbols-outlined text-on-surface-variant/70 transition-transform {switcherOpen ? 'rotate-180' : ''}">expand_more</span>
@@ -88,7 +88,7 @@
 					<!-- svelte-ignore a11y_invalid_a_href -->
 					<a href="/settings" class="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-xs font-bold text-primary hover:bg-primary/5 transition-colors">
 						<span class="material-symbols-outlined text-sm">add_circle</span>
-						{$_('switcher.add_clinic', { default: 'Add New Clinic' })}
+						{$_('switcher.add_clinic', { default: `Add New ${$activeTerminology.venue}` })}
 					</a>
 				</div>
 			</div>

@@ -48,6 +48,16 @@ Significant operational features have been added to move Hisaab toward "Best-in-
 - **Skeleton Coverage**: Skeleton loaders need to be integrated into the Patients and Expenses list views.
 - **Mobile Polish**: Review the Command Palette and Charts on small screens (iPhone SE size) for potential overlap issues.
 
+## 7. Enterprise Vanguard - Phase 1 (COMPLETED)
+- **Critical Runtime Fixes**: Resolved crashing bugs within POS (`handleCheckout` vs `checkout`, `invoiceNumber` typo).
+- **Dashboard Intelligence**: Added smart alerts for low stock and overdue invoices, along with Month-over-Month revenue tracking.
+- **Invoice Core Improvements**: Added the ability to construct, edit, and partially pay invoices, including low stock warnings. Created an Edit Invoice workflow.
+- **Robust Financials**: Hardened `getOutstandingTotal` and `getRevenueTotal` to exclusively compute against valid `INVOICE` document types.
+- **Recurring Invoices Engine**: Unlocked background check firing natively within the root layout upon startup.
+- **i18n & Globalization Clean up**: Pushed dynamic text into `$_` functions across POS, Analytics, and Supplier modules.
+- **Hardware Integration**: Plumbed critical Business configuration data directly to the ESC/POS printing payloads.
+- **Payments Automation**: Built a fast Net term (7/15/30) logic handler to compute accurate Due Dates within the invoice creation process.
+
 ## Technical Stack
 - **Framework**: SvelteKit 2 (Svelte 5 Runes)
 - **Styling**: Tailwind CSS v4 / Vanilla CSS

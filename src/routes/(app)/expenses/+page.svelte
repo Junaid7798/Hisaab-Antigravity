@@ -20,7 +20,7 @@
 	let showModal = $state(false);
 
 	// Form
-	let newCategory = $state('Medical Supplies');
+	let newCategory = $state(EXPENSE_CATEGORIES[0]);
 	let newDescription = $state('');
 	let newAmount = $state('');
 	let newDate = $state(today());

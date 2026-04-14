@@ -105,11 +105,11 @@
 		<div class="md:ml-auto w-full md:w-auto mt-2 md:mt-0 flex gap-3">
 			<a href="/purchases/new?supplier_id={supplier.id}" class="w-full md:w-auto px-5 py-3 md:py-2.5 bg-surface border border-outline-variant text-on-surface hover:bg-surface-container-low rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2">
 				<span class="material-symbols-outlined text-sm">add</span>
-				New PO
+				{$_('suppliers.new_po', { default: 'New PO' })}
 			</a>
 			<button onclick={() => showPaymentModal = true} class="w-full md:w-auto px-5 py-3 md:py-2.5 bg-primary text-on-primary rounded-xl font-semibold text-sm shadow-md hover:opacity-90 transition-all flex items-center justify-center gap-2">
 				<span class="material-symbols-outlined text-sm">payments</span>
-				Record Payment
+				{$_('suppliers.record_payment', { default: 'Record Payment' })}
 			</button>
 		</div>
 	</div>
@@ -117,15 +117,15 @@
 	<!-- Stats -->
 	<div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-10">
 		<div class="bg-surface-container-lowest p-5 md:p-6 rounded-xl border border-outline-variant/20 shadow-sm">
-			<p class="text-[11px] md:text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Total Purchased</p>
+			<p class="text-[11px] md:text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">{$_('suppliers.total_purchased', { default: 'Total Purchased' })}</p>
 			<p class="text-2xl font-headline font-bold text-on-surface">{formatINRCompact(totalPurchased)}</p>
 		</div>
 		<div class="bg-surface-container-lowest p-5 md:p-6 rounded-xl border border-outline-variant/20 shadow-sm">
-			<p class="text-[11px] md:text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Total Paid</p>
+			<p class="text-[11px] md:text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">{$_('suppliers.total_paid', { default: 'Total Paid' })}</p>
 			<p class="text-2xl font-headline font-bold text-secondary">{formatINRCompact(totalPaid)}</p>
 		</div>
 		<div class="bg-surface-container-lowest p-5 md:p-6 rounded-xl border border-outline-variant/20 shadow-sm">
-			<p class="text-[11px] md:text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Outstanding Payable</p>
+			<p class="text-[11px] md:text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">{$_('suppliers.outstanding_payable', { default: 'Outstanding Payable' })}</p>
 			<p class="text-2xl font-headline font-bold {outstanding > 0 ? 'text-error' : 'text-success'}">{formatINRCompact(outstanding)}</p>
 		</div>
 	</div>

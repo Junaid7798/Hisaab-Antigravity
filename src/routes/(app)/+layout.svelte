@@ -3,7 +3,7 @@
 	import TopNav from '$lib/components/TopNav.svelte';
 	import Toast from '$lib/components/Toast.svelte';
 	import CommandPalette from '$lib/components/CommandPalette.svelte';
-	import { getBusinesses } from '$lib/db/crud';
+	import { getBusinesses, processRecurringSchedules } from '$lib/db/crud';
 	import type { Business } from '$lib/db/index';
 	import { activeBusinessId, activeTerminology } from '$lib/stores/session';
 	import { getTerminology } from '$lib/utils/terminology';
@@ -18,6 +18,13 @@
 
 	onMount(async () => {
 		businesses = await getBusinesses();
+		
+		try {
+			await processRecurringSchedules();
+		} catch (err) {
+			console.error('Failed to process recurring schedules:', err);
+		}
+
 		if (businesses.length > 0 && !$activeBusinessId) {
 			$activeBusinessId = businesses[0].id;
 		}

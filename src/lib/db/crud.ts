@@ -139,6 +139,32 @@ export async function createInvoice(data: Omit<Invoice, 'id' | 'is_deleted' | 'c
 	return invoice;
 }
 
+export async function updateInvoice(id: string, data: Partial<Omit<Invoice, 'id' | 'is_deleted' | 'created_at' | 'last_modified'>>, items: Omit<InvoiceItem, 'id' | 'is_deleted' | 'created_at' | 'last_modified' | 'invoice_id'>[]): Promise<void> {
+	await db.transaction('rw', db.invoices, db.invoice_items, async () => {
+		// Update main invoice data
+		await db.invoices.update(id, {
+			...data,
+			last_modified: now()
+		});
+
+		// Replace items: Delete old, add new
+		const oldItems = await db.invoice_items.where('invoice_id').equals(id).toArray();
+		const oldItemIds = oldItems.map(i => i.id);
+		await db.invoice_items.bulkDelete(oldItemIds);
+
+		const updatedItems: InvoiceItem[] = items.map((item) => ({
+			...item,
+			id: generateId(),
+			invoice_id: id,
+			is_deleted: false,
+			created_at: now(),
+			last_modified: now()
+		}));
+
+		await db.invoice_items.bulkAdd(updatedItems);
+	});
+}
+
 export async function convertEstimateToInvoice(estimateId: string): Promise<Invoice> {
 	const estimate = await getInvoice(estimateId);
 	if (!estimate || estimate.document_type !== 'ESTIMATE') throw new Error('Invalid estimate');
@@ -232,7 +258,7 @@ export async function getOutstandingTotal(businessId: string): Promise<number> {
 	const invoices = await db.invoices
 		.where('business_id')
 		.equals(businessId)
-		.filter((i) => !i.is_deleted)
+		.filter((i) => !i.is_deleted && i.document_type === 'INVOICE' && i.status !== 'PAID')
 		.toArray();
 	const payments = await db.payments
 		.where('business_id')
@@ -248,9 +274,59 @@ export async function getRevenueTotal(businessId: string): Promise<number> {
 	const invoices = await db.invoices
 		.where('business_id')
 		.equals(businessId)
-		.filter((i) => !i.is_deleted)
+		.filter((i) => !i.is_deleted && i.document_type === 'INVOICE')
 		.toArray();
 	return invoices.reduce((sum, inv) => sum + inv.grand_total, 0);
+}
+
+export async function getDashboardAlerts(businessId: string): Promise<{
+    lowStock: Product[];
+    overdueInvoices: Invoice[];
+    revenueChangePercentage: number | null;
+}> {
+    // 1. Low stock
+    const lowStock = await db.products
+        .where('business_id').equals(businessId)
+        .filter(p => !p.is_deleted && !p.is_service && p.stock_quantity <= p.low_stock_threshold)
+        .toArray();
+
+    // 2. Overdue Invoices
+    const today = new Date().toISOString().split('T')[0];
+    const overdueInvoices = await db.invoices
+        .where('business_id').equals(businessId)
+        .filter(i => !i.is_deleted && i.document_type === 'INVOICE' && i.status !== 'PAID' && !!i.due_date && i.due_date < today)
+        .toArray();
+
+    // 3. MoM Revenue Change
+    const currentMonthPrefix = today.substring(0, 7); // YYYY-MM
+    let lastMonthDate = new Date();
+    lastMonthDate.setMonth(lastMonthDate.getMonth() - 1);
+    const lastMonthPrefix = lastMonthDate.toISOString().substring(0, 7);
+
+    const invoices = await db.invoices
+        .where('business_id').equals(businessId)
+        .filter(i => !i.is_deleted && i.document_type === 'INVOICE')
+        .toArray();
+
+    let currReq = 0;
+    let prevReq = 0;
+    for (const inv of invoices) {
+        if (inv.issue_date.startsWith(currentMonthPrefix)) currReq += inv.grand_total;
+        if (inv.issue_date.startsWith(lastMonthPrefix)) prevReq += inv.grand_total;
+    }
+
+    let revenueChangePercentage = null;
+    if (prevReq > 0) {
+        revenueChangePercentage = ((currReq - prevReq) / prevReq) * 100;
+    } else if (currReq > 0) {
+        revenueChangePercentage = 100;
+    }
+
+    return {
+        lowStock,
+        overdueInvoices,
+        revenueChangePercentage
+    };
 }
 
 export async function getRecentInvoices(businessId: string, limit: number = 5): Promise<(Invoice & { patient_name: string })[]> {
