@@ -5,12 +5,13 @@
 	import CommandPalette from '$lib/components/CommandPalette.svelte';
 	import { getBusinesses } from '$lib/db/crud';
 	import type { Business } from '$lib/db/index';
-	import { activeBusinessId } from '$lib/stores/session';
+	import { activeBusinessId, activeTerminology } from '$lib/stores/session';
+	import { getTerminology } from '$lib/utils/terminology';
 	import { onMount, setContext } from 'svelte';
 	import { page } from '$app/stores';
 	import { fade } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
-
+	import { goto } from '$app/navigation';
 	let { children } = $props();
 	let businesses = $state<Business[]>([]);
 	let activeBusiness = $derived(businesses.find(b => b.id === $activeBusinessId) || businesses[0]);
@@ -19,6 +20,13 @@
 		businesses = await getBusinesses();
 		if (businesses.length > 0 && !$activeBusinessId) {
 			$activeBusinessId = businesses[0].id;
+		}
+		
+		const currentBusiness = businesses.find(b => b.id === $activeBusinessId) || businesses[0];
+		if (!currentBusiness || !currentBusiness.business_category) {
+			goto('/onboarding');
+		} else {
+			activeTerminology.set(getTerminology(currentBusiness.business_category));
 		}
 	});
 </script>

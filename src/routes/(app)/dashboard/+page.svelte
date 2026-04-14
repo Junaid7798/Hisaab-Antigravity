@@ -6,7 +6,7 @@
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import Skeleton from '$lib/components/Skeleton.svelte';
 	import { getBusiness, getRevenueTotal, getOutstandingTotal, countPatients, getRecentInvoices } from '$lib/db/crud';
-	import { activeBusinessId } from '$lib/stores/session';
+	import { activeBusinessId, activeTerminology } from '$lib/stores/session';
 	import { formatINRCompact, formatINR } from '$lib/utils/currency';
 	import { formatDate, timeAgo } from '$lib/utils/helpers';
 	import { fly, fade } from 'svelte/transition';
@@ -119,11 +119,11 @@
 
 	<!-- Patients -->
 	<div in:fly={{ y: 20, duration: 400, delay: 250, easing: cubicOut }} class="col-span-12 md:col-span-4 bg-surface-container-lowest p-6 rounded-xl shadow-sm">
-		<p class="text-xs font-label uppercase tracking-widest text-on-surface-variant">{$_('dashboard.total_patients', { default: 'Total Patients' })}</p>
+		<p class="text-xs font-label uppercase tracking-widest text-on-surface-variant">{$_('dashboard.total_patients', { default: `Total ${$activeTerminology.people}` })}</p>
 		<h3 class="text-4xl font-headline font-extrabold mt-2 text-secondary">{patientCount}</h3>
 		<div class="mt-4 flex items-center gap-2 text-sm text-on-surface-variant">
 			<span class="material-symbols-outlined text-sm">group</span>
-			<span>{$_('dashboard.registered_patients', { default: 'Registered patients' })}</span>
+			<span>{$_('dashboard.registered_patients', { default: `Registered ${$activeTerminology.people.toLowerCase()}` })}</span>
 		</div>
 	</div>
 </div>
@@ -132,16 +132,16 @@
 <div class="grid grid-cols-12 gap-6">
 	<div in:fade={{ duration: 400, delay: 350 }} class="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
 		<div class="p-6 border-b border-surface-container flex justify-between items-center">
-			<h4 class="font-headline font-bold text-xl">{$_('dashboard.recent_invoices', { default: 'Recent Invoices' })}</h4>
+			<h4 class="font-headline font-bold text-xl">{$_('dashboard.recent_invoices', { default: `Recent ${$activeTerminology.action}` })}</h4>
 			<a href="/invoices/new" class="text-primary text-sm font-semibold hover:underline">{$_('dashboard.create_new', { default: 'Create New' })}</a>
 		</div>
 
 		{#if recentInvoices.length === 0}
 			<EmptyState
 				icon="receipt_long"
-				title={$_('dashboard.no_invoices', { default: 'No invoices yet' })}
-				description={$_('dashboard.no_invoices_desc', { default: 'Create your first invoice to start tracking revenue.' })}
-				actionLabel={$_('dashboard.create_invoice', { default: 'Create Invoice' })}
+				title={$_('dashboard.no_invoices', { default: `No ${$activeTerminology.document.toLowerCase()}s yet` })}
+				description={$_('dashboard.no_invoices_desc', { default: `Create your first ${$activeTerminology.document.toLowerCase()} to start tracking revenue.` })}
+				actionLabel={$_('dashboard.create_invoice', { default: `Create ${$activeTerminology.document}` })}
 				actionHref="/invoices/new"
 			/>
 		{:else}
@@ -149,7 +149,7 @@
 				<table class="w-full text-left whitespace-nowrap">
 					<thead>
 						<tr class="bg-surface-container-low text-on-surface-variant">
-							<th class="px-6 py-4 text-[10px] font-bold uppercase tracking-wider">{$_('dashboard.table_patient', { default: 'Patient' })}</th>
+							<th class="px-6 py-4 text-[10px] font-bold uppercase tracking-wider">{$_('dashboard.table_patient', { default: $activeTerminology.person })}</th>
 							<th class="px-6 py-4 text-[10px] font-bold uppercase tracking-wider">{$_('dashboard.table_date', { default: 'Date' })}</th>
 							<th class="px-6 py-4 text-[10px] font-bold uppercase tracking-wider">{$_('dashboard.table_amount', { default: 'Amount' })}</th>
 							<th class="px-6 py-4 text-[10px] font-bold uppercase tracking-wider">{$_('dashboard.table_status', { default: 'Status' })}</th>
@@ -197,7 +197,7 @@
 						<span class="material-symbols-outlined text-xl">add_circle</span>
 					</div>
 					<div>
-						<p class="text-sm font-semibold">{$_('actions.new_invoice', { default: 'New Invoice' })}</p>
+						<p class="text-sm font-semibold">{$_('actions.new_invoice', { default: `New ${$activeTerminology.document}` })}</p>
 						<p class="text-[10px] text-on-surface-variant">{$_('dashboard.new_invoice_desc', { default: 'Create GST bill' })}</p>
 					</div>
 				</a>
@@ -206,8 +206,8 @@
 						<span class="material-symbols-outlined text-xl">person_add</span>
 					</div>
 					<div>
-						<p class="text-sm font-semibold">{$_('actions.add_patient', { default: 'Add Patient' })}</p>
-						<p class="text-[10px] text-on-surface-variant">{$_('dashboard.add_patient_desc', { default: 'Register new patient' })}</p>
+						<p class="text-sm font-semibold">{$_('actions.add_patient', { default: `Add ${$activeTerminology.person}` })}</p>
+						<p class="text-[10px] text-on-surface-variant">{$_('dashboard.add_patient_desc', { default: `Register new ${$activeTerminology.person.toLowerCase()}` })}</p>
 					</div>
 				</a>
 				<a href="/expenses" class="p-3 bg-surface-container-lowest rounded-lg flex items-center gap-3 border border-transparent hover:border-primary/20 transition-all">
@@ -229,7 +229,7 @@
 			</div>
 			<div class="relative z-10">
 				<h6 class="font-headline font-bold text-lg">{$_('dashboard.need_help', { default: 'Need Help?' })}</h6>
-				<p class="text-sm opacity-80 mb-4">{$_('dashboard.help_desc', { default: 'Check our guides for GST billing and clinic setup.' })}</p>
+				<p class="text-sm opacity-80 mb-4">{$_('dashboard.help_desc', { default: 'Check our guides for GST billing and setup.' })}</p>
 				<a href="/help" class="bg-surface-container-lowest text-tertiary px-4 py-2 rounded-lg text-xs font-bold hover:bg-surface-variant transition-colors inline-block">{$_('dashboard.get_support', { default: 'Get Support' })}</a>
 			</div>
 		</div>

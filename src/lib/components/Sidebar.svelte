@@ -2,17 +2,8 @@
 	import { page } from '$app/stores';
 	import { isMobileDrawerOpen, closeMobileDrawer } from '$lib/stores/ui';
 
-	const navItems = [
-		{ href: '/dashboard', icon: 'dashboard', i18nKey: 'nav.dashboard', fallback: 'Dashboard' },
-		{ href: '/patients', icon: 'group', i18nKey: 'nav.patients', fallback: 'Patients' },
-		{ href: '/invoices/new', icon: 'receipt_long', i18nKey: 'nav.invoices', fallback: 'Invoices' },
-		{ href: '/expenses', icon: 'payments', i18nKey: 'nav.expenses', fallback: 'Expenses' },
-		{ href: '/reports', icon: 'analytics', i18nKey: 'nav.reports', fallback: 'Reports' },
-		{ href: '/settings', icon: 'settings', i18nKey: 'nav.settings', fallback: 'Settings' }
-	];
-
 	import type { Business } from '$lib/db/index';
-	import { activeBusinessId } from '$lib/stores/session';
+	import { activeBusinessId, activeTerminology } from '$lib/stores/session';
 	import { fade, slide } from 'svelte/transition';
 	import { _ } from 'svelte-i18n';
 
@@ -20,6 +11,21 @@
 
 	let activeBusiness = $derived(businesses.find(b => b.id === activeId));
 	let switcherOpen = $state(false);
+
+	let navItems = $derived([
+		{ href: '/dashboard', icon: 'dashboard', i18nKey: 'nav.dashboard', fallback: 'Dashboard' },
+		{ href: '/pos', icon: 'point_of_sale', i18nKey: 'nav.pos', fallback: 'POS Mode' },
+		{ href: '/patients', icon: 'group', i18nKey: 'nav.patients', fallback: $activeTerminology.people },
+		{ href: '/invoices/new', icon: 'receipt_long', i18nKey: 'nav.invoices', fallback: `${$activeTerminology.document}s` },
+		{ href: '/estimates/new', icon: 'description', i18nKey: 'nav.estimates', fallback: `Estimates` },
+		{ href: '/recurring/new', icon: 'autorenew', i18nKey: 'nav.recurring', fallback: `Subscriptions` },
+		{ href: '/inventory', icon: 'inventory_2', i18nKey: 'nav.inventory', fallback: $activeTerminology.items },
+		{ href: '/suppliers', icon: 'local_shipping', i18nKey: 'nav.suppliers', fallback: 'Suppliers' },
+		{ href: '/expenses', icon: 'payments', i18nKey: 'nav.expenses', fallback: 'Expenses' },
+		{ href: '/reports', icon: 'analytics', i18nKey: 'nav.reports', fallback: 'Reports' },
+		{ href: '/analytics', icon: 'monitoring', i18nKey: 'nav.analytics', fallback: 'Intelligence' },
+		{ href: '/settings', icon: 'settings', i18nKey: 'nav.settings', fallback: 'Settings' }
+	]);
 
 	function switchClinic(id: string) {
 		$activeBusinessId = id;

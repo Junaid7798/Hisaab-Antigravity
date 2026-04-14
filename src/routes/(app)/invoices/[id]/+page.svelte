@@ -6,24 +6,37 @@
 	import { cubicOut } from 'svelte/easing';
 	import StatusChip from '$lib/components/StatusChip.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
-	import { getInvoice, getInvoiceItems, getPatient, getBusiness, updateInvoiceStatus } from '$lib/db/crud';
+	import Modal from '$lib/components/Modal.svelte';
+	import Input from '$lib/components/Input.svelte';
+	import Select from '$lib/components/Select.svelte';
+	import { getInvoice, getInvoiceItems, getPatient, getBusiness, updateInvoiceStatus, getPaymentsByInvoice, createPayment, convertEstimateToInvoice } from '$lib/db/crud';
 	import { formatINR } from '$lib/utils/currency';
-	import { formatDate, INDIAN_STATES } from '$lib/utils/helpers';
+	import { formatDate, INDIAN_STATES, today } from '$lib/utils/helpers';
 	import { toast } from '$lib/stores/toast';
-	import type { Invoice, InvoiceItem, Patient, Business } from '$lib/db/index';
+	import type { Invoice, InvoiceItem, Patient, Business, Payment } from '$lib/db/index';
 
 	let invoice = $state<Invoice | null>(null);
 	let items = $state<InvoiceItem[]>([]);
 	let patient = $state<Patient | null>(null);
 	let business = $state<Business | null>(null);
+	let payments = $state<Payment[]>([]);
 	let loading = $state(true);
 	let generatingPdf = $state(false);
+
+	let totalPaid = $derived(payments.reduce((s, p) => s + p.amount, 0));
+	let outstanding = $derived(invoice ? invoice.grand_total - totalPaid : 0);
+
+	let showPaymentModal = $state(false);
+	let newPaymentAmount = $state('');
+	let newPaymentDate = $state(today());
+	let newPaymentMethod = $state('CASH');
+	let newPaymentRef = $state('');
 
 	function getStateName(code: string): string {
 		return INDIAN_STATES.find(s => s.code === code)?.name || code;
 	}
 
-	onMount(async () => {
+	async function loadInvoiceData() {
 		const id = $page.params.id as string;
 		if (!id) return;
 		const inv = await getInvoice(id);
@@ -32,22 +45,67 @@
 			items = await getInvoiceItems(inv.id);
 			patient = (await getPatient(inv.patient_id)) || null;
 			business = (await getBusiness(inv.business_id)) || null;
+			payments = await getPaymentsByInvoice(inv.id);
+			
+			// pre-fill amount with outstanding
+			if (invoice) {
+				const diff = invoice.grand_total - payments.reduce((s, p) => s + p.amount, 0);
+				newPaymentAmount = diff > 0 ? (diff / 100).toString() : '';
+			}
 		}
+	}
+
+	onMount(async () => {
+		await loadInvoiceData();
 		loading = false;
 	});
 
-	async function markPaid() {
-		if (!invoice) return;
-		await updateInvoiceStatus(invoice.id, 'PAID');
-		invoice = { ...invoice, status: 'PAID' };
-		toast.success($_('toast.invoice_paid', { default: 'Invoice marked as paid' }));
+	async function handleRecordPayment() {
+		if (!invoice || !business) return;
+		const amt = Math.round(Number(newPaymentAmount) * 100);
+		if (amt <= 0) return;
+
+		await createPayment(business.id, {
+			patient_id: invoice.patient_id,
+			invoice_id: invoice.id,
+			amount: amt,
+			payment_date: newPaymentDate,
+			method: newPaymentMethod as any,
+			reference: newPaymentRef
+		});
+
+		const newTotalPaid = totalPaid + amt;
+		let newStatus: 'PAID' | 'UNPAID' | 'PARTIAL' = 'UNPAID';
+		
+		if (newTotalPaid >= invoice.grand_total) {
+			newStatus = 'PAID';
+		} else if (newTotalPaid > 0) {
+			newStatus = 'PARTIAL';
+		}
+
+		await updateInvoiceStatus(invoice.id, newStatus);
+		invoice = { ...invoice, status: newStatus };
+
+		toast.success('Payment recorded successfully');
+		showPaymentModal = false;
+		newPaymentRef = '';
+		
+		await loadInvoiceData();
 	}
 
-	async function markUnpaid() {
+	async function handleConvertEstimate() {
 		if (!invoice) return;
-		await updateInvoiceStatus(invoice.id, 'UNPAID');
-		invoice = { ...invoice, status: 'UNPAID' };
-		toast.success($_('toast.invoice_unpaid', { default: 'Invoice marked as unpaid' }));
+		try {
+			loading = true;
+			const newInvoice = await convertEstimateToInvoice(invoice.id);
+			toast.success('Estimate converted to Invoice successfully');
+			// Navigate to the newly created invoice
+			window.location.href = `/invoices/${newInvoice.id}`;
+		} catch (err: any) {
+			console.error(err);
+			toast.error('Failed to convert estimate: ' + err.message);
+			loading = false;
+		}
 	}
 
 	function handlePrint() {
@@ -97,6 +155,39 @@
 		}
 		generatingPdf = false;
 	}
+
+	async function handleShare() {
+		if (!invoice) return;
+		const text = `Invoice ${invoice.invoice_number} from ${business?.name} for ${formatINR(invoice.grand_total)}\nDue: ${formatDate(invoice.issue_date)}`;
+		if (navigator.share) {
+			try {
+				await navigator.share({
+					title: `Invoice ${invoice.invoice_number}`,
+					text: text,
+					url: window.location.href // Since it's a PWA, URL won't work perfectly unless hosted, but it's okay standard fallback
+				});
+			} catch (err) {
+				console.error('Error sharing:', err);
+			}
+		} else {
+			// Fallback copy to clipboard
+			try {
+				await navigator.clipboard.writeText(text);
+				toast.success('Invoice details copied to clipboard');
+			} catch (e) {
+				toast.error('Sharing not supported on this device');
+			}
+		}
+	}
+
+	function handleWhatsApp() {
+		if (!invoice || !patient?.phone) {
+			toast.error('Patient phone number missing');
+			return;
+		}
+		const text = `Hello ${patient.name},%0A%0AHere are your invoice details from *${business?.name}*:%0A%0A*Invoice:* ${invoice.invoice_number}%0A*Amount:* ${formatINR(invoice.grand_total)}%0A*Date:* ${formatDate(invoice.issue_date)}%0A%0AThank you!`;
+		window.open(`https://wa.me/${patient.phone.replace(/\D/g, '')}?text=${text}`, '_blank');
+	}
 </script>
 
 <svelte:head>
@@ -127,18 +218,32 @@
 				<p class="text-sm text-on-surface-variant">{$_('invoices.issued', { default: 'Issued' })} {formatDate(invoice.issue_date)}</p>
 			</div>
 		</div>
-		<div class="flex items-center gap-3">
-			{#if invoice.status !== 'PAID'}
-				<button onclick={markPaid} class="px-5 py-2.5 bg-primary text-on-primary rounded-xl font-bold text-sm shadow-md hover:opacity-90 transition-all active:scale-[0.98] flex items-center gap-2">
-					<span class="material-symbols-outlined text-sm">check_circle</span>
-					{$_('invoices.mark_paid', { default: 'Mark Paid' })}
+		<div class="flex flex-wrap items-center gap-3">
+			{#if invoice.document_type === 'ESTIMATE'}
+				<button onclick={handleConvertEstimate} class="px-5 py-2.5 bg-tertiary text-on-tertiary rounded-xl font-bold text-sm shadow-md hover:opacity-90 transition-all active:scale-[0.98] flex items-center gap-2">
+					<span class="material-symbols-outlined text-sm">transform</span>
+					Convert to Invoice
 				</button>
-			{:else}
-				<button onclick={markUnpaid} class="px-5 py-2.5 bg-surface-container-low text-on-surface rounded-xl font-bold text-sm border border-outline-variant/20 hover:bg-surface-container transition-all active:scale-[0.98] flex items-center gap-2">
-					<span class="material-symbols-outlined text-sm">undo</span>
-					{$_('invoices.mark_unpaid', { default: 'Mark Unpaid' })}
+			{:else if invoice.status !== 'PAID' && invoice.document_type !== 'CREDIT_NOTE'}
+				<button onclick={() => showPaymentModal = true} class="px-5 py-2.5 bg-primary text-on-primary rounded-xl font-bold text-sm shadow-md hover:opacity-90 transition-all active:scale-[0.98] flex items-center gap-2">
+					<span class="material-symbols-outlined text-sm">payments</span>
+					Record Payment
 				</button>
 			{/if}
+			{#if invoice.document_type === 'INVOICE'}
+				<a href="/invoices/{invoice.id}/return" class="px-5 py-2.5 bg-error/10 text-error rounded-xl font-bold text-sm hover:bg-error/20 transition-all active:scale-[0.98] flex items-center gap-2">
+					<span class="material-symbols-outlined text-sm">assignment_return</span>
+					Return / Refund
+				</a>
+			{/if}
+			<button onclick={handleWhatsApp} class="px-5 py-2.5 bg-emerald-50 text-emerald-600 rounded-xl font-bold text-sm border border-emerald-500/30 hover:bg-emerald-100 transition-all active:scale-[0.98] flex items-center gap-2">
+				<span class="material-symbols-outlined text-sm">chat</span>
+				WhatsApp
+			</button>
+			<button onclick={handleShare} class="px-5 py-2.5 bg-surface-container-low text-on-surface rounded-xl font-bold text-sm border border-outline-variant/20 hover:bg-surface-container transition-all active:scale-[0.98] flex items-center gap-2">
+				<span class="material-symbols-outlined text-sm">share</span>
+				Share
+			</button>
 			<button onclick={handlePrint} class="px-5 py-2.5 bg-surface-container-low text-on-surface rounded-xl font-bold text-sm border border-outline-variant/20 hover:bg-surface-container transition-all active:scale-[0.98] flex items-center gap-2">
 				<span class="material-symbols-outlined text-sm">print</span>
 				{$_('invoices.print', { default: 'Print' })}
@@ -168,8 +273,8 @@
 					{/if}
 				</div>
 				<div class="text-right">
-					<span class="inline-block px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest {invoice.status === 'PAID' ? 'bg-emerald-500/20 text-emerald-400' : invoice.status === 'PARTIAL' ? 'bg-amber-500/20 text-amber-400' : 'bg-red-500/20 text-red-400'}">
-						{invoice.status}
+					<span class="inline-block px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest {invoice.document_type === 'ESTIMATE' ? 'bg-blue-500/20 text-blue-400' : invoice.status === 'PAID' ? 'bg-emerald-500/20 text-emerald-400' : invoice.status === 'PARTIAL' ? 'bg-amber-500/20 text-amber-400' : 'bg-red-500/20 text-red-400'}">
+						{invoice.document_type === 'ESTIMATE' ? 'ESTIMATE' : invoice.status}
 					</span>
 					<p class="text-white text-xl font-extrabold mt-3">{invoice.invoice_number}</p>
 					<p class="text-gray-400 text-xs mt-1">{$_('invoices.issued', { default: 'Issued' })}: {formatDate(invoice.issue_date)}</p>
@@ -261,9 +366,63 @@
 		{/if}
 
 		<div class="px-8 py-4 print:px-6 bg-gray-50 border-t border-gray-100 text-center">
-			<p class="text-[10px] text-gray-400">{$_('invoices.generated_by', { default: 'Generated by Hisaab — Free GST Billing for Clinics' })}</p>
+			<p class="text-[10px] text-gray-400">{$_('invoices.generated_by', { default: 'Generated by Hisaab — Modern Business Platform' })}</p>
 		</div>
 	</div>
+
+	<!-- Record Payment Modal -->
+	<Modal show={showPaymentModal} title="Record Payment" onclose={() => showPaymentModal = false}>
+		<form class="p-6 overflow-y-auto max-h-[80vh]" onsubmit={(e) => { e.preventDefault(); handleRecordPayment(); }}>
+			<div class="space-y-6">
+				<div class="bg-primary/5 border border-primary/20 rounded-xl p-4 flex justify-between items-center mb-6">
+					<span class="text-sm font-bold text-on-surface-variant">Outstanding Balance</span>
+					<span class="text-lg font-headline font-extrabold text-primary">{formatINR(outstanding)}</span>
+				</div>
+
+				<Input
+					label="Amount Received (₹)"
+					bind:value={newPaymentAmount}
+					required
+					type="number"
+					step="0.01"
+					min="1"
+				/>
+				
+				<div class="grid grid-cols-2 gap-4">
+					<Input
+						label="Payment Date"
+						bind:value={newPaymentDate}
+						required
+						type="date"
+					/>
+					<Select
+						label="Payment Method"
+						bind:value={newPaymentMethod}
+						options={[
+							{ value: 'CASH', label: 'Cash' },
+							{ value: 'UPI', label: 'UPI' },
+							{ value: 'CARD', label: 'Card' },
+							{ value: 'BANK_TRANSFER', label: 'Bank Transfer' },
+							{ value: 'OTHER', label: 'Other / Cheque' }
+						]}
+					/>
+				</div>
+
+				<Input
+					label="Reference / UTR (Optional)"
+					bind:value={newPaymentRef}
+					placeholder="UPI Ref, Cheque No, etc."
+				/>
+
+				<div class="flex justify-end gap-3 pt-6 border-t border-outline-variant/20">
+					<button type="button" onclick={() => showPaymentModal = false} class="px-6 py-2.5 text-on-surface-variant font-semibold text-sm hover:bg-surface-container rounded-lg">Cancel</button>
+					<button type="submit" class="px-6 py-2.5 bg-primary text-on-primary rounded-lg font-bold text-sm shadow-md">
+						Save Payment
+					</button>
+				</div>
+			</div>
+		</form>
+	</Modal>
 {/if}
 
 <style>

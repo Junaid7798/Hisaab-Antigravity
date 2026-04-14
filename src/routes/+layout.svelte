@@ -2,10 +2,21 @@
 	import './layout.css';
 	import { setupI18n } from '$lib/i18n';
 	import { isLoading } from 'svelte-i18n';
+	import { onMount } from 'svelte';
+	import { processRecurringSchedules } from '$lib/db/crud';
+	import { initSyncEngine } from '$lib/db/sync';
 	
 	let { children } = $props();
 
 	setupI18n();
+
+	onMount(() => {
+		// Initialize the offline-first Supabase sync daemon
+		initSyncEngine();
+
+		// Silently process recurring subscriptions in background across the app
+		processRecurringSchedules().catch(console.error);
+	});
 </script>
 
 {#if $isLoading}

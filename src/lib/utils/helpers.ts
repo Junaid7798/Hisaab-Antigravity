@@ -148,32 +148,48 @@ export const INDIAN_STATES = [
 ] as const;
 
 /**
- * Common medical SAC codes for clinic billing.
+ * Common HSN/SAC codes for business billing.
  */
-export const MEDICAL_SAC_CODES = [
-	{ code: '999311', description: 'General Medical/GP Consultation' },
+export const COMMON_SAC_CODES = [
+	{ code: '999311', description: 'General Medical / GP Consultation' },
 	{ code: '999312', description: 'Specialist Medical Consultation' },
 	{ code: '999313', description: 'Dental Services' },
-	{ code: '999314', description: 'Mental Health Services' },
-	{ code: '999321', description: 'Pathology / Laboratory Services' },
-	{ code: '999322', description: 'Diagnostic Imaging / Radiology' },
 	{ code: '999323', description: 'Physiotherapy Services' },
-	{ code: '999331', description: 'Hospital / Nursing Care' },
-	{ code: '999341', description: 'Pharmacy / Dispensing' }
+	{ code: '999341', description: 'Pharmacy / Dispensing' },
+	{ code: '998311', description: 'Legal Advisory Services' },
+	{ code: '998312', description: 'Accounting & Tax Services' },
+	{ code: '998313', description: 'Management Consulting' },
+	{ code: '998314', description: 'IT / Software Services' },
+	{ code: '998511', description: 'Education & Training' },
+	{ code: '998551', description: 'Coaching & Tutoring' },
+	{ code: '996311', description: 'Restaurant / Food Service' },
+	{ code: '996331', description: 'Catering Services' },
+	{ code: '997212', description: 'Real Estate Brokerage' },
+	{ code: '999721', description: 'Beauty & Salon Services' },
+	{ code: '999722', description: 'Spa & Wellness Services' },
+	{ code: '998711', description: 'Photography / Videography' },
+	{ code: '999611', description: 'Fitness / Gym Services' }
 ] as const;
 
 /**
- * Expense categories for clinic operations.
+ * Expense categories for business operations.
+ * Designed to work across industries.
  */
 export const EXPENSE_CATEGORIES = [
-	'Medical Supplies',
+	'Supplies & Materials',
 	'Utilities',
-	'Rent',
-	'Staff Payroll',
-	'Equipment',
-	'Maintenance',
+	'Rent & Lease',
+	'Payroll & Wages',
+	'Equipment & Tools',
+	'Maintenance & Repairs',
 	'Insurance',
-	'Marketing',
-	'Travel',
+	'Marketing & Ads',
+	'Travel & Transport',
+	'Subscriptions & Software',
+	'Professional Fees',
+	'Inventory / Stock Purchase',
+	'Food & Refreshments',
+	'Taxes & Compliance',
 	'Others'
 ] as const;
+

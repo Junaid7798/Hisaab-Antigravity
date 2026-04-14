@@ -16,6 +16,7 @@
 		"@sveltejs/kit": "^2.57.0",
 		"@sveltejs/vite-plugin-svelte": "^7.0.0",
 		"@tailwindcss/vite": "^4.2.2",
+		"@types/qrcode": "^1.5.6",
 		"cheerio": "^1.2.0",
 		"svelte": "^5.55.2",
 		"svelte-check": "^4.4.6",
@@ -28,8 +29,10 @@
 		"chart.js": "^4.5.1",
 		"dexie": "^4.4.2",
 		"html2canvas": "^1.4.1",
+		"html5-qrcode": "^2.3.8",
 		"jspdf": "^4.2.1",
 		"jspdf-autotable": "^5.0.7",
+		"qrcode": "^1.5.4",
 		"svelte-chartjs": "^4.0.1",
 		"svelte-i18n": "^4.0.1"
 	}

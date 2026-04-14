@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import { getBusiness, updateBusiness, createBusiness } from '$lib/db/crud';
-	import { activeBusinessId } from '$lib/stores/session';
+	import { activeBusinessId, activeTerminology } from '$lib/stores/session';
 	import { INDIAN_STATES } from '$lib/utils/helpers';
 	import { toast } from '$lib/stores/toast';
 	import { theme } from '$lib/stores/theme';
@@ -10,6 +10,7 @@
 	import Input from '$lib/components/Input.svelte';
 	import Select from '$lib/components/Select.svelte';
 	import { exportDatabaseToJSON, importDatabaseFromJSON, triggerDownload, wipeDatabase } from '$lib/utils/export';
+	import { categoryGroups, getTerminology, type BusinessCategory, type TaxRegistrationType } from '$lib/utils/terminology';
 
 	let showWipeConfirm = $state(false);
 	let importing = $state(false);
@@ -66,6 +67,9 @@
 	let address = $state('');
 	let phone = $state('');
 	let email = $state('');
+	let business_category = $state('');
+	let tax_registration_type = $state<TaxRegistrationType>('unregistered');
+	let industry_sector = $state('');
 
 	async function loadSettings(bizId: string) {
 		loading = true;
@@ -78,6 +82,9 @@
 			address = biz.address;
 			phone = biz.phone;
 			email = biz.email;
+			business_category = biz.business_category || 'medical_clinic';
+			tax_registration_type = (biz.tax_registration_type as TaxRegistrationType) || 'unregistered';
+			industry_sector = biz.industry_sector || 'healthcare';
 		}
 		loading = false;
 	}
@@ -91,36 +98,38 @@
 	async function handleSave() {
 		if (!name.trim()) return;
 
+		// Derive industry sector from selected category
+		let newIndustrySector = industry_sector;
+		for (const group of categoryGroups) {
+			if (group.items.some(i => i.id === business_category)) {
+				newIndustrySector = group.sector;
+				break;
+			}
+		}
+		
+		const data = {
+			name: name.trim(),
+			gstin: gstin.trim(),
+			state_code: stateCode,
+			address: address.trim(),
+			phone: phone.trim(),
+			email: email.trim(),
+			business_category: business_category || 'medical_clinic',
+			tax_registration_type: tax_registration_type,
+			industry_sector: newIndustrySector
+		};
+
 		if (business) {
-			await updateBusiness(business.id, {
-				name: name.trim(),
-				gstin: gstin.trim(),
-				state_code: stateCode,
-				address: address.trim(),
-				phone: phone.trim(),
-				email: email.trim()
-			});
+			await updateBusiness(business.id, data);
 		} else if ($activeBusinessId) {
-			business = await createBusiness({
-				id: $activeBusinessId, // Make sure we override empty ID or owner_id if passing partial
-				name: name.trim(),
-				gstin: gstin.trim(),
-				state_code: stateCode,
-				address: address.trim(),
-				phone: phone.trim(),
-				email: email.trim()
-			});
+			business = await createBusiness({ id: $activeBusinessId, ...data });
 		} else {
-			// creating a brand new business from an empty state
-			business = await createBusiness({
-				name: name.trim(),
-				gstin: gstin.trim(),
-				state_code: stateCode,
-				address: address.trim(),
-				phone: phone.trim(),
-				email: email.trim()
-			});
+			business = await createBusiness(data);
 			$activeBusinessId = business.id;
+		}
+
+		if (business_category) {
+			activeTerminology.set(getTerminology(business_category as BusinessCategory));
 		}
 
 		toast.success($_('toast.settings_saved', { default: 'Settings saved successfully' }));
@@ -164,6 +173,7 @@
 						bind:value={stateCode}
 						options={INDIAN_STATES.map(s => ({ value: s.code, label: `${s.code} - ${s.name}` }))}
 					/>
+
 					<Input
 						label={$_('settings.label_phone')}
 						bind:value={phone}
@@ -174,11 +184,55 @@
 						label={$_('settings.label_email')}
 						bind:value={email}
 						type="email"
-						placeholder="clinic@email.com"
+						placeholder="business@email.com"
 					/>
 					<div class="col-span-1 sm:col-span-2">
 						<label class="block text-[11px] font-bold text-outline uppercase tracking-wider mb-2">{$_('settings.label_address')}</label>
 						<textarea bind:value={address} rows="3" class="w-full bg-surface-container-highest border-b-2 border-transparent focus:border-primary focus:ring-0 rounded-t-lg px-4 py-3 text-on-surface font-medium transition-all resize-none"></textarea>
+					</div>
+					
+					<div class="col-span-1 sm:col-span-2 border-t border-outline-variant/30 pt-6 mt-2">
+						<h4 class="text-sm font-bold text-primary mb-4 flex items-center gap-2">
+							<span class="material-symbols-outlined text-[18px]">domain</span>
+							Business Type & Tax Config
+						</h4>
+						
+						<div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+							<div>
+								<label class="block text-[11px] font-bold text-outline uppercase tracking-wider mb-2">Business Category</label>
+								<select bind:value={business_category} class="w-full bg-surface-container-highest border-b-2 border-transparent focus:border-primary focus:ring-0 rounded-t-lg px-4 py-3 text-on-surface font-medium transition-all">
+									<option value="" disabled>Select category...</option>
+									{#each categoryGroups as group}
+										<optgroup label={group.sector} class="font-bold text-primary">
+											{#each group.items as item}
+												<option value={item.id} class="font-medium text-on-surface">{item.label}</option>
+											{/each}
+										</optgroup>
+									{/each}
+								</select>
+								<p class="text-[10px] text-on-surface-variant mt-1.5 leading-tight">
+									Changes terminology across the app (e.g. from {getTerminology(business_category as BusinessCategory || 'medical_clinic').person} to {getTerminology('retail').person})
+								</p>
+							</div>
+
+							<div>
+								<label class="block text-[11px] font-bold text-outline uppercase tracking-wider mb-2">Tax Registration Type</label>
+								<div class="flex flex-col gap-2 bg-surface-container-highest p-3 rounded-xl border border-transparent">
+									<label class="flex items-center gap-3 cursor-pointer">
+										<input type="radio" value="gst_regular" bind:group={tax_registration_type} class="text-primary focus:ring-primary h-4 w-4">
+										<span class="text-sm font-semibold">GST Registered</span>
+									</label>
+									<label class="flex items-center gap-3 cursor-pointer">
+										<input type="radio" value="composition" bind:group={tax_registration_type} class="text-primary focus:ring-primary h-4 w-4">
+										<span class="text-sm font-semibold">Composition Scheme</span>
+									</label>
+									<label class="flex items-center gap-3 cursor-pointer">
+										<input type="radio" value="unregistered" bind:group={tax_registration_type} class="text-primary focus:ring-primary h-4 w-4">
+										<span class="text-sm font-semibold">Unregistered</span>
+									</label>
+								</div>
+							</div>
+						</div>
 					</div>
 
 					<div class="col-span-1 sm:col-span-2 flex justify-end gap-4 pt-4">
@@ -271,7 +325,7 @@
 					<span class="material-symbols-outlined text-primary">download</span>
 				</div>
 				<span class="text-sm font-bold text-on-surface">{$_('settings.backup_download', { default: 'Download Backup' })}</span>
-				<span class="text-[10px] text-on-surface-variant text-center">{$_('settings.backup_desc', { default: 'Save all clinic data as a JSON file' })}</span>
+				<span class="text-[10px] text-on-surface-variant text-center">{$_('settings.backup_desc', { default: 'Save all business data as a JSON file' })}</span>
 			</button>
 
 			<!-- Restore -->
@@ -296,7 +350,7 @@
 					<span class="material-symbols-outlined text-error">delete_forever</span>
 				</div>
 				<span class="text-sm font-bold text-error">{$_('settings.wipe_data', { default: 'Clear All Data' })}</span>
-				<span class="text-[10px] text-on-surface-variant text-center">{$_('settings.wipe_desc', { default: 'Permanently delete all clinic data' })}</span>
+				<span class="text-[10px] text-on-surface-variant text-center">{$_('settings.wipe_desc', { default: 'Permanently delete all business data' })}</span>
 			</button>
 		</div>
 

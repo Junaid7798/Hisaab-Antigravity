@@ -4,11 +4,17 @@
 	import { fade, scale } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import { onMount } from 'svelte';
+	import { getPatients, getProducts } from '$lib/db/crud';
+	import { activeBusinessId } from '$lib/stores/session';
+	import type { Patient, Product } from '$lib/db/index';
 
 	let open = $state(false);
 	let query = $state('');
 	let selectedIndex = $state(0);
 	let inputRef = $state<HTMLInputElement | null>(null);
+
+	let patients = $state<Patient[]>([]);
+	let products = $state<Product[]>([]);
 
 	interface CommandItem {
 		id: string;
@@ -17,30 +23,71 @@
 		action: () => void;
 		category: string;
 		keywords: string[];
+		sublabel?: string;
 	}
 
 	const commands: CommandItem[] = [
 		{ id: 'dashboard', label: 'Dashboard', icon: 'dashboard', action: () => navigate('/dashboard'), category: 'Navigation', keywords: ['home', 'main', 'overview'] },
-		{ id: 'patients', label: 'Patients', icon: 'group', action: () => navigate('/patients'), category: 'Navigation', keywords: ['people', 'list', 'clients'] },
-		{ id: 'new-invoice', label: 'New Invoice', icon: 'add_circle', action: () => navigate('/invoices/new'), category: 'Actions', keywords: ['create', 'bill', 'gst', 'billing'] },
+		{ id: 'pos', label: 'POS Mode', icon: 'point_of_sale', action: () => navigate('/pos'), category: 'Quick Actions', keywords: ['sale', 'checkout', 'billing', 'counter'] },
+		{ id: 'patients', label: 'Customers', icon: 'group', action: () => navigate('/patients'), category: 'Navigation', keywords: ['people', 'list', 'clients', 'patients'] },
+		{ id: 'new-invoice', label: 'New Invoice', icon: 'add_circle', action: () => navigate('/invoices/new'), category: 'Quick Actions', keywords: ['create', 'bill', 'gst', 'billing'] },
+		{ id: 'new-estimate', label: 'New Estimate', icon: 'description', action: () => navigate('/estimates/new'), category: 'Quick Actions', keywords: ['quote', 'quotation', 'proposal'] },
+		{ id: 'new-subscription', label: 'New Subscription', icon: 'autorenew', action: () => navigate('/recurring/new'), category: 'Quick Actions', keywords: ['recurring', 'auto', 'schedule'] },
+		{ id: 'inventory', label: 'Inventory', icon: 'inventory_2', action: () => navigate('/inventory'), category: 'Navigation', keywords: ['products', 'stock', 'items'] },
+		{ id: 'suppliers', label: 'Suppliers', icon: 'local_shipping', action: () => navigate('/suppliers'), category: 'Navigation', keywords: ['vendor', 'purchase'] },
 		{ id: 'expenses', label: 'Expenses', icon: 'account_balance_wallet', action: () => navigate('/expenses'), category: 'Navigation', keywords: ['spending', 'costs', 'money'] },
 		{ id: 'reports', label: 'Reports', icon: 'bar_chart', action: () => navigate('/reports'), category: 'Navigation', keywords: ['analytics', 'charts', 'stats', 'revenue'] },
+		{ id: 'intelligence', label: 'Intelligence', icon: 'monitoring', action: () => navigate('/analytics'), category: 'Navigation', keywords: ['ai', 'insights', 'health', 'anomaly'] },
 		{ id: 'settings', label: 'Settings', icon: 'settings', action: () => navigate('/settings'), category: 'Navigation', keywords: ['config', 'profile', 'business', 'theme', 'backup'] },
-		{ id: 'help', label: 'Help & Support', icon: 'help', action: () => navigate('/help'), category: 'Navigation', keywords: ['support', 'guide', 'faq'] },
-		{ id: 'add-patient', label: 'Add Patient', icon: 'person_add', action: () => navigate('/patients'), category: 'Actions', keywords: ['new', 'register', 'create'] },
-		{ id: 'log-expense', label: 'Log Expense', icon: 'post_add', action: () => navigate('/expenses'), category: 'Actions', keywords: ['add', 'track', 'spending'] },
+		{ id: 'add-patient', label: 'Add Customer', icon: 'person_add', action: () => navigate('/patients'), category: 'Quick Actions', keywords: ['new', 'register', 'create'] },
+		{ id: 'log-expense', label: 'Log Expense', icon: 'post_add', action: () => navigate('/expenses'), category: 'Quick Actions', keywords: ['add', 'track', 'spending'] },
 	];
 
-	let filteredCommands = $derived(
-		query.trim()
-			? commands.filter(c => {
-				const q = query.toLowerCase();
-				return c.label.toLowerCase().includes(q)
-					|| c.keywords.some(k => k.includes(q))
-					|| c.category.toLowerCase().includes(q);
-			})
-			: commands
-	);
+	let filteredCommands = $derived.by(() => {
+		const q = query.toLowerCase().trim();
+		if (!q) return commands.slice(0, 10);
+
+		const matched: CommandItem[] = [];
+
+		// Search commands
+		for (const c of commands) {
+			if (c.label.toLowerCase().includes(q) || c.keywords.some(k => k.includes(q))) {
+				matched.push(c);
+			}
+		}
+
+		// Search patients dynamically
+		for (const p of patients) {
+			if (p.name.toLowerCase().includes(q) || (p.phone && p.phone.includes(q))) {
+				matched.push({
+					id: `patient-${p.id}`,
+					label: p.name,
+					icon: 'person',
+					sublabel: p.phone || '',
+					action: () => navigate(`/patients/${p.id}`),
+					category: 'Customers',
+					keywords: []
+				});
+			}
+		}
+
+		// Search products dynamically
+		for (const p of products) {
+			if (p.name.toLowerCase().includes(q) || (p.sku && p.sku.toLowerCase().includes(q))) {
+				matched.push({
+					id: `product-${p.id}`,
+					label: p.name,
+					icon: 'inventory_2',
+					sublabel: p.sku ? `SKU: ${p.sku}` : '',
+					action: () => navigate('/inventory'),
+					category: 'Products',
+					keywords: []
+				});
+			}
+		}
+
+		return matched.slice(0, 14);
+	});
 
 	// Reset selection when filter changes
 	$effect(() => {
@@ -55,13 +102,26 @@
 		goto(path);
 	}
 
+	async function handleOpen() {
+		if ($activeBusinessId) {
+			patients = await getPatients($activeBusinessId);
+			products = await getProducts($activeBusinessId);
+		}
+		open = true;
+		query = '';
+		selectedIndex = 0;
+		setTimeout(() => inputRef?.focus(), 50);
+	}
+
 	function handleKeydown(e: KeyboardEvent) {
 		// Global shortcut: Ctrl+K / Cmd+K
 		if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
 			e.preventDefault();
-			open = !open;
 			if (open) {
-				setTimeout(() => inputRef?.focus(), 50);
+				open = false;
+				query = '';
+			} else {
+				handleOpen();
 			}
 			return;
 		}
@@ -123,7 +183,7 @@
 					bind:this={inputRef}
 					bind:value={query}
 					type="text"
-					placeholder={$_('command_palette.placeholder', { default: 'Search commands, pages...' })}
+					placeholder={$_('command_palette.placeholder', { default: 'Search commands, customers, products...' })}
 					class="flex-1 bg-transparent text-on-surface text-base font-medium placeholder:text-on-surface-variant/50 outline-none"
 				/>
 				<kbd class="hidden sm:inline-flex items-center gap-1 px-2 py-1 bg-surface-container-high rounded text-[10px] font-bold text-on-surface-variant tracking-wider">ESC</kbd>
@@ -148,7 +208,12 @@
 								onmouseenter={() => { selectedIndex = globalIndex; }}
 							>
 								<span class="material-symbols-outlined text-lg {globalIndex === selectedIndex ? 'text-primary' : 'text-on-surface-variant'}">{cmd.icon}</span>
-								<span class="text-sm font-semibold flex-1">{cmd.label}</span>
+								<div class="flex-1 min-w-0">
+									<span class="text-sm font-semibold">{cmd.label}</span>
+									{#if cmd.sublabel}
+										<span class="text-[10px] text-on-surface-variant/60 ml-2">{cmd.sublabel}</span>
+									{/if}
+								</div>
 								{#if globalIndex === selectedIndex}
 									<kbd class="text-[10px] font-bold text-primary/60 tracking-wider">↵</kbd>
 								{/if}
