@@ -57,34 +57,55 @@
 		const amt = Math.round(Number(newPaymentAmount) * 100);
 		if (amt <= 0) return;
 
-		await createPayment(patient.business_id, {
-			patient_id: patient.id,
-			amount: amt,
-			payment_date: newPaymentDate,
-			method: newPaymentMethod as any,
-			reference: newPaymentRef
-		});
-
 		// Smart invoice status update: check ACTUAL per-invoice outstanding
 		const unpaidInvoices = invoices
 			.filter(i => i.status !== 'PAID')
 			.sort((a, b) => new Date(a.issue_date).getTime() - new Date(b.issue_date).getTime());
 
 		let remainingAmt = amt;
+		
 		for (const inv of unpaidInvoices) {
 			if (remainingAmt <= 0) break;
 			const alreadyPaid = await getPaymentTotalForInvoice(inv.id);
 			const invoiceRemaining = inv.grand_total - alreadyPaid;
 			
-			if (invoiceRemaining <= 0) continue; // already settled
+			if (invoiceRemaining <= 0) {
+				if (inv.status !== 'PAID') await updateInvoiceStatus(inv.id, 'PAID');
+				continue; // already settled
+			}
+			
+			let paidTowardsInvoice = 0;
 			
 			if (remainingAmt >= invoiceRemaining) {
+				paidTowardsInvoice = invoiceRemaining;
 				await updateInvoiceStatus(inv.id, 'PAID');
 				remainingAmt -= invoiceRemaining;
 			} else {
+				paidTowardsInvoice = remainingAmt;
 				await updateInvoiceStatus(inv.id, 'PARTIAL');
 				remainingAmt = 0;
 			}
+			
+			// Create a connected payment record for this invoice
+			await createPayment(patient.business_id, {
+				patient_id: patient.id,
+				invoice_id: inv.id,
+				amount: paidTowardsInvoice,
+				payment_date: newPaymentDate,
+				method: newPaymentMethod as any,
+				reference: newPaymentRef ? `${newPaymentRef} (Linked to ${inv.invoice_number})` : `Linked to ${inv.invoice_number}`
+			});
+		}
+		
+		// If there is still money left over or no unpaid invoices at all, log it as advance or unapplied payment
+		if (remainingAmt > 0 || (amt > 0 && unpaidInvoices.length === 0)) {
+			await createPayment(patient.business_id, {
+				patient_id: patient.id,
+				amount: remainingAmt > 0 ? remainingAmt : amt,
+				payment_date: newPaymentDate,
+				method: newPaymentMethod as any,
+				reference: newPaymentRef ? `${newPaymentRef} (Advance)` : 'Advance / Unapplied'
+			});
 		}
 
 		toast.success('Payment recorded successfully');

@@ -6,7 +6,8 @@
 	import Input from '$lib/components/Input.svelte';
 	import Select from '$lib/components/Select.svelte';
 	import Modal from '$lib/components/Modal.svelte';
-	import { getBusiness, getPatients, createPatient, countPatients, getOutstandingTotal } from '$lib/db/crud';
+	import { getBusiness, createPatient, countPatients, getOutstandingTotal } from '$lib/db/crud';
+	import { getCachedCustomers } from '$lib/utils/cache';
 	import { activeBusinessId, activeTerminology } from '$lib/stores/session';
 	import { formatINRCompact } from '$lib/utils/currency';
 	import { formatDate, INDIAN_STATES } from '$lib/utils/helpers';
@@ -32,7 +33,7 @@
 		const biz = await getBusiness(bizId);
 		if (biz) {
 			businessId = biz.id;
-			patients = await getPatients(businessId);
+			patients = await getCachedCustomers(businessId);
 			totalPatients = await countPatients(businessId);
 			totalOutstanding = await getOutstandingTotal(businessId);
 		}
@@ -204,10 +205,10 @@
 			bind:value={newStateCode}
 			options={INDIAN_STATES.map(s => ({ value: s.code, label: `${s.code} - ${s.name}` }))}
 		/>
-		<div class="space-y-1.5">
-			<label class="text-[11px] font-label font-bold text-on-surface-variant uppercase tracking-wider">Address (Optional)</label>
+		<label class="space-y-1.5 w-full">
+			<span class="text-[11px] font-label font-bold text-on-surface-variant uppercase tracking-wider">Address (Optional)</span>
 			<textarea bind:value={newAddress} rows="2" placeholder="Full address..." class="w-full bg-surface-container-highest border-b border-transparent focus:border-primary focus:ring-0 rounded-t-lg px-4 py-3 text-on-surface font-medium transition-all resize-none"></textarea>
-		</div>
+		</label>
 		<div class="flex justify-end gap-3 pt-4">
 			<button type="button" onclick={() => (showModal = false)} class="px-6 py-2.5 text-on-surface-variant font-semibold text-sm">Cancel</button>
 			<button type="submit" class="px-6 py-2.5 bg-primary text-on-primary rounded-lg font-bold text-sm shadow-md">Add {$activeTerminology.person}</button>

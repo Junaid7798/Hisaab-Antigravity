@@ -8,6 +8,7 @@
 	import { generateInvoiceNumber } from '$lib/utils/invoice-number';
 	import { today, INDIAN_STATES } from '$lib/utils/helpers';
 	import { toast } from '$lib/stores/toast';
+	import { getGSTEnabled } from '$lib/utils/business-features';
 	import type { Patient, Product } from '$lib/db/index';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
@@ -19,6 +20,8 @@
 	let products = $state<Product[]>([]);
 	let businessId = $state('');
 	let businessStateCode = $state('27');
+	let taxRegistrationType = $state('unregistered');
+	let showGST = $state(true);
 	let invoiceCounter = $state(1);
 	let loading = $state(true);
 	let saving = $state(false);
@@ -53,6 +56,8 @@
 			businessStateCode = biz.state_code;
 			placeOfSupply = biz.state_code;
 			invoiceCounter = biz.invoice_counter;
+			taxRegistrationType = biz.tax_registration_type || 'unregistered';
+			showGST = getGSTEnabled(biz.business_category, taxRegistrationType);
 			patients = await getPatients(biz.id);
 			products = await getProducts(biz.id);
 			
@@ -315,10 +320,14 @@
 						<thead class="bg-surface-container-low">
 							<tr>
 								<th class="px-6 py-4 text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest">{$_('invoices.table_desc', { default: 'Description' })}</th>
+								{#if showGST}
 								<th class="px-4 py-4 text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest">{$_('invoices.table_hsn', { default: 'HSN/SAC' })}</th>
+								{/if}
 								<th class="px-4 py-4 text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest text-center">{$_('invoices.table_qty', { default: 'Qty' })}</th>
 								<th class="px-4 py-4 text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest text-right">{$_('invoices.table_rate', { default: 'Rate' })}</th>
+								{#if showGST}
 								<th class="px-4 py-4 text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest text-center">{$_('invoices.table_tax', { default: 'Tax %' })}</th>
+								{/if}
 								<th class="px-6 py-4 text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest text-right">{$_('invoices.table_total', { default: 'Total' })}</th>
 								<th class="px-2 py-4"></th>
 							</tr>
@@ -348,15 +357,18 @@
 											</span>
 										{/if}
 									</td>
+									{#if showGST}
 									<td class="px-4 py-4">
 										<input bind:value={item.hsn_sac} type="text" placeholder="999311" class="bg-transparent border-none p-0 text-xs focus:ring-0 w-20 text-on-surface-variant" />
 									</td>
+									{/if}
 									<td class="px-4 py-4">
 										<input bind:value={item.quantity} type="number" min="1" step="1" class="bg-transparent border-none p-0 text-sm focus:ring-0 w-12 text-center" />
 									</td>
 									<td class="px-4 py-4 text-right">
 										<input bind:value={item.rate} type="number" min="0" step="0.01" placeholder="0.00" class="bg-transparent border-none p-0 text-sm focus:ring-0 w-24 text-right" />
 									</td>
+									{#if showGST}
 									<td class="px-4 py-4">
 										<select bind:value={item.tax_rate} class="bg-transparent border-none p-0 text-xs focus:ring-0 w-16 mx-auto block text-center">
 											{#each GST_RATES as r}
@@ -364,6 +376,7 @@
 											{/each}
 										</select>
 									</td>
+									{/if}
 									<td class="px-6 py-4 text-right font-semibold text-sm">{formatINR(lineTotal)}</td>
 									<td class="px-2 py-4">
 										{#if items.length > 1}
@@ -399,6 +412,7 @@
 						<span class="opacity-70 font-body">{$_('invoices.subtotal', { default: 'Subtotal' })}</span>
 						<span class="font-headline font-semibold">{formatINR(taxSummary.subtotal)}</span>
 					</div>
+					{#if showGST}
 					<div class="pt-4 border-t border-white/10 space-y-3">
 						{#if taxSummary.tax_type === 'INTRA_STATE'}
 							<div class="flex justify-between items-center text-xs">
@@ -420,6 +434,7 @@
 						<span class="opacity-70 font-body">{$_('invoices.total_tax', { default: 'Total Tax' })}</span>
 						<span class="font-headline font-semibold">{formatINR(taxSummary.total_tax)}</span>
 					</div>
+					{/if}
 					<div class="pt-8 flex justify-between items-end">
 						<div>
 							<p class="text-[10px] font-label font-bold uppercase tracking-widest opacity-60">{$_('invoices.grand_total', { default: 'Grand Total' })}</p>
@@ -432,6 +447,7 @@
 				</div>
 			</div>
 
+			{#if showGST}
 			<!-- Tax Info -->
 			<div class="bg-tertiary-fixed rounded-xl p-6 text-on-tertiary-fixed">
 				<div class="flex items-start gap-3">
@@ -450,10 +466,11 @@
 					</div>
 				</div>
 			</div>
+			{/if}
 
 			<!-- Options -->
-			<div class="bg-surface-container-lowest border border-outline-variant/10 rounded-xl p-4 flex flex-col gap-2 mb-20 lg:mb-0">
-				<label class="text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest px-2 mb-1">{$_('invoices.options', { default: 'Options' })}</label>
+			<fieldset class="bg-surface-container-lowest border border-outline-variant/10 rounded-xl p-4 flex flex-col gap-2 mb-20 lg:mb-0">
+				<legend class="text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest px-2 mb-1">{$_('invoices.options', { default: 'Options' })}</legend>
 				<label class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-container-low cursor-pointer transition-colors">
 					<input type="checkbox" bind:checked={markPaid} class="rounded text-primary focus:ring-primary h-4 w-4" />
 					<span class="text-sm font-medium">{$_('invoices.mark_paid', { default: 'Mark as Paid' })}</span>
@@ -469,7 +486,7 @@
 						/>
 					</div>
 				{/if}
-			</div>
+			</fieldset>
 		</div>
 	</div>
 

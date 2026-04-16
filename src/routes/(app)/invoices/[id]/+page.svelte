@@ -13,6 +13,7 @@
 	import { formatINR } from '$lib/utils/currency';
 	import { formatDate, INDIAN_STATES, today } from '$lib/utils/helpers';
 	import { toast } from '$lib/stores/toast';
+	import { activeTerminology } from '$lib/stores/session';
 	import type { Invoice, InvoiceItem, Patient, Business, Payment } from '$lib/db/index';
 
 	let invoice = $state<Invoice | null>(null);
@@ -182,7 +183,7 @@
 
 	function handleWhatsApp() {
 		if (!invoice || !patient?.phone) {
-			toast.error('Patient phone number missing');
+			toast.error(`${$activeTerminology.person} phone number missing`);
 			return;
 		}
 		const text = `Hello ${patient.name},%0A%0AHere are your invoice details from *${business?.name}*:%0A%0A*Invoice:* ${invoice.invoice_number}%0A*Amount:* ${formatINR(invoice.grand_total)}%0A*Date:* ${formatDate(invoice.issue_date)}%0A%0AThank you!`;
@@ -242,7 +243,7 @@
 					Return / Refund
 				</a>
 			{/if}
-			<button onclick={handleWhatsApp} class="px-5 py-2.5 bg-emerald-50 text-emerald-600 rounded-xl font-bold text-sm border border-emerald-500/30 hover:bg-emerald-100 transition-all active:scale-[0.98] flex items-center gap-2">
+			<button onclick={handleWhatsApp} class="px-5 py-2.5 bg-secondary-container text-on-secondary-container rounded-xl font-bold text-sm border border-secondary/30 hover:bg-secondary-container/80 transition-all active:scale-[0.98] flex items-center gap-2">
 				<span class="material-symbols-outlined text-sm">chat</span>
 				WhatsApp
 			</button>
@@ -279,7 +280,7 @@
 					{/if}
 				</div>
 				<div class="text-right">
-					<span class="inline-block px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest {invoice.document_type === 'ESTIMATE' ? 'bg-blue-500/20 text-blue-400' : invoice.status === 'PAID' ? 'bg-emerald-500/20 text-emerald-400' : invoice.status === 'PARTIAL' ? 'bg-amber-500/20 text-amber-400' : 'bg-red-500/20 text-red-400'}">
+					<span class="inline-block px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest {invoice.document_type === 'ESTIMATE' ? 'bg-info-container/50 text-info' : invoice.status === 'PAID' ? 'bg-success-container/50 text-success' : invoice.status === 'PARTIAL' ? 'bg-warning-container/50 text-warning' : 'bg-error-container/50 text-error'}">
 						{invoice.document_type === 'ESTIMATE' ? 'ESTIMATE' : invoice.status}
 					</span>
 					<p class="text-white text-xl font-extrabold mt-3">{invoice.invoice_number}</p>

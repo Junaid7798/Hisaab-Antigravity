@@ -9,7 +9,9 @@
 	import { activeBusinessId, activeTerminology } from '$lib/stores/session';
 	import { formatINRCompact, formatINR } from '$lib/utils/currency';
 	import { formatDate, timeAgo } from '$lib/utils/helpers';
+	import { getCachedInvoices, getCachedCustomers, getCachedProducts, invalidateBusinessCache } from '$lib/utils/cache';
 	import { fly, fade } from 'svelte/transition';
+	import { preferences } from '$lib/stores/preferences';
 	import { cubicOut } from 'svelte/easing';
 
 	let revenue = $state(0);
@@ -23,17 +25,24 @@
 	let overdueInvoices = $state<any[]>([]);
 	let revenueChange = $state<number | null>(null);
 
-	async function loadDashboard(businessId: string) {
+	async function loadDashboard(businessId: string, force = false) {
 		loading = true;
 		const biz = await getBusiness(businessId);
 		if (biz) {
 			businessName = biz.name;
-			revenue = await getRevenueTotal(biz.id);
-			outstanding = await getOutstandingTotal(biz.id);
-			patientCount = await countPatients(biz.id);
-			recentInvoices = await getRecentInvoices(biz.id, 5);
-
-			const alerts = await getDashboardAlerts(biz.id);
+			const [rev, out, count, invoices, alerts] = await Promise.all([
+				getRevenueTotal(biz.id),
+				getOutstandingTotal(biz.id),
+				countPatients(biz.id),
+				getCachedInvoices(biz.id, force),
+				getDashboardAlerts(biz.id)
+			]);
+			
+			revenue = rev;
+			outstanding = out;
+			patientCount = count;
+			recentInvoices = invoices.slice(-5).reverse();
+			
 			lowStockProducts = alerts.lowStock;
 			overdueInvoices = alerts.overdueInvoices;
 			revenueChange = alerts.revenueChangePercentage;
@@ -45,6 +54,16 @@
 		if ($activeBusinessId) {
 			loadDashboard($activeBusinessId);
 		}
+	});
+	
+	onMount(() => {
+		const handleVisibility = () => {
+			if (document.visibilityState === 'visible' && $activeBusinessId) {
+				loadDashboard($activeBusinessId, true);
+			}
+		};
+		document.addEventListener('visibilitychange', handleVisibility);
+		return () => document.removeEventListener('visibilitychange', handleVisibility);
 	});
 </script>
 
@@ -163,12 +182,12 @@
 					</div>
 				{/if}
 				{#if lowStockProducts.length > 0}
-					<div class="bg-amber-50 text-amber-900 p-4 rounded-xl flex items-start gap-4 shadow-sm border border-amber-200">
-						<span class="material-symbols-outlined text-amber-600 mt-0.5">inventory</span>
+					<div class="bg-info-container/50 text-info border border-info/20 p-4 rounded-xl flex items-start gap-4 shadow-sm">
+						<span class="material-symbols-outlined text-info mt-0.5">inventory</span>
 						<div class="flex-1">
 							<p class="font-headline font-bold text-sm">Low Stock Alert</p>
 							<p class="text-sm opacity-80 mb-2">{lowStockProducts.length} {lowStockProducts.length === 1 ? 'product is' : 'products are'} low on stock.</p>
-							<a href="/inventory" class="text-xs font-bold text-amber-600 flex items-center gap-1 hover:underline">View Inventory <span class="material-symbols-outlined text-[14px]">arrow_forward</span></a>
+							<a href="/inventory" class="text-xs font-bold text-info flex items-center gap-1 hover:underline">View Inventory <span class="material-symbols-outlined text-[14px]">arrow_forward</span></a>
 						</div>
 					</div>
 				{/if}

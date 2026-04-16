@@ -1,12 +1,9 @@
-/* ── Google Fonts ───────────────────────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
-
+/* ── Tailwind CSS ───────────────────────────────────────────────────────────── */
 @import 'tailwindcss';
 
 
 :root {
-  /* Default Light Theme (Clinical Architect) */
+  /* Default Light Theme (Hisaab Default) */
   --sys-primary: #003f87;
   --sys-primary-container: #0056b3;
   --sys-primary-fixed: #d7e2ff;
@@ -59,6 +56,47 @@
   --sys-inverse-surface: #2e3132;
   --sys-inverse-on-surface: #f0f1f2;
   --sys-inverse-primary: #acc7ff;
+
+  /* Premium Accent Colors */
+  --sys-success: #0d7d5a;
+  --sys-success-container: #b4f2dc;
+  --sys-warning: #9d5a00;
+  --sys-warning-container: #ffe0b2;
+  --sys-info: #005a8d;
+  --sys-info-container: #cce5ff;
+  
+  /* Glassmorphism */
+  --glass-surface: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-blur: 20px;
+  
+  /* Shadows for depth */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-glow: 0 0 40px rgba(0, 63, 135, 0.15);
+  
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  
+  /* Border radius scale */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-full: 9999px;
+  
+  /* Transition durations */
+  --transition-fast: 150ms;
+  --transition-normal: 250ms;
+  --transition-slow: 350ms;
 }
 
 .dark {
@@ -115,6 +153,11 @@
   --sys-inverse-surface: #dfe3e5;
   --sys-inverse-on-surface: #2b3133;
   --sys-inverse-primary: #115cb9;
+  
+  /* Dark glass */
+  --glass-surface: rgba(15, 20, 22, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --shadow-glow: 0 0 40px rgba(172, 199, 255, 0.1);
 }
 
 @theme {
@@ -171,18 +214,66 @@
   --color-inverse-on-surface: var(--sys-inverse-on-surface);
   --color-inverse-primary: var(--sys-inverse-primary);
 
+  --color-success: var(--sys-success);
+  --color-success-container: var(--sys-success-container);
+  --color-warning: var(--sys-warning);
+  --color-warning-container: var(--sys-warning-container);
+  --color-info: var(--sys-info);
+  --color-info-container: var(--sys-info-container);
+
   --font-headline: 'Manrope', sans-serif;
   --font-body: 'Inter', sans-serif;
   --font-label: 'Inter', sans-serif;
 }
 
 /* ── Base Styles ──────────────────────────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: var(--font-body);
   background-color: var(--color-surface);
   color: var(--color-on-surface);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* ── Fluid Typography ────────────────────────────────────────────────────── */
+html {
+  font-size: clamp(14px, 1vw, 16px);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-headline);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+h1 { font-size: clamp(1.75rem, 4vw, 2.5rem); }
+h2 { font-size: clamp(1.5rem, 3vw, 2rem); }
+h3 { font-size: clamp(1.25rem, 2.5vw, 1.75rem); }
+h4 { font-size: clamp(1.125rem, 2vw, 1.5rem); }
+h5 { font-size: clamp(1rem, 1.5vw, 1.25rem); }
+h6 { font-size: clamp(0.875rem, 1vw, 1rem); }
+
+p {
+  font-size: clamp(0.875rem, 1vw, 1rem);
+  line-height: 1.6;
+}
+
+/* ── Font Size Variants ─────────────────────────────────────────────────── */
+.font-small {
+  font-size: 90%;
+}
+
+.font-medium {
+  font-size: 100%;
+}
+
+.font-large {
+  font-size: 115%;
 }
 
 /* ── Material Symbols ─────────────────────────────────────────────────────── */
@@ -191,20 +282,443 @@ body {
   display: inline-block;
   vertical-align: middle;
   line-height: 1;
+  user-select: none;
+}
+
+/* ── Premium Glass Effect ────────────────────────────────────────────────── */
+.glass {
+  background: var(--glass-surface);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+}
+
+.glass-dark {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* ── Premium Card Styles ─────────────────────────────────────────────────── */
+.card-premium {
+  background: var(--color-surface-container-lowest);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-outline-variant);
+  transition: all var(--transition-normal) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-premium:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl), var(--shadow-glow);
+  border-color: var(--color-primary);
+}
+
+.card-premium-flat {
+  background: var(--color-surface-container);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-fast) ease;
+}
+
+.card-premium-flat:hover {
+  background: var(--color-surface-container-high);
+}
+
+/* ── Layered Depth ────────────────────────────────────────────────────────── */
+.depth-1 {
+  box-shadow: var(--shadow-sm);
+}
+
+.depth-2 {
+  box-shadow: var(--shadow-md);
+}
+
+.depth-3 {
+  box-shadow: var(--shadow-lg);
+}
+
+.depth-4 {
+  box-shadow: var(--shadow-xl);
+}
+
+.depth-glow {
+  box-shadow: var(--shadow-glow);
 }
 
 /* ── Scrollbar ────────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
   background: var(--color-outline-variant);
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-outline);
+}
+
+/* ── Premium Scrollbar (Firefox) ──────────────────────────────────────────── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-outline-variant) transparent;
+}
+
+/* ── Animation Utilities ─────────────────────────────────────────────────── */
+.animations-full * {
+  transition: all var(--transition-normal) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animations-reduced * {
+  transition: all var(--transition-fast) step-end;
+}
+
+.animations-none * {
+  transition: none !important;
+}
+
+.reduce-motion {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* ── Micro-interactions ──────────────────────────────────────────────────── */
+.interactive {
+  cursor: pointer;
+  transition: all var(--transition-fast) ease;
+}
+
+.interactive:hover {
+  transform: translateY(-1px);
+}
+
+.interactive:active {
+  transform: scale(0.98);
+}
+
+.interactive-scale:hover {
+  transform: scale(1.02);
+}
+
+.interactive-scale:active {
+  transform: scale(0.98);
+}
+
+/* ── Focus States (Accessibility) ────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ── Premium Button Styles ───────────────────────────────────────────────── */
+.btn-premium {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  font-family: var(--font-body);
+  font-weight: 600;
+  transition: all var(--transition-fast) cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.btn-premium-primary {
+  background: linear-gradient(135deg, var(--sys-primary) 0%, var(--sys-primary-container) 100%);
+  color: var(--sys-on-primary);
+  box-shadow: var(--shadow-md), 0 0 20px rgba(0, 63, 135, 0.2);
+}
+
+.btn-premium-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg), 0 0 30px rgba(0, 63, 135, 0.3);
+}
+
+.btn-premium-primary:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn-premium-secondary {
+  background: var(--color-surface-container);
+  color: var(--color-on-surface);
+  border: 1px solid var(--color-outline-variant);
+}
+
+.btn-premium-secondary:hover {
+  background: var(--color-surface-container-high);
+  border-color: var(--color-primary);
+}
+
+/* ── Premium Input Styles ────────────────────────────────────────────────── */
+.input-premium {
+  background: var(--color-surface-container-highest);
+  border: 2px solid transparent;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md);
+  font-family: var(--font-body);
+  transition: all var(--transition-fast) ease;
+}
+
+.input-premium:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(0, 63, 135, 0.1);
+}
+
+.input-premium::placeholder {
+  color: var(--color-on-surface-variant);
+  opacity: 0.6;
+}
+
+/* ── Skeleton Loading Animation ──────────────────────────────────────────── */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-container) 25%,
+    var(--color-surface-container-high) 50%,
+    var(--color-surface-container) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite ease-in-out;
+  border-radius: var(--radius-md);
+}
+
+/* ── Page Transition ──────────────────────────────────────────────────────── */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-enter {
+  animation: fadeIn var(--transition-normal) ease-out;
+}
+
+/* ── Stagger Animation Helper ────────────────────────────────────────────── */
+.stagger-1 { animation-delay: 50ms; }
+.stagger-2 { animation-delay: 100ms; }
+.stagger-3 { animation-delay: 150ms; }
+.stagger-4 { animation-delay: 200ms; }
+.stagger-5 { animation-delay: 250ms; }
+.stagger-6 { animation-delay: 300ms; }
+.stagger-7 { animation-delay: 350ms; }
+.stagger-8 { animation-delay: 400ms; }
+
+/* ── Touch-friendly Mobile Optimizations ──────────────────────────────────── */
+@media (hover: none) and (pointer: coarse) {
+  .btn-premium,
+  .card-premium,
+  a,
+  button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .interactive:hover {
+    transform: none;
+  }
+  
+  .interactive:active {
+    transform: scale(0.96);
+  }
+}
+
+/* ── Responsive Grid Utilities ──────────────────────────────────────────── */
+.auto-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: var(--spacing-lg);
+}
+
+.auto-grid-sm {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: var(--spacing-md);
+}
+
+/* ── Bento Grid Layout ───────────────────────────────────────────────────── */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: minmax(120px, auto);
+  gap: var(--spacing-md);
+}
+
+.bento-item {
+  background: var(--color-surface-container);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-lg);
+  transition: all var(--transition-normal) ease;
+}
+
+.bento-item:hover {
+  transform: scale(1.02);
+  box-shadow: var(--shadow-lg);
+}
+
+.bento-item.col-span-2 {
+  grid-column: span 2;
+}
+
+.bento-item.row-span-2 {
+  grid-row: span 2;
+}
+
+@media (max-width: 768px) {
+  .bento-grid {
+    grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+  }
+  
+  .bento-item.col-span-2,
+  .bento-item.row-span-2 {
+    grid-column: auto;
+    grid-row: auto;
+  }
+}
+
+/* ── Premium Typography ──────────────────────────────────────────────────── */
+.text-gradient {
+  background: linear-gradient(135deg, var(--sys-primary) 0%, var(--sys-secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-glow {
+  text-shadow: 0 0 20px rgba(0, 63, 135, 0.5);
+}
+
+/* ── Hide Scrollbar But Keep Functionality ────────────────────────────────── */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Loading Dots Animation ──────────────────────────────────────────────── */
+@keyframes loadingDots {
+  0%, 20% { content: '.'; }
+  40% { content: '..'; }
+  60%, 100% { content: '...'; }
+}
+
+.loading-dots::after {
+  content: '...';
+  animation: loadingDots 1.5s infinite;
+}
+
+/* ── Pulse Animation ──────────────────────────────────────────────────────── */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+.pulse-indicator {
+  position: relative;
+}
+
+.pulse-indicator::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pulse-ring 1.5s infinite;
+}
+
+/* ── Swipe Hint Animation (Mobile) ───────────────────────────────────────── */
+@keyframes swipeHint {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(10px);
+  }
+}
+
+.swipe-hint {
+  animation: swipeHint 2s ease-in-out infinite;
+}
+
+/* ── Print Styles ──────────────────────────────────────────────────────────── */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    background: white;
+    color: black;
+  }
+}
+
+/* ── Reduced Motion Preference ────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── High Contrast Mode ──────────────────────────────────────────────────── */
+@media (prefers-contrast: high) {
+  :root {
+    --color-outline: currentColor;
+    --color-outline-variant: currentColor;
+  }
+  
+  .card-premium {
+    border-width: 2px;
+  }
+}
+
+/* ── Container Queries Support ────────────────────────────────────────────── */
+@supports (container-type: inline-size) {
+  .container-query {
+    container-type: inline-size;
+  }
+}
+
+/* ── Selection Color ──────────────────────────────────────────────────────── */
+::selection {
+  background: var(--sys-primary);
+  color: var(--sys-on-primary);
+}
+
+/* ── Focus Within for Component Groups ───────────────────────────────────── */
+.focus-within:focus-within {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }

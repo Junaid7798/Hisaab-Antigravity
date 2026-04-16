@@ -5,7 +5,8 @@
 	import Input from '$lib/components/Input.svelte';
 	import Select from '$lib/components/Select.svelte';
 	import Modal from '$lib/components/Modal.svelte';
-	import { getBusiness, getProducts, createProduct, updateProduct, countProducts, countLowStockProducts } from '$lib/db/crud';
+	import { getBusiness, createProduct, updateProduct, countProducts, countLowStockProducts } from '$lib/db/crud';
+	import { getCachedProducts } from '$lib/utils/cache';
 	import { activeBusinessId, activeTerminology } from '$lib/stores/session';
 	import { formatINRCompact, formatINR } from '$lib/utils/currency';
 	import { toast } from '$lib/stores/toast';
@@ -38,7 +39,7 @@
 		const biz = await getBusiness(bizId);
 		if (biz) {
 			businessId = biz.id;
-			products = await getProducts(businessId);
+			products = await getCachedProducts(businessId);
 			totalProducts = await countProducts(businessId);
 			lowStockProducts = await countLowStockProducts(businessId);
 		}

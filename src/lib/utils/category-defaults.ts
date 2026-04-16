@@ -64,7 +64,7 @@ export const categoryDefaults: Record<BusinessCategory, CategoryDefaults> = {
 	contractor: { expenseCategories: ['Raw Materials', 'Labor Payments', 'Equipment Rental', 'Transport'] },
 	architect: { expenseCategories: ['Software Licenses', 'Travel', 'Office Rent', 'Printing'] },
 	interior_designer: { expenseCategories: ['Materials', 'Furniture', 'Labor', 'Travel', 'Software'] },
-	plumber: { pipes_fittings: ['Pipes & Fittings', 'Tools', 'Travel', 'Labor'] } as any, // fallback
+	plumber: { expenseCategories: ['Pipes & Fittings', 'Tools', 'Travel', 'Labor'] },
 	electrician: { expenseCategories: ['Wires & Fittings', 'Tools', 'Travel', 'Labor'] },
 	real_estate_agent: { expenseCategories: ['Marketing', 'Travel', 'Phone/Internet', 'Office Rent'] },
 

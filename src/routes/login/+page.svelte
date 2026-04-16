@@ -63,14 +63,15 @@
 
 			<form class="space-y-6" onsubmit={(e) => { e.preventDefault(); goto('/dashboard'); }}>
 				<div class="space-y-2">
-					<label class="font-label text-xs font-semibold text-on-surface-variant uppercase tracking-wider ml-1">{$_('login.label_email')}</label>
+					<label for="login-email" class="font-label text-xs font-semibold text-on-surface-variant uppercase tracking-wider ml-1">{$_('login.label_email')}</label>
 					<div class="relative">
 						<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
 							<span class="material-symbols-outlined text-outline text-xl">mail</span>
 						</div>
 						<input
+							id="login-email"
 							type="text"
-							placeholder="admin@clinic.com"
+							placeholder="admin@business.com"
 							class="w-full pl-11 pr-4 py-3.5 bg-surface-container-highest border-none rounded-lg focus:ring-2 focus:ring-primary/20 font-body text-sm placeholder:text-outline"
 						/>
 					</div>
@@ -78,7 +79,7 @@
 
 				<div class="space-y-2">
 					<div class="flex justify-between items-center px-1">
-						<label class="font-label text-xs font-semibold text-on-surface-variant uppercase tracking-wider">{$_('login.label_pwd')}</label>
+						<label for="login-password" class="font-label text-xs font-semibold text-on-surface-variant uppercase tracking-wider">{$_('login.label_pwd')}</label>
 						<a class="text-primary text-xs font-bold hover:underline" href="/login">{$_('login.forgot_pwd')}</a>
 					</div>
 					<div class="relative">
@@ -86,6 +87,7 @@
 							<span class="material-symbols-outlined text-outline text-xl">lock</span>
 						</div>
 						<input
+							id="login-password"
 							type="password"
 							placeholder="••••••••"
 							class="w-full pl-11 pr-12 py-3.5 bg-surface-container-highest border-none rounded-lg focus:ring-2 focus:ring-primary/20 font-body text-sm placeholder:text-outline"

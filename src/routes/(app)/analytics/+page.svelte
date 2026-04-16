@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
-	import { getBusiness, getInvoices, getExpenses, getProducts, getPatients, getRevenueTotal, getExpenseTotal, getOutstandingTotal, getExpensesByMonth, getRevenueByMonth } from '$lib/db/crud';
+	import { getBusiness, getRevenueTotal, getExpenseTotal, getOutstandingTotal, getExpensesByMonth, getRevenueByMonth } from '$lib/db/crud';
 	import { activeBusinessId, activeTerminology } from '$lib/stores/session';
 	import { formatINR, formatINRCompact, toRupees } from '$lib/utils/currency';
+	import { getCachedInvoices, getCachedExpenses, getCachedProducts, getCachedCustomers } from '$lib/utils/cache';
 	import { fly, fade } from 'svelte/transition';
 	import type { Invoice, Expense, Product, Patient } from '$lib/db/index';
 
@@ -98,10 +99,10 @@
 			revenue = await getRevenueTotal(biz.id);
 			expenses = await getExpenseTotal(biz.id);
 			outstanding = await getOutstandingTotal(biz.id);
-			invoices = await getInvoices(biz.id);
-			expenseList = await getExpenses(biz.id);
-			products = await getProducts(biz.id);
-			patients = await getPatients(biz.id);
+			invoices = await getCachedInvoices(biz.id);
+			expenseList = await getCachedExpenses(biz.id);
+			products = await getCachedProducts(biz.id);
+			patients = await getCachedCustomers(biz.id);
 			revenueByMonth = await getRevenueByMonth(biz.id, 6);
 			expensesByMonth = await getExpensesByMonth(biz.id, 6);
 		}
@@ -123,10 +124,10 @@
 		
 		score = Math.max(0, Math.min(100, score));
 		
-		if (score >= 80) return { score, label: 'Excellent', color: 'text-emerald-400' };
-		if (score >= 60) return { score, label: 'Good', color: 'text-blue-400' };
-		if (score >= 40) return { score, label: 'Fair', color: 'text-amber-400' };
-		return { score, label: 'Needs Attention', color: 'text-red-400' };
+		if (score >= 80) return { score, label: 'Excellent', color: 'text-success' };
+		if (score >= 60) return { score, label: 'Good', color: 'text-info' };
+		if (score >= 40) return { score, label: 'Fair', color: 'text-warning' };
+		return { score, label: 'Needs Attention', color: 'text-error' };
 	}
 
 	let health = $derived(getHealthScore());
@@ -159,35 +160,35 @@
 		{#if expenseAnomaly || overdueInvoices.length > 0 || lowStockItems.length > 0}
 			<div class="space-y-3" in:fly={{ y: 20, duration: 400 }}>
 				<h2 class="text-sm font-label font-bold uppercase tracking-widest text-on-surface-variant/60 flex items-center gap-2">
-					<span class="material-symbols-outlined text-base text-amber-400">notifications_active</span>
+					<span class="material-symbols-outlined text-base text-warning">notifications_active</span>
 					{$_('analytics.smart_alerts', { default: 'Smart Alerts' })}
 				</h2>
 
 				{#if expenseAnomaly}
-					<div class="bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex items-start gap-3">
-						<span class="material-symbols-outlined text-red-400 mt-0.5">warning</span>
+					<div class="bg-error-container/50 border border-error/20 rounded-xl p-4 flex items-start gap-3">
+						<span class="material-symbols-outlined text-error mt-0.5">warning</span>
 						<div>
-							<p class="font-bold text-sm text-red-400">{$_('analytics.expense_anomaly', { default: 'Expense Anomaly Detected' })}</p>
+							<p class="font-bold text-sm text-error">{$_('analytics.expense_anomaly', { default: 'Expense Anomaly Detected' })}</p>
 							<p class="text-xs text-on-surface-variant mt-0.5">This month's expenses ({formatINRCompact(toRupees(currentMonthExpense))}) are more than 2x your average ({formatINRCompact(toRupees(avgMonthlyExpense))}). Review your recent spending.</p>
 						</div>
 					</div>
 				{/if}
 
 				{#if overdueInvoices.length > 0}
-					<div class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex items-start gap-3">
-						<span class="material-symbols-outlined text-amber-400 mt-0.5">schedule</span>
+					<div class="bg-warning-container/50 border border-warning/20 rounded-xl p-4 flex items-start gap-3">
+						<span class="material-symbols-outlined text-warning mt-0.5">schedule</span>
 						<div>
-							<p class="font-bold text-sm text-amber-400">{overdueInvoices.length} Overdue Invoice{overdueInvoices.length > 1 ? 's' : ''}</p>
+							<p class="font-bold text-sm text-warning">{overdueInvoices.length} Overdue Invoice{overdueInvoices.length > 1 ? 's' : ''}</p>
 							<p class="text-xs text-on-surface-variant mt-0.5">Total overdue: {formatINR(overdueInvoices.reduce((s, i) => s + i.grand_total, 0))}. Follow up with clients to improve cash flow.</p>
 						</div>
 					</div>
 				{/if}
 
 				{#if lowStockItems.length > 0}
-					<div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 flex items-start gap-3">
-						<span class="material-symbols-outlined text-blue-400 mt-0.5">inventory</span>
+					<div class="bg-info-container/50 border border-info/20 rounded-xl p-4 flex items-start gap-3">
+						<span class="material-symbols-outlined text-info mt-0.5">inventory</span>
 						<div>
-							<p class="font-bold text-sm text-blue-400">{lowStockItems.length} Item{lowStockItems.length > 1 ? 's' : ''} Low on Stock</p>
+							<p class="font-bold text-sm text-info">{lowStockItems.length} Item{lowStockItems.length > 1 ? 's' : ''} Low on Stock</p>
 							<p class="text-xs text-on-surface-variant mt-0.5">
 								{lowStockItems.slice(0, 3).map(p => p.name).join(', ')}{lowStockItems.length > 3 ? ` +${lowStockItems.length - 3} more` : ''}
 							</p>
@@ -311,10 +312,10 @@
 							<div class="py-3 space-y-1.5">
 								<div class="flex items-center justify-between">
 									<span class="text-sm font-medium">{item.name}</span>
-									<span class="text-xs font-bold {pct <= 25 ? 'text-red-400' : 'text-amber-400'}">{(item.stock_quantity / 100).toFixed(0)} {item.unit}</span>
+									<span class="text-xs font-bold {pct <= 25 ? 'text-error' : 'text-warning'}">{(item.stock_quantity / 100).toFixed(0)} {item.unit}</span>
 								</div>
 								<div class="w-full bg-surface-container-low rounded-full h-1.5 overflow-hidden">
-									<div class="h-full rounded-full transition-all {pct <= 25 ? 'bg-red-400' : 'bg-amber-400'}" style="width: {Math.min(pct, 100)}%"></div>
+									<div class="h-full rounded-full transition-all {pct <= 25 ? 'bg-error' : 'bg-warning'}" style="width: {Math.min(pct, 100)}%"></div>
 								</div>
 							</div>
 						{/each}

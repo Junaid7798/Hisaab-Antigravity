@@ -1,9 +1,16 @@
-import { db, type Business, type Patient, type Invoice, type InvoiceItem, type Expense, type Product, type Payment, type Supplier, type PurchaseOrder, type PurchaseOrderItem, type PurchasePayment, type RecurringSchedule } from './index';
+import { db, type Business, type Patient, type Invoice, type InvoiceItem, type Expense, type Product, type Payment, type Supplier, type PurchaseOrder, type PurchaseOrderItem, type PurchasePayment, type RecurringSchedule, type Staff, type StaffSalary, type StaffAdvance, type StaffDocument, type StaffRole, type Attendance, type LeaveRequest, type LeaveBalance, type Task, type TaskStatus, type TaskPriority, type Loan, type Branch, type BOM } from './index';
 import { generateId, now } from '$lib/utils/helpers';
+import { invalidateBusinessCache, getCachedBusiness } from '$lib/utils/cache';
+import { generateInvoiceNumber } from '$lib/utils/invoice-number';
+import { BusinessSchema, InvoiceSchema, ExpenseSchema, ProductSchema, PaymentSchema } from '$lib/utils/validators';
+import { detectExpenseAnomaly, detectInvoiceAnomalies, detectDuplicateInvoice } from '$lib/utils/anomaly-detection';
+
+export * from './crud-extended';
 
 // ─── Business CRUD ───────────────────────────────────────────────────────────
 
 export async function createBusiness(data: Partial<Business>): Promise<Business> {
+	BusinessSchema.partial().parse(data);
 	const business: Business = {
 		id: data.id || generateId(),
 		owner_id: data.owner_id || '',
@@ -61,16 +68,18 @@ export async function createPatient(businessId: string, data: Partial<Patient>):
 		last_modified: now()
 	};
 	await db.patients.add(patient);
+	// Invalidate cache for this business
+	invalidateBusinessCache(businessId);
 	return patient;
 }
 
 export async function getPatients(businessId: string): Promise<Patient[]> {
-	return db.patients
+	const list = await db.patients
 		.where('business_id')
 		.equals(businessId)
 		.filter((p) => !p.is_deleted)
-		.reverse()
 		.sortBy('created_at');
+	return list.reverse();
 }
 
 export async function getPatient(id: string): Promise<Patient | undefined> {
@@ -83,6 +92,8 @@ export async function updatePatient(id: string, data: Partial<Patient>): Promise
 }
 
 export async function softDeletePatient(id: string): Promise<void> {
+	const __record = await db.patients.get(id);
+	if (__record) invalidateBusinessCache(__record.business_id);
 	await db.patients.update(id, { is_deleted: true, last_modified: now() });
 }
 
@@ -106,6 +117,11 @@ export async function countPatients(businessId: string): Promise<number> {
 // ─── Invoice CRUD ────────────────────────────────────────────────────────────
 
 export async function createInvoice(data: Omit<Invoice, 'id' | 'is_deleted' | 'created_at' | 'last_modified'>, items: Omit<InvoiceItem, 'id' | 'is_deleted' | 'created_at' | 'last_modified'>[]): Promise<Invoice> {
+	InvoiceSchema.partial().parse(data);
+	const anomalies = await detectInvoiceAnomalies(data, items);
+	if (anomalies.length > 0) {
+		console.warn('Invoice Anomalies Detected:', anomalies);
+	}
 	const invoice: Invoice = {
 		...data,
 		id: generateId(),
@@ -123,9 +139,28 @@ export async function createInvoice(data: Omit<Invoice, 'id' | 'is_deleted' | 'c
 		last_modified: now()
 	}));
 
-	await db.transaction('rw', db.invoices, db.invoice_items, db.businesses, async () => {
+	await db.transaction('rw', db.invoices, db.invoice_items, db.businesses, db.products, async () => {
 		await db.invoices.add(invoice);
 		await db.invoice_items.bulkAdd(invoiceItems);
+		
+		// Deduct stock if it's an INVOICE
+		if (invoice.document_type === 'INVOICE') {
+			const allProducts = await db.products.where('business_id').equals(invoice.business_id).toArray();
+			for (const item of invoiceItems) {
+				const product = item.product_id 
+					? allProducts.find(p => p.id === item.product_id)
+					: allProducts.find(p => p.name === item.description);
+					
+				if (product && !product.is_service) {
+					const dbProduct = await db.products.get(product.id);
+					if (dbProduct) {
+						const newStock = Math.max(0, dbProduct.stock_quantity - item.quantity);
+						await db.products.update(dbProduct.id, { stock_quantity: newStock, last_modified: now() });
+					}
+				}
+			}
+		}
+
 		// Increment the invoice counter
 		const business = await db.businesses.get(invoice.business_id);
 		if (business) {
@@ -136,11 +171,48 @@ export async function createInvoice(data: Omit<Invoice, 'id' | 'is_deleted' | 'c
 		}
 	});
 
+	// Invalidate cache for this business
+	invalidateBusinessCache(invoice.business_id);
+
 	return invoice;
 }
 
 export async function updateInvoice(id: string, data: Partial<Omit<Invoice, 'id' | 'is_deleted' | 'created_at' | 'last_modified'>>, items: Omit<InvoiceItem, 'id' | 'is_deleted' | 'created_at' | 'last_modified' | 'invoice_id'>[]): Promise<void> {
-	await db.transaction('rw', db.invoices, db.invoice_items, async () => {
+	InvoiceSchema.partial().parse(data);
+	const existingInvoiceTemp = await db.invoices.get(id);
+	if (existingInvoiceTemp) {
+		const anomalies = await detectInvoiceAnomalies({ ...existingInvoiceTemp, ...data }, items);
+		if (anomalies.length > 0) console.warn('Invoice Anomalies Detected during update:', anomalies);
+	}
+
+	await db.transaction('rw', db.invoices, db.invoice_items, db.products, async () => {
+		const existingInvoice = await db.invoices.get(id);
+		if (!existingInvoice) return;
+
+		const isInvoiceDoc = data.document_type === 'INVOICE' || 
+							 (data.document_type === undefined && existingInvoice.document_type === 'INVOICE');
+
+		// Restore old stock if existing document is INVOICE
+		if (existingInvoice.document_type === 'INVOICE') {
+			const oldItems = await db.invoice_items.where('invoice_id').equals(id).toArray();
+			const allProducts = await db.products.where('business_id').equals(existingInvoice.business_id).toArray();
+			
+			for (const item of oldItems) {
+				const product = item.product_id 
+					? allProducts.find(p => p.id === item.product_id)
+					: allProducts.find(p => p.name === item.description);
+				if (product && !product.is_service) {
+					const dbProduct = await db.products.get(product.id);
+					if (dbProduct) {
+						await db.products.update(dbProduct.id, { 
+							stock_quantity: dbProduct.stock_quantity + item.quantity, 
+							last_modified: now() 
+						});
+					}
+				}
+			}
+		}
+
 		// Update main invoice data
 		await db.invoices.update(id, {
 			...data,
@@ -162,6 +234,54 @@ export async function updateInvoice(id: string, data: Partial<Omit<Invoice, 'id'
 		}));
 
 		await db.invoice_items.bulkAdd(updatedItems);
+		
+		// Deduct new stock
+		if (isInvoiceDoc) {
+			const allProducts = await db.products.where('business_id').equals(existingInvoice.business_id).toArray();
+			for (const item of updatedItems) {
+				const product = item.product_id 
+					? allProducts.find(p => p.id === item.product_id)
+					: allProducts.find(p => p.name === item.description);
+				
+				if (product && !product.is_service) {
+					const dbProduct = await db.products.get(product.id);
+					if (dbProduct) {
+						const newStock = Math.max(0, dbProduct.stock_quantity - item.quantity);
+						await db.products.update(dbProduct.id, { stock_quantity: newStock, last_modified: now() });
+					}
+				}
+			}
+		}
+	});
+}
+
+export async function softDeleteInvoice(id: string): Promise<void> {
+	await db.transaction('rw', db.invoices, db.invoice_items, db.products, async () => {
+		const invoice = await db.invoices.get(id);
+		if (!invoice || invoice.is_deleted) return;
+		
+		if (invoice.document_type === 'INVOICE') {
+			const items = await db.invoice_items.where('invoice_id').equals(id).toArray();
+			const allProducts = await db.products.where('business_id').equals(invoice.business_id).toArray();
+			
+			for (const item of items) {
+				const product = item.product_id 
+					? allProducts.find(p => p.id === item.product_id)
+					: allProducts.find(p => p.name === item.description);
+				
+				if (product && !product.is_service) {
+					const dbProduct = await db.products.get(product.id);
+					if (dbProduct) {
+						await db.products.update(dbProduct.id, { 
+							stock_quantity: dbProduct.stock_quantity + item.quantity, 
+							last_modified: now() 
+						});
+					}
+				}
+			}
+		}
+		
+		await db.invoices.update(id, { is_deleted: true, last_modified: now() });
 	});
 }
 
@@ -220,12 +340,12 @@ export async function convertEstimateToInvoice(estimateId: string): Promise<Invo
 }
 
 export async function getInvoices(businessId: string): Promise<Invoice[]> {
-	return db.invoices
+	const list = await db.invoices
 		.where('business_id')
 		.equals(businessId)
 		.filter((i) => !i.is_deleted)
-		.reverse()
 		.sortBy('created_at');
+	return list.reverse();
 }
 
 export async function getInvoice(id: string): Promise<Invoice | undefined> {
@@ -251,6 +371,8 @@ export async function getInvoicesByPatient(patientId: string): Promise<Invoice[]
 }
 
 export async function updateInvoiceStatus(id: string, status: Invoice['status']): Promise<void> {
+	const __record = await db.invoices.get(id);
+	if (__record) invalidateBusinessCache(__record.business_id);
 	await db.invoices.update(id, { status, last_modified: now() });
 }
 
@@ -258,15 +380,18 @@ export async function getOutstandingTotal(businessId: string): Promise<number> {
 	const invoices = await db.invoices
 		.where('business_id')
 		.equals(businessId)
-		.filter((i) => !i.is_deleted && i.document_type === 'INVOICE' && i.status !== 'PAID')
+		.filter((i) => !i.is_deleted && i.document_type === 'INVOICE')
 		.toArray();
+	const totalBilled = invoices.reduce((sum, inv) => sum + inv.grand_total, 0);
+	
 	const payments = await db.payments
 		.where('business_id')
 		.equals(businessId)
-		.filter((p) => !p.is_deleted)
+		.filter((p) => !p.is_deleted && !!p.invoice_id)
 		.toArray();
-	const totalBilled = invoices.reduce((sum, inv) => sum + inv.grand_total, 0);
+	
 	const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
+	
 	return totalBilled - totalPaid;
 }
 
@@ -352,6 +477,9 @@ export async function getRecentInvoices(businessId: string, limit: number = 5): 
 // ─── Expense CRUD ────────────────────────────────────────────────────────────
 
 export async function createExpense(businessId: string, data: Partial<Expense>): Promise<Expense> {
+	ExpenseSchema.partial().parse(data);
+	const anomalies = await detectExpenseAnomaly({ ...data, business_id: businessId });
+	if (anomalies.length > 0) console.warn('Expense Anomalies Detected:', anomalies);
 	const expense: Expense = {
 		id: generateId(),
 		business_id: businessId,
@@ -366,16 +494,25 @@ export async function createExpense(businessId: string, data: Partial<Expense>):
 		last_modified: now()
 	};
 	await db.expenses.add(expense);
+	invalidateBusinessCache(businessId);
 	return expense;
 }
 
+export async function updateExpense(id: string, data: Partial<Expense>): Promise<void> {
+	const existing = await db.expenses.get(id);
+	if (existing) {
+		await db.expenses.update(id, { ...data, last_modified: now() });
+		invalidateBusinessCache(existing.business_id);
+	}
+}
+
 export async function getExpenses(businessId: string): Promise<Expense[]> {
-	return db.expenses
+	const list = await db.expenses
 		.where('business_id')
 		.equals(businessId)
 		.filter((e) => !e.is_deleted)
-		.reverse()
 		.sortBy('created_at');
+	return list.reverse();
 }
 
 export async function getExpensesByCategory(businessId: string): Promise<Record<string, number>> {
@@ -393,6 +530,8 @@ export async function getExpenseTotal(businessId: string): Promise<number> {
 }
 
 export async function softDeleteExpense(id: string): Promise<void> {
+	const __record = await db.expenses.get(id);
+	if (__record) invalidateBusinessCache(__record.business_id);
 	await db.expenses.update(id, { is_deleted: true, last_modified: now() });
 }
 
@@ -445,6 +584,7 @@ export async function getExpensesByMonth(businessId: string, months: number = 12
 // ─── Product CRUD ────────────────────────────────────────────────────────────
 
 export async function createProduct(businessId: string, data: Partial<Product>): Promise<Product> {
+	ProductSchema.partial().parse(data);
 	const product: Product = {
 		id: generateId(),
 		business_id: businessId,
@@ -463,16 +603,18 @@ export async function createProduct(businessId: string, data: Partial<Product>):
 		last_modified: now()
 	};
 	await db.products.add(product);
+	// Invalidate cache for this business
+	invalidateBusinessCache(businessId);
 	return product;
 }
 
 export async function getProducts(businessId: string): Promise<Product[]> {
-	return db.products
+	const list = await db.products
 		.where('business_id')
 		.equals(businessId)
 		.filter((p) => !p.is_deleted)
-		.reverse()
 		.sortBy('created_at');
+	return list.reverse();
 }
 
 export async function getProduct(id: string): Promise<Product | undefined> {
@@ -485,6 +627,8 @@ export async function updateProduct(id: string, data: Partial<Product>): Promise
 }
 
 export async function softDeleteProduct(id: string): Promise<void> {
+	const __record = await db.products.get(id);
+	if (__record) invalidateBusinessCache(__record.business_id);
 	await db.products.update(id, { is_deleted: true, last_modified: now() });
 }
 
@@ -507,6 +651,14 @@ export async function countLowStockProducts(businessId: string): Promise<number>
 // ─── Payment CRUD ────────────────────────────────────────────────────────────
 
 export async function createPayment(businessId: string, data: Partial<Payment>): Promise<Payment> {
+	// Validate invoice_id if provided
+	if (data.invoice_id) {
+		const inv = await db.invoices.get(data.invoice_id);
+		if (!inv || inv.is_deleted) {
+			throw new Error('Invalid invoice_id: invoice does not exist');
+		}
+	}
+
 	const payment: Payment = {
 		id: generateId(),
 		business_id: businessId,
@@ -522,16 +674,17 @@ export async function createPayment(businessId: string, data: Partial<Payment>):
 		last_modified: now()
 	};
 	await db.payments.add(payment);
+	invalidateBusinessCache(businessId);
 	return payment;
 }
 
 export async function getPayments(businessId: string): Promise<Payment[]> {
-	return db.payments
+	const list = await db.payments
 		.where('business_id')
 		.equals(businessId)
 		.filter((p) => !p.is_deleted)
-		.reverse()
 		.sortBy('created_at');
+	return list.reverse();
 }
 
 export async function getPaymentsByPatient(patientId: string): Promise<Payment[]> {
@@ -563,6 +716,8 @@ export async function getPaymentTotalForPatient(patientId: string): Promise<numb
 }
 
 export async function softDeletePayment(id: string): Promise<void> {
+	const __record = await db.payments.get(id);
+	if (__record) invalidateBusinessCache(__record.business_id);
 	await db.payments.update(id, { is_deleted: true, last_modified: now() });
 }
 
@@ -595,12 +750,12 @@ export async function updateSupplier(id: string, data: Partial<Supplier>): Promi
 }
 
 export async function getSuppliers(businessId: string): Promise<Supplier[]> {
-	return db.suppliers
+	const list = await db.suppliers
 		.where('business_id')
 		.equals(businessId)
 		.filter((s) => !s.is_deleted)
-		.reverse()
 		.sortBy('created_at');
+	return list.reverse();
 }
 
 export async function getSupplier(id: string): Promise<Supplier | undefined> {
@@ -713,12 +868,12 @@ export async function updatePurchaseOrderStatus(poId: string, newStatus: Purchas
 }
 
 export async function getPurchaseOrders(businessId: string): Promise<PurchaseOrder[]> {
-	return db.purchase_orders
+	const list = await db.purchase_orders
 		.where('business_id')
 		.equals(businessId)
 		.filter((po) => !po.is_deleted)
-		.reverse()
 		.sortBy('created_at');
+	return list.reverse();
 }
 
 export async function getPurchaseOrder(id: string): Promise<PurchaseOrder | undefined> {
@@ -821,6 +976,18 @@ export async function deleteRecurringSchedule(id: string): Promise<void> {
 }
 
 export async function processRecurringSchedules(): Promise<void> {
+	if (typeof navigator === 'undefined' || !navigator.locks) {
+		await __processRecurringSchedulesInternal();
+		return;
+	}
+	
+	// Cross-tab lock to prevent duplicate invoice generation
+	await navigator.locks.request('hisaab_recurring_schedule_lock', { mode: 'exclusive' }, async () => {
+		await __processRecurringSchedulesInternal();
+	});
+}
+
+async function __processRecurringSchedulesInternal(): Promise<void> {
 	const todayDate = new Date().toISOString().split('T')[0];
 	
 	const activeSchedules = await db.recurring_schedules
@@ -831,16 +998,22 @@ export async function processRecurringSchedules(): Promise<void> {
 		const business = await db.businesses.get(schedule.business_id);
 		if (!business) continue; // Should not happen, but safe
 
-		// 1. Generate Invoice Number
-		const currentYear = new Date().getFullYear();
-		const nextCounter = business.invoice_counter + 1;
-		const prefix = business.name.substring(0, 3).toUpperCase();
-		const invoiceNumber = `${prefix}/${currentYear}/${nextCounter.toString().padStart(4, '0')}`;
-
-		const invData = schedule.template_invoice_data;
-		
 		// 2. Create Invoice Transaction
 		await db.transaction('rw', db.invoices, db.invoice_items, db.businesses, db.recurring_schedules, async () => {
+			// Re-verify inside the transaction to ensure it wasn't processed precisely before us
+			const verifySchedule = await db.recurring_schedules.get(schedule.id);
+			if (!verifySchedule || verifySchedule.is_deleted || !verifySchedule.is_active || verifySchedule.next_run > todayDate) {
+				return; // Already processed
+			}
+
+			// 1. Generate Invoice Number inside transaction for safety
+			const freshBusiness = await db.businesses.get(schedule.business_id);
+			if (!freshBusiness) return;
+			const nextCounter = freshBusiness.invoice_counter + 1;
+			const invoiceNumber = generateInvoiceNumber(nextCounter);
+
+			const invData = schedule.template_invoice_data;
+			
 			const invoiceId = generateId();
 			await db.invoices.add({
 				...invData,
@@ -850,13 +1023,13 @@ export async function processRecurringSchedules(): Promise<void> {
 				invoice_number: invoiceNumber,
 				issue_date: todayDate,
 				due_date: todayDate,
-				status: 'PENDING',
+				status: 'UNPAID',
 				document_type: 'INVOICE',
 				linked_invoice_id: null,
 				is_deleted: false,
 				created_at: now(),
 				last_modified: now()
-			} as unknown as Invoice);
+			});
 
 			const items = schedule.template_items_data.map(ti => ({
 				...ti,
@@ -871,7 +1044,7 @@ export async function processRecurringSchedules(): Promise<void> {
 				await db.invoice_items.bulkAdd(items);
 			}
 
-			await db.businesses.update(business.id, {
+			await db.businesses.update(freshBusiness.id, {
 				invoice_counter: nextCounter,
 				last_modified: now()
 			});
@@ -894,4 +1067,216 @@ export async function processRecurringSchedules(): Promise<void> {
 			});
 		});
 	}
+}
+
+// ─── Staff HR Management CRUD ───────────────────────────────────────────────────────────
+
+export async function createStaff(businessId: string, data: Partial<Staff>): Promise<Staff> {
+	const staff: Staff = {
+		id: generateId(),
+		business_id: businessId,
+		name: data.name || '',
+		phone: data.phone || '',
+		email: data.email || '',
+		role: data.role || 'helper',
+		date_of_joining: data.date_of_joining || now().split('T')[0],
+		date_of_birth: data.date_of_birth || '',
+		address: data.address || '',
+		aadhaar_number: data.aadhaar_number || '',
+		pan_number: data.pan_number || '',
+		bank_account_number: data.bank_account_number || '',
+		bank_ifsc: data.bank_ifsc || '',
+		bank_name: data.bank_name || '',
+		basic_salary: data.basic_salary || 0,
+		photo_base64: data.photo_base64 || '',
+		is_active: true,
+		is_deleted: false,
+		created_at: now(),
+		last_modified: now()
+	};
+	await db.staff.add(staff);
+	return staff;
+}
+
+export async function getStaff(businessId: string): Promise<Staff[]> {
+	return db.staff
+		.where('business_id')
+		.equals(businessId)
+		.filter(s => !s.is_deleted)
+		.sortBy('name');
+}
+
+export async function getStaffById(id: string): Promise<Staff | undefined> {
+	const s = await db.staff.get(id);
+	return s && !s.is_deleted ? s : undefined;
+}
+
+export async function updateStaff(id: string, data: Partial<Staff>): Promise<void> {
+	await db.staff.update(id, { ...data, last_modified: now() });
+}
+
+export async function softDeleteStaff(id: string): Promise<void> {
+	await db.staff.update(id, { is_deleted: true, last_modified: now() });
+}
+
+export async function getActiveStaff(businessId: string): Promise<Staff[]> {
+	return db.staff
+		.where('business_id')
+		.equals(businessId)
+		.filter(s => !s.is_deleted && s.is_active)
+		.sortBy('name');
+}
+
+export async function getStaffByRole(businessId: string, role: StaffRole): Promise<Staff[]> {
+	return db.staff
+		.where('business_id')
+		.equals(businessId)
+		.filter(s => !s.is_deleted && s.is_active && s.role === role)
+		.sortBy('name');
+}
+
+// Salary functions
+export async function createStaffSalary(businessId: string, data: Partial<StaffSalary>): Promise<StaffSalary> {
+	const salary: StaffSalary = {
+		id: generateId(),
+		business_id: businessId,
+		staff_id: data.staff_id || '',
+		month: data.month || new Date().getMonth() + 1,
+		year: data.year || new Date().getFullYear(),
+		basic_salary: data.basic_salary || 0,
+		bonus: data.bonus || 0,
+		deductions: data.deductions || 0,
+		net_salary: data.net_salary || 0,
+		payment_date: data.payment_date || now(),
+		payment_method: data.payment_method || 'cash',
+		remarks: data.remarks || '',
+		is_deleted: false,
+		created_at: now(),
+		last_modified: now()
+	};
+	await db.staff_salaries.add(salary);
+	return salary;
+}
+
+export async function getStaffSalaries(businessId: string, staffId?: string): Promise<StaffSalary[]> {
+	let query = db.staff_salaries.where('business_id').equals(businessId);
+	if (staffId) {
+		return query.filter(s => !s.is_deleted && s.staff_id === staffId).sortBy('year');
+	}
+	return query.filter(s => !s.is_deleted).sortBy('year');
+}
+
+export async function getStaffSalaryByMonth(businessId: string, staffId: string, month: number, year: number): Promise<StaffSalary | undefined> {
+	const salaries = await db.staff_salaries
+		.where('business_id')
+		.equals(businessId)
+		.filter(s => !s.is_deleted && s.staff_id === staffId && s.month === month && s.year === year)
+		.toArray();
+	return salaries[0];
+}
+
+// Advance functions
+export async function createStaffAdvance(businessId: string, data: Partial<StaffAdvance>): Promise<StaffAdvance> {
+	const advance: StaffAdvance = {
+		id: generateId(),
+		business_id: businessId,
+		staff_id: data.staff_id || '',
+		amount: data.amount || 0,
+		total_repaid: data.total_repaid || 0,
+		reason: data.reason || '',
+		request_date: now(),
+		approval_date: '',
+		approval_by: '',
+		status: 'pending',
+		repayment_start_month: data.repayment_start_month || 0,
+		repayment_amount: data.repayment_amount || 0,
+		repayment_installments: data.repayment_installments || 0,
+		is_deleted: false,
+		created_at: now(),
+		last_modified: now()
+	};
+	await db.staff_advances.add(advance);
+	return advance;
+}
+
+export async function approveStaffAdvance(id: string, approvedBy: string, approve: boolean): Promise<void> {
+	await db.staff_advances.update(id, {
+		status: approve ? 'approved' : 'rejected',
+		approval_date: now(),
+		approval_by: approvedBy,
+		last_modified: now()
+	});
+}
+
+export async function getStaffAdvances(businessId: string, staffId?: string, status?: string): Promise<StaffAdvance[]> {
+	let query = db.staff_advances.where('business_id').equals(businessId);
+	let results = await query.filter(a => !a.is_deleted).toArray();
+	if (staffId) {
+		results = results.filter(a => a.staff_id === staffId);
+	}
+	if (status) {
+		results = results.filter(a => a.status === status);
+	}
+	return results.sort((a, b) => b.request_date.localeCompare(a.request_date));
+}
+
+export async function repayStaffAdvance(id: string, amount: number): Promise<void> {
+	const advance = await db.staff_advances.get(id);
+	if (!advance) return;
+	
+	const newTotalRepaid = (advance.total_repaid || 0) + amount;
+	const remaining = advance.amount - newTotalRepaid;
+	
+	if (remaining <= 0) {
+		await db.staff_advances.update(id, { 
+			total_repaid: advance.amount,
+			status: 'repaid', 
+			last_modified: now() 
+		});
+	} else {
+		await db.staff_advances.update(id, { 
+			total_repaid: newTotalRepaid,
+			repayment_installments: advance.repayment_installments - 1,
+			last_modified: now()
+		});
+	}
+}
+
+// Document functions
+export async function addStaffDocument(businessId: string, data: Partial<StaffDocument>): Promise<StaffDocument> {
+	const doc: StaffDocument = {
+		id: generateId(),
+		business_id: businessId,
+		staff_id: data.staff_id || '',
+		document_type: data.document_type || 'other',
+		file_name: data.file_name || '',
+		file_type: data.file_type || '',
+		file_size: data.file_size || 0,
+		base64_data: data.base64_data || '',
+		is_deleted: false,
+		created_at: now(),
+		last_modified: now()
+	};
+	await db.staff_documents.add(doc);
+	return doc;
+}
+
+export async function getStaffDocuments(businessId: string, staffId: string): Promise<StaffDocument[]> {
+	return db.staff_documents
+		.where('business_id')
+		.equals(businessId)
+		.filter(d => !d.is_deleted && d.staff_id === staffId)
+		.toArray();
+}
+
+export async function deleteStaffDocument(id: string): Promise<void> {
+	await db.staff_documents.update(id, { is_deleted: true, last_modified: now() });
+}
+
+// ─── Undo / Restore ─────────────────────────────────────────────────────────
+
+export async function restoreRecord(tableName: string, id: string): Promise<void> {
+	const table = (db as any)[tableName];
+	if (!table) throw new Error(`Unknown table: ${tableName}`);
+	await table.update(id, { is_deleted: false, last_modified: now() });
 }

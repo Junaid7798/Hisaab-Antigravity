@@ -1,6 +1,7 @@
 import { db } from './index';
 import { now } from '$lib/utils/helpers';
 import { supabase } from './supabase';
+import { syncStatus, lastSyncError } from '$lib/stores/sync';
 
 const SYNCABLE_TABLES = [
 	'businesses',
@@ -13,7 +14,19 @@ const SYNCABLE_TABLES = [
 	'suppliers',
 	'purchase_order_items',
 	'purchase_payments',
-	'recurring_schedules'
+	'recurring_schedules',
+	'purchase_orders',
+	'staff',
+	'staff_salaries',
+	'staff_advances',
+	'staff_documents',
+	'attendance',
+	'leave_requests',
+	'leave_balances',
+	'tasks',
+	'loans',
+	'branches',
+	'bom'
 ];
 
 let isSyncing = false;
@@ -88,12 +101,18 @@ export async function pullSync() {
 
 		console.log(`Pulling ${data.length} records for ${table}`);
 
-		// For conflict resolution, Dexie Last-Write-Wins.
-		// `bulkPut` overwrites. If local has a newer version concurrently, the next pushSync will overwrite it
-		// because the local `last_modified` will be greater. Wait, if we bulkPut, we overwrite local changes!
-		// To be 100% strictly perfectly LWW, we should check timestamps block by block. 
-		// For simplicity/perf in this Enterprise Vanguard phase, we'll assume basic sync.
-		await (db as any)[table].bulkPut(data);
+		// Implement true LWW at the record level
+		const updates = [];
+		for (const remoteRecord of data) {
+			const localRecord = await (db as any)[table].get(remoteRecord.id);
+			if (!localRecord || remoteRecord.last_modified > localRecord.last_modified) {
+				updates.push(remoteRecord);
+			}
+		}
+
+		if (updates.length > 0) {
+			await (db as any)[table].bulkPut(updates);
+		}
 
 		// Update sync meta timestamp
 		const latestTimestamp = data.reduce((max: string, r: any) => r.last_modified > max ? r.last_modified : max, lastSyncAt);
@@ -106,17 +125,32 @@ export async function pullSync() {
  */
 export async function runSyncEngine() {
 	if (isSyncing || !navigator.onLine) return;
+	
+	const { data: { session } } = await supabase.auth.getSession();
+	if (!session) {
+		console.log('Skipping sync: No active Supabase session.');
+		return;
+	}
+
 	isSyncing = true;
+	syncStatus.set('syncing');
+	lastSyncError.set(null);
 	try {
 		// Attempt full push/pull
 		await pushSync();
 		await pullSync();
 		const currentNow = now();
 		console.log(`Sync completed at ${currentNow}`);
-	} catch (error) {
+		syncStatus.set('success');
+	} catch (error: any) {
 		console.error("Sync Engine Error:", error);
+		lastSyncError.set(error.message || 'Unknown sync error');
+		syncStatus.set('error');
 	} finally {
 		isSyncing = false;
+		setTimeout(() => {
+			syncStatus.update(s => s === 'success' ? 'idle' : s);
+		}, 3000);
 	}
 }
 

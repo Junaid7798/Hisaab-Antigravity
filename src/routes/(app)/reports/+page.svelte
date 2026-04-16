@@ -1,14 +1,46 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
-	import { getBusiness, getRevenueTotal, getExpenseTotal, getOutstandingTotal, getInvoices, getExpensesByCategory, getRevenueByMonth, getExpensesByMonth } from '$lib/db/crud';
+	import { getBusiness, getRevenueTotal, getExpenseTotal, getOutstandingTotal, getExpensesByCategory, getRevenueByMonth, getExpensesByMonth } from '$lib/db/crud';
 	import { activeBusinessId } from '$lib/stores/session';
 	import { formatINRCompact, toRupees } from '$lib/utils/currency';
+	import { getCachedInvoices, getCachedExpenses } from '$lib/utils/cache';
 	import { fly, fade } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import { Chart, registerables } from 'chart.js';
+	import { exportInvoicesToCSV, exportExpensesToCSV, exportPaymentsToCSV, exportProductsToCSV, exportCustomersToCSV, triggerDownload } from '$lib/utils/export';
 
 	Chart.register(...registerables);
+
+	async function handleExportInvoices() {
+		if (!$activeBusinessId) return;
+		const csv = await exportInvoicesToCSV($activeBusinessId);
+		triggerDownload(csv, `invoices_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv');
+	}
+
+	async function handleExportExpenses() {
+		if (!$activeBusinessId) return;
+		const csv = await exportExpensesToCSV($activeBusinessId);
+		triggerDownload(csv, `expenses_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv');
+	}
+
+	async function handleExportPayments() {
+		if (!$activeBusinessId) return;
+		const csv = await exportPaymentsToCSV($activeBusinessId);
+		triggerDownload(csv, `payments_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv');
+	}
+
+	async function handleExportProducts() {
+		if (!$activeBusinessId) return;
+		const csv = await exportProductsToCSV($activeBusinessId);
+		triggerDownload(csv, `products_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv');
+	}
+
+	async function handleExportCustomers() {
+		if (!$activeBusinessId) return;
+		const csv = await exportCustomersToCSV($activeBusinessId);
+		triggerDownload(csv, `customers_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv');
+	}
 
 	let revenue = $state(0);
 	let expenses = $state(0);
@@ -52,7 +84,7 @@
 			revenue = await getRevenueTotal(biz.id);
 			expenses = await getExpenseTotal(biz.id);
 			outstanding = await getOutstandingTotal(biz.id);
-			const invs = await getInvoices(biz.id);
+			const invs = await getCachedInvoices(biz.id);
 			invoiceCount = invs.length;
 			categoryBreakdown = await getExpensesByCategory(biz.id);
 			revenueByMonth = await getRevenueByMonth(biz.id, 12);
@@ -245,13 +277,29 @@
 	<h2 class="text-3xl font-headline font-bold text-on-surface">{$_('reports.title')}</h2>
 	<p class="text-on-surface-variant font-body mt-1">{$_('reports.subtitle')}</p>
 </div>
-
-<!-- KPI Cards -->
-<div class="grid grid-cols-12 gap-4 md:gap-6 mb-10">
-	<div in:fly={{ y: 20, duration: 400, delay: 50, easing: cubicOut }} class="col-span-6 md:col-span-3 bg-surface-container-lowest p-5 lg:p-6 rounded-xl shadow-sm border border-outline-variant/20">
-		<p class="text-[11px] lg:text-xs font-label uppercase tracking-widest text-on-surface-variant mb-2">{$_('reports.revenue')}</p>
-		<h3 class="text-2xl font-headline font-extrabold text-secondary">{formatINRCompact(revenue)}</h3>
-	</div>
+<div class="flex flex-wrap gap-2">
+	<button onclick={handleExportInvoices} class="px-3 py-1.5 text-xs font-medium bg-surface-container-low hover:bg-surface-container rounded-lg transition-colors flex items-center gap-1.5">
+		<span class="material-symbols-outlined text-sm">receipt_long</span>
+		Invoices
+	</button>
+	<button onclick={handleExportExpenses} class="px-3 py-1.5 text-xs font-medium bg-surface-container-low hover:bg-surface-container rounded-lg transition-colors flex items-center gap-1.5">
+		<span class="material-symbols-outlined text-sm">payments</span>
+		Expenses
+	</button>
+	<button onclick={handleExportPayments} class="px-3 py-1.5 text-xs font-medium bg-surface-container-low hover:bg-surface-container rounded-lg transition-colors flex items-center gap-1.5">
+		<span class="material-symbols-outlined text-sm">account_balance</span>
+		Payments
+	</button>
+	<button onclick={handleExportProducts} class="px-3 py-1.5 text-xs font-medium bg-surface-container-low hover:bg-surface-container rounded-lg transition-colors flex items-center gap-1.5">
+		<span class="material-symbols-outlined text-sm">inventory_2</span>
+		Products
+	</button>
+	<button onclick={handleExportCustomers} class="px-3 py-1.5 text-xs font-medium bg-surface-container-low hover:bg-surface-container rounded-lg transition-colors flex items-center gap-1.5">
+		<span class="material-symbols-outlined text-sm">people</span>
+		Customers
+	</button>
+</div>
+<div class="grid grid-cols-12 gap-6 mb-6">
 	<div in:fly={{ y: 20, duration: 400, delay: 150, easing: cubicOut }} class="col-span-6 md:col-span-3 bg-surface-container-lowest p-5 lg:p-6 rounded-xl shadow-sm border border-outline-variant/20">
 		<p class="text-[11px] lg:text-xs font-label uppercase tracking-widest text-on-surface-variant mb-2">{$_('reports.expenses')}</p>
 		<h3 class="text-2xl font-headline font-extrabold text-error">{formatINRCompact(expenses)}</h3>

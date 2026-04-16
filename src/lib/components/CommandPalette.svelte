@@ -161,15 +161,14 @@
 	});
 </script>
 
+<!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
 {#if open}
-	<!-- Backdrop -->
 	<!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
 	<div
 		class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[200] flex items-start justify-center pt-[15vh]"
 		transition:fade={{ duration: 150 }}
 		onclick={() => { open = false; query = ''; }}
 	>
-		<!-- Modal -->
 		<!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
 		<div
 			class="bg-surface-container-lowest w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden border border-outline-variant/10"

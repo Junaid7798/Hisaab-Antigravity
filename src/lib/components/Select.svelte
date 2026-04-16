@@ -9,12 +9,14 @@
 		value?: any;
 	}
 
-	let { label, error, icon, options, value = $bindable(), class: className = '', ...rest }: Props = $props();
+	let { label, error, icon, options, value = $bindable(), class: className = '', id, ...rest }: Props = $props();
+	
+	const selectId = $derived(id || `select-${Math.random().toString(36).slice(2, 9)}`);
 </script>
 
 <div class="space-y-1.5 w-full {className}">
 	{#if label}
-		<label class="text-[11px] font-label font-bold text-on-surface-variant uppercase tracking-wider block">
+		<label for={selectId} class="text-[11px] font-label font-bold text-on-surface-variant uppercase tracking-wider block">
 			{label}
 		</label>
 	{/if}
@@ -25,6 +27,7 @@
 			</div>
 		{/if}
 		<select
+			id={selectId}
 			class="w-full bg-surface-container-highest border-b-2 border-transparent focus:border-primary focus:ring-0 rounded-t-lg {icon ? 'pl-10' : 'px-4'} pr-10 py-3 text-sm text-on-surface font-medium transition-colors appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed {error ? 'border-error/50 focus:border-error bg-error/5 text-error' : ''}"
 			bind:value
 			{...rest}

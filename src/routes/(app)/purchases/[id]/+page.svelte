@@ -152,7 +152,7 @@
 					{#if business?.address}<p class="text-indigo-200 text-xs mt-0.5">{business.address}</p>{/if}
 				</div>
 				<div class="text-right">
-					<span class="inline-block px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest {po.status === 'RECEIVED' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}">
+					<span class="inline-block px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest {po.status === 'RECEIVED' ? 'bg-success-container/50 text-success' : 'bg-warning-container/50 text-warning'}">
 						{po.status}
 					</span>
 					<h1 class="text-white text-2xl font-extrabold mt-3 uppercase tracking-widest">PURCHASE ORDER</h1>

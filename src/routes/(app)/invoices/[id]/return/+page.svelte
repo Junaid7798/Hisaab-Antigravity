@@ -209,13 +209,13 @@
 				<div class="space-y-4">
 					<div class="grid grid-cols-2 gap-4">
 						<div>
-							<label class="block text-xs font-bold text-on-surface-variant mb-1 uppercase tracking-widest">Date</label>
-							<input type="date" bind:value={returnDate} class="w-full rounded-lg border-outline-variant/30 text-sm focus:ring-primary" />
+							<label for="return-date" class="block text-xs font-bold text-on-surface-variant mb-1 uppercase tracking-widest">Date</label>
+							<input id="return-date" type="date" bind:value={returnDate} class="w-full rounded-lg border-outline-variant/30 text-sm focus:ring-primary" />
 						</div>
 					</div>
 					<div>
-						<label class="block text-xs font-bold text-on-surface-variant mb-1 uppercase tracking-widest">Reason / Notes</label>
-						<textarea bind:value={returnNotes} rows="2" class="w-full rounded-lg border-outline-variant/30 text-sm focus:ring-primary placeholder:text-on-surface-variant/40" placeholder="e.g. Returned due to damage"></textarea>
+						<label for="return-notes" class="block text-xs font-bold text-on-surface-variant mb-1 uppercase tracking-widest">Reason / Notes</label>
+						<textarea id="return-notes" bind:value={returnNotes} rows="2" class="w-full rounded-lg border-outline-variant/30 text-sm focus:ring-primary placeholder:text-on-surface-variant/40" placeholder="e.g. Returned due to damage"></textarea>
 					</div>
 				</div>
 			</div>

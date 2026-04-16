@@ -8,12 +8,14 @@
 		value?: any;
 	}
 
-	let { label, error, icon, value = $bindable(), class: className = '', ...rest }: Props = $props();
+	let { label, error, icon, value = $bindable(), class: className = '', id, ...rest }: Props = $props();
+	
+	const inputId = $derived(id || `input-${Math.random().toString(36).slice(2, 9)}`);
 </script>
 
 <div class="space-y-1.5 w-full {className}">
 	{#if label}
-		<label class="text-[11px] font-label font-bold text-on-surface-variant uppercase tracking-wider block">
+		<label for={inputId} class="text-[11px] font-label font-bold text-on-surface-variant uppercase tracking-wider block">
 			{label}
 		</label>
 	{/if}
@@ -24,6 +26,7 @@
 			</div>
 		{/if}
 		<input
+			id={inputId}
 			class="w-full bg-surface-container-highest border-b-2 border-transparent focus:border-primary focus:ring-0 rounded-t-lg {icon ? 'pl-10' : 'px-4'} pr-4 py-3 text-sm text-on-surface font-medium transition-colors placeholder:text-on-surface-variant/50 disabled:opacity-50 disabled:cursor-not-allowed {error ? 'border-error/50 focus:border-error bg-error/5 text-error placeholder:text-error/50' : ''}"
 			bind:value
 			{...rest}

@@ -44,7 +44,7 @@
 			const inv = await getInvoice($page.params.id);
 			if (inv) {
 				invoice = inv;
-				if (inv.status !== 'UNPAID' && inv.status !== 'DRAFT') {
+				if (inv.status === 'PAID' || inv.status === 'PARTIAL') {
 					toast.error('Only unpaid invoices can be edited.');
 					goto(`/invoices/${inv.id}`);
 					return;
@@ -130,6 +130,26 @@
 	async function handleSubmit() {
 		if (!selectedPatientId || !businessId || !invoice) return;
 		if (items.every((it) => !it.description.trim() || !it.rate)) return;
+
+		// Check stock limits before proceeding
+		let stockWarnings = [];
+		for (const item of items) {
+			if (item.product_id) {
+				const product = products.find(p => p.id === item.product_id);
+				if (product && !product.is_service) {
+					const reqQty = Math.round(parseFloat(item.quantity || '0') * 100);
+					if (reqQty > product.stock_quantity) {
+						stockWarnings.push(`- ${product.name} has only ${product.stock_quantity / 100} in stock (requested ${reqQty / 100}).`);
+					}
+				}
+			}
+		}
+		
+		if (stockWarnings.length > 0) {
+			const proceed = confirm('Low Stock Warning:\n' + stockWarnings.join('\n') + '\n\nDo you want to proceed anyway?');
+			if (!proceed) return;
+		}
+
 		saving = true;
 
 		try {

@@ -208,10 +208,10 @@
 			<Select label="State of Supply" bind:value={newStateCode} options={INDIAN_STATES.map(s => ({ value: s.code, label: `${s.code} - ${s.name}` }))} />
 		</div>
 
-		<div class="space-y-1.5">
-			<label class="text-[11px] font-label font-bold text-on-surface-variant uppercase tracking-wider">Address (Optional)</label>
+		<label class="space-y-1.5 w-full">
+			<span class="text-[11px] font-label font-bold text-on-surface-variant uppercase tracking-wider">Address (Optional)</span>
 			<textarea bind:value={newAddress} rows="2" placeholder="e.g. 123 Business Park" class="w-full bg-surface-container-highest border-b border-transparent focus:border-primary focus:ring-0 rounded-t-lg px-4 py-3 text-on-surface font-medium transition-all resize-none"></textarea>
-		</div>
+		</label>
 
 		<div class="flex justify-end gap-3 pt-4">
 			<button type="button" class="px-5 py-2.5 text-on-surface-variant font-semibold hover:bg-surface-variant/20 rounded-lg transition-colors" onclick={() => (showModal = false)}>

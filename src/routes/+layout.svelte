@@ -3,21 +3,31 @@
 	import { setupI18n } from '$lib/i18n';
 	import { isLoading } from 'svelte-i18n';
 	import { onMount } from 'svelte';
-	import { processRecurringSchedules } from '$lib/db/crud';
 	import { initSyncEngine } from '$lib/db/sync';
+	import { preferences } from '$lib/stores/preferences';
+	import { theme } from '$lib/stores/theme';
 	
 	let { children } = $props();
 
 	setupI18n();
 
 	onMount(() => {
-		// Initialize the offline-first Supabase sync daemon
 		initSyncEngine();
-
-		// Silently process recurring subscriptions in background across the app
-		processRecurringSchedules().catch(console.error);
+		
+		const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | 'auto' | null;
+		if (savedTheme) {
+			theme.set(savedTheme);
+		}
 	});
 </script>
+
+<svelte:head>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+	<meta name="theme-color" content="#003f87" media="(prefers-color-scheme: light)">
+	<meta name="theme-color" content="#0f1416" media="(prefers-color-scheme: dark)">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</svelte:head>
 
 {#if $isLoading}
 	<div class="h-screen w-screen flex items-center justify-center bg-surface">
@@ -29,3 +39,9 @@
 {:else}
 	{@render children()}
 {/if}
+
+<style>
+	:global(html) {
+		--viewport-height: 100vh;
+	}
+</style>

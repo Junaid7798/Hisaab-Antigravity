@@ -4,6 +4,54 @@
  * via the Web Bluetooth API.
  */
 
+/// <reference lib="dom" />
+
+// Web Bluetooth type declarations (if not available globally)
+declare global {
+	interface BluetoothDevice extends EventTarget {
+		id: string;
+		name?: string;
+		readonly gatt?: BluetoothRemoteGATTServer;
+	}
+
+	interface BluetoothRemoteGATTServer {
+		device: BluetoothDevice;
+		connected: boolean;
+		connect(): Promise<BluetoothRemoteGATTServer>;
+		disconnect(): void;
+		getPrimaryService(service: string): Promise<BluetoothRemoteGATTService>;
+	}
+
+	interface BluetoothRemoteGATTService {
+		device: BluetoothDevice;
+		uuid: string;
+		getCharacteristic(characteristic: string): Promise<BluetoothRemoteGATTCharacteristic>;
+		getCharacteristics(): Promise<BluetoothRemoteGATTCharacteristic[]>;
+	}
+
+	interface BluetoothRemoteGATTCharacteristic {
+		service: BluetoothRemoteGATTService;
+		uuid: string;
+		readonly value?: DataView;
+		properties: { write?: boolean; writeWithoutResponse?: boolean };
+		readValue(): Promise<DataView>;
+		writeValue(value: BufferSource): Promise<void>;
+		writeValueWithoutResponse(value: BufferSource): Promise<void>;
+		writeValueWithResponse(value: BufferSource): Promise<void>;
+		startNotifications(): Promise<BluetoothRemoteGATTCharacteristic>;
+		stopNotifications(): Promise<BluetoothRemoteGATTCharacteristic>;
+	}
+
+	interface Navigator {
+		bluetooth?: {
+			requestDevice(options: {
+				filters?: { services?: string[] }[];
+				optionalServices?: string[];
+			}): Promise<BluetoothDevice>;
+		} | undefined;
+	}
+}
+
 // ESC/POS Command Constants
 const ESC = 0x1B;
 const GS = 0x1D;
@@ -55,6 +103,7 @@ export async function connectPrinter(): Promise<boolean> {
 
 	try {
 		// Request device — shows browser's Bluetooth picker
+		if (!navigator.bluetooth) throw new Error('Web Bluetooth not supported');
 		device = await navigator.bluetooth.requestDevice({
 			filters: [
 				{ services: [PRINTER_SERVICE_UUID] }
@@ -81,7 +130,7 @@ export async function connectPrinter(): Promise<boolean> {
 
 		// Get the writable characteristic
 		const chars = await service.getCharacteristics();
-		characteristic = chars.find(c => c.properties.write || c.properties.writeWithoutResponse) || null;
+		characteristic = chars.find((c: BluetoothRemoteGATTCharacteristic) => c.properties.write || c.properties.writeWithoutResponse) || null;
 
 		if (!characteristic) throw new Error('No writable characteristic found');
 
