@@ -41,6 +41,7 @@
 		{ href: '/expenses', icon: 'payments', i18nKey: 'nav.expenses', fallback: 'Expenses', show: true },
 		{ href: '/staff', icon: 'badge', i18nKey: 'nav.staff', fallback: 'Staff', show: true },
 		{ href: '/attendance', icon: 'fingerprint', i18nKey: 'nav.attendance', fallback: 'Attendance', show: true },
+		{ href: '/loans', icon: 'account_balance', i18nKey: 'nav.loans', fallback: 'Loans & EMI', show: true },
 		{ href: '/tasks', icon: 'task', i18nKey: 'nav.tasks', fallback: 'Tasks', show: true },
 		{ href: '/gst', icon: 'receipt', i18nKey: 'nav.gst', fallback: 'GST', show: features.hasGST },
 		{ href: '/reports', icon: 'analytics', i18nKey: 'nav.reports', fallback: 'Reports', show: true },
