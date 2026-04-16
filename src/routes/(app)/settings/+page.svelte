@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
-	import { _ } from 'svelte-i18n';
+	import { _, locale } from 'svelte-i18n';
 	import { getBusiness, updateBusiness, createBusiness } from '$lib/db/crud';
 	import { activeBusinessId, activeTerminology } from '$lib/stores/session';
 	import { INDIAN_STATES } from '$lib/utils/helpers';
@@ -25,6 +25,13 @@
 	async function handleSignOut() {
 		await supabase.auth.signOut();
 		goto('/login');
+	}
+
+	function changeLocale(newLocale: string) {
+		locale.set(newLocale);
+		if (typeof window !== 'undefined') {
+			localStorage.setItem('locale', newLocale);
+		}
 	}
 
 	let showWipeConfirm = $state(false);
@@ -524,7 +531,28 @@
 					<span class="material-symbols-outlined text-primary">language</span>
 					<h3 class="text-xl font-headline font-bold">Regional & Format Settings</h3>
 				</div>
-				<p class="text-sm text-on-surface-variant mb-8">Configure regional preferences for currency, dates, and number formats.</p>
+				<p class="text-sm text-on-surface-variant mb-8">Configure regional preferences for language, currency, dates, and number formats.</p>
+
+				<!-- Language Switcher -->
+				<div class="mb-8">
+					<span class="block text-[11px] font-bold text-outline uppercase tracking-wider mb-3">App Language</span>
+					<div class="flex flex-wrap gap-3">
+						{#each [{ code: 'en', label: 'English', native: 'English' }, { code: 'hi', label: 'Hindi', native: 'हिंदी' }, { code: 'mr', label: 'Marathi', native: 'मराठी' }] as lang}
+							<button
+								type="button"
+								onclick={() => changeLocale(lang.code)}
+								class="flex flex-col items-center px-5 py-3 rounded-xl border-2 text-sm font-semibold transition-all
+									{$locale === lang.code
+										? 'border-primary bg-primary-container/20 text-primary'
+										: 'border-outline-variant text-on-surface hover:bg-surface-container-low'}"
+							>
+								<span class="text-base font-bold">{lang.native}</span>
+								<span class="text-xs text-on-surface-variant mt-0.5">{lang.label}</span>
+							</button>
+						{/each}
+					</div>
+					<p class="text-xs text-on-surface-variant mt-2">Changing the language applies immediately across the app.</p>
+				</div>
 
 				<div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
 					<!-- Currency -->
