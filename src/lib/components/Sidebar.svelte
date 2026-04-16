@@ -46,6 +46,7 @@
 		{ href: '/gst', icon: 'receipt', i18nKey: 'nav.gst', fallback: 'GST', show: features.hasGST },
 		{ href: '/reports', icon: 'analytics', i18nKey: 'nav.reports', fallback: 'Reports', show: true },
 		{ href: '/analytics', icon: 'monitoring', i18nKey: 'nav.analytics', fallback: 'Intelligence', show: true },
+		{ href: '/branches', icon: 'storefront', i18nKey: 'nav.branches', fallback: 'Branches', show: true },
 		{ href: '/settings', icon: 'settings', i18nKey: 'nav.settings', fallback: 'Settings', show: true }
 	].filter(item => item.show));
 
