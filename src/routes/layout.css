@@ -1,6 +1,8 @@
 /* ── Tailwind CSS ───────────────────────────────────────────────────────────── */
 @import 'tailwindcss';
+@import './fonts.css';
 
+@plugin 'tailwind-scrollbar';
 
 :root {
   /* Default Light Theme (Hisaab Default) */

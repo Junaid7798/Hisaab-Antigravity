@@ -5,11 +5,10 @@
 	import PatientAvatar from '$lib/components/PatientAvatar.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import Skeleton from '$lib/components/Skeleton.svelte';
-	import { getBusiness, getRevenueTotal, getOutstandingTotal, countPatients, getRecentInvoices, getDashboardAlerts } from '$lib/db/crud';
+	import { getBusiness, getDashboardData } from '$lib/db/crud';
 	import { activeBusinessId, activeTerminology } from '$lib/stores/session';
 	import { formatINRCompact, formatINR } from '$lib/utils/currency';
 	import { formatDate, timeAgo } from '$lib/utils/helpers';
-	import { getCachedInvoices, getCachedCustomers, getCachedProducts, invalidateBusinessCache } from '$lib/utils/cache';
 	import { fly, fade } from 'svelte/transition';
 	import { preferences } from '$lib/stores/preferences';
 	import { cubicOut } from 'svelte/easing';
@@ -25,28 +24,20 @@
 	let overdueInvoices = $state<any[]>([]);
 	let revenueChange = $state<number | null>(null);
 
-	async function loadDashboard(businessId: string, force = false) {
+	async function loadDashboard(businessId: string) {
 		loading = true;
-		const biz = await getBusiness(businessId);
-		if (biz) {
-			businessName = biz.name;
-			const [rev, out, count, invoices, alerts] = await Promise.all([
-				getRevenueTotal(biz.id),
-				getOutstandingTotal(biz.id),
-				countPatients(biz.id),
-				getCachedInvoices(biz.id, force),
-				getDashboardAlerts(biz.id)
-			]);
-			
-			revenue = rev;
-			outstanding = out;
-			patientCount = count;
-			recentInvoices = invoices.slice(-5).reverse();
-			
-			lowStockProducts = alerts.lowStock;
-			overdueInvoices = alerts.overdueInvoices;
-			revenueChange = alerts.revenueChangePercentage;
-		}
+		const [biz, data] = await Promise.all([
+			getBusiness(businessId),
+			getDashboardData(businessId)
+		]);
+		if (biz) businessName = biz.name;
+		revenue = data.revenue;
+		outstanding = data.outstanding;
+		patientCount = data.patientCount;
+		recentInvoices = data.recentInvoices;
+		lowStockProducts = data.lowStock;
+		overdueInvoices = data.overdueInvoices;
+		revenueChange = data.revenueChangePercentage;
 		loading = false;
 	}
 
@@ -59,7 +50,7 @@
 	onMount(() => {
 		const handleVisibility = () => {
 			if (document.visibilityState === 'visible' && $activeBusinessId) {
-				loadDashboard($activeBusinessId, true);
+				loadDashboard($activeBusinessId);
 			}
 		};
 		document.addEventListener('visibilitychange', handleVisibility);

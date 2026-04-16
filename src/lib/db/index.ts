@@ -541,6 +541,13 @@ class HisaabDB extends Dexie {
 				});
 			}));
 		});
+
+		this.version(12).stores({
+			invoice_items: 'id, invoice_id, product_id, is_deleted, last_modified',
+			patients: 'id, business_id, name, phone, email, state_code, is_deleted, last_modified',
+			products: 'id, business_id, name, sku, hsn_sac, is_deleted, last_modified',
+			staff: 'id, business_id, name, email, phone, role, is_active, is_deleted, last_modified'
+		});
 	}
 }
 

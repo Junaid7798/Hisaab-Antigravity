@@ -45,79 +45,86 @@ async function setLastSyncAt(tableName: string, timestamp: string): Promise<void
 	});
 }
 
+async function pushSyncTable(table: string): Promise<void> {
+	const lastSyncAt = await getLastSyncAt(table);
+
+	const recordsToPush = await (db as any)[table]
+		.where('last_modified')
+		.above(lastSyncAt)
+		.toArray();
+
+	if (recordsToPush.length === 0) return;
+
+	const { error } = await supabase
+		.from(table)
+		.upsert(recordsToPush, { onConflict: 'id' });
+
+	if (error) {
+		console.error(`Failed to push sync ${table}:`, error);
+		return;
+	}
+
+	const latestTimestamp = recordsToPush.reduce(
+		(max: string, r: any) => (r.last_modified > max ? r.last_modified : max),
+		lastSyncAt
+	);
+	await setLastSyncAt(table, latestTimestamp);
+}
+
 /**
  * Pushes local records modified AFTER natural lastSync timestamp up to Supabase.
+ * All tables are pushed in parallel.
  */
-export async function pushSync() {
-	for (const table of SYNCABLE_TABLES) {
-		const lastSyncAt = await getLastSyncAt(table);
-		
-		// Find records mutated after lastSyncAt
-		// Since we want records modified physically after the sync, greater than!
-		const recordsToPush = await (db as any)[table]
-			.where('last_modified')
-			.above(lastSyncAt)
-			.toArray();
+export async function pushSync(): Promise<void> {
+	await Promise.all(SYNCABLE_TABLES.map(pushSyncTable));
+}
 
-		if (recordsToPush.length === 0) continue;
+async function pullSyncTable(table: string): Promise<void> {
+	const lastSyncAt = await getLastSyncAt(table);
 
-		console.log(`Pushing ${recordsToPush.length} records for ${table}`);
+	const { data, error } = await supabase
+		.from(table)
+		.select('*')
+		.gt('last_modified', lastSyncAt);
 
-		// Upsert into Supabase
-		const { error } = await supabase
-			.from(table)
-			.upsert(recordsToPush, { onConflict: 'id' });
-
-		if (error) {
-			console.error(`Failed to push sync ${table}:`, error);
-			continue;
-		}
-
-		// Update sync meta timestamp to latest pushed record's timestamp
-		const latestTimestamp = recordsToPush.reduce((max: string, r: any) => r.last_modified > max ? r.last_modified : max, lastSyncAt);
-		await setLastSyncAt(table, latestTimestamp);
+	if (error) {
+		console.error(`Failed to pull sync ${table}:`, error);
+		return;
 	}
+
+	if (!data || data.length === 0) return;
+
+	// LWW: only apply remote records newer than local
+	const ids: string[] = data.map((r: any) => r.id);
+	const localRecords = await (db as any)[table].bulkGet(ids);
+	const localMap = new Map<string, any>(
+		localRecords
+			.filter((r: any) => r != null)
+			.map((r: any) => [r.id, r])
+	);
+
+	const updates = data.filter((remoteRecord: any) => {
+		const local = localMap.get(remoteRecord.id);
+		return !local || remoteRecord.last_modified > local.last_modified;
+	});
+
+	if (updates.length > 0) {
+		await (db as any)[table].bulkPut(updates);
+	}
+
+	const latestTimestamp = data.reduce(
+		(max: string, r: any) => (r.last_modified > max ? r.last_modified : max),
+		lastSyncAt
+	);
+	await setLastSyncAt(table, latestTimestamp);
 }
 
 /**
  * Pulls records from Supabase modified AFTER natural lastSync timestamp down to local Dexie DB.
+ * All tables are pulled in parallel. LWW conflict resolution uses bulkGet for efficiency.
  */
-export async function pullSync() {
-	for (const table of SYNCABLE_TABLES) {
-		const lastSyncAt = await getLastSyncAt(table);
-
-		// Fetch from Supabase where last_modified > lastSyncAt
-		const { data, error } = await supabase
-			.from(table)
-			.select('*')
-			.gt('last_modified', lastSyncAt);
-
-		if (error) {
-			console.error(`Failed to pull sync ${table}:`, error);
-			continue;
-		}
-
-		if (!data || data.length === 0) continue;
-
-		console.log(`Pulling ${data.length} records for ${table}`);
-
-		// Implement true LWW at the record level
-		const updates = [];
-		for (const remoteRecord of data) {
-			const localRecord = await (db as any)[table].get(remoteRecord.id);
-			if (!localRecord || remoteRecord.last_modified > localRecord.last_modified) {
-				updates.push(remoteRecord);
-			}
-		}
-
-		if (updates.length > 0) {
-			await (db as any)[table].bulkPut(updates);
-		}
-
-		// Update sync meta timestamp
-		const latestTimestamp = data.reduce((max: string, r: any) => r.last_modified > max ? r.last_modified : max, lastSyncAt);
-		await setLastSyncAt(table, latestTimestamp);
-	}
+export async function pullSync(): Promise<void> {
+	await Promise.all(SYNCABLE_TABLES.map(pullSyncTable));
 }
 
 /**

@@ -172,7 +172,7 @@
 		<button onclick={() => goto('/suppliers')} class="px-6 py-2.5 rounded-lg border border-outline-variant font-headline font-semibold text-sm hover:bg-surface-container-low transition-colors">
 			Cancel
 		</button>
-		<button onclick={handleSubmit} disabled={saving} class="px-6 py-2.5 rounded-lg bg-gradient-to-br from-primary to-primary-container text-on-primary font-headline font-bold text-sm shadow-lg flex items-center gap-2 disabled:opacity-50 hover:opacity-90 transition-all active:scale-95">
+		<button onclick={handleSubmit} disabled={saving} class="px-6 py-2.5 rounded-lg bg-linear-to-br from-primary to-primary-container text-on-primary font-headline font-bold text-sm shadow-lg flex items-center gap-2 disabled:opacity-50 hover:opacity-90 transition-all active:scale-95">
 			<span class="material-symbols-outlined text-sm">save</span>
 			{saving ? 'Saving...' : 'Save PO'}
 		</button>
@@ -349,7 +349,7 @@
 			
 			<!-- Mobile Actions duplicated at bottom for convenience -->
 			<div class="lg:hidden flex flex-col gap-3">
-				<button onclick={handleSubmit} disabled={saving} class="w-full py-3.5 rounded-xl bg-gradient-to-br from-primary to-primary-container text-on-primary font-headline font-bold shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 active:scale-[0.98]">
+				<button onclick={handleSubmit} disabled={saving} class="w-full py-3.5 rounded-xl bg-linear-to-br from-primary to-primary-container text-on-primary font-headline font-bold shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 active:scale-[0.98]">
 					<span class="material-symbols-outlined text-sm">save</span>
 					{saving ? 'Saving...' : 'Save PO'}
 				</button>
@@ -362,7 +362,7 @@
 		<!-- Sidebar (Summary) -->
 		<div class="col-span-12 lg:col-span-4">
 			<div class="bg-surface-container-lowest rounded-xl shadow-lg border border-outline-variant/20 sticky top-24 overflow-hidden">
-				<div class="p-6 bg-gradient-to-br from-surface to-surface-container-low border-b border-outline-variant/20">
+				<div class="p-6 bg-linear-to-br from-surface to-surface-container-low border-b border-outline-variant/20">
 					<h3 class="font-headline font-black text-xl text-on-surface">Purchase Summary</h3>
 				</div>
 				

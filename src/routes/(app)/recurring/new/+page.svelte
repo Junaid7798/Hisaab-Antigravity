@@ -237,7 +237,7 @@
 		<button onclick={() => goto('/dashboard')} class="px-6 py-3 rounded-xl border border-outline-variant font-headline font-semibold text-[15px] hover:bg-surface-container-low transition-colors">
 			Cancel
 		</button>
-		<button onclick={handleSubmit} disabled={saving || !selectedPatientId} class="px-8 py-3 rounded-xl bg-gradient-to-br from-primary to-primary-container text-on-primary font-headline font-bold text-[15px] shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 transition-transform">
+		<button onclick={handleSubmit} disabled={saving || !selectedPatientId} class="px-8 py-3 rounded-xl bg-linear-to-br from-primary to-primary-container text-on-primary font-headline font-bold text-[15px] shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 transition-transform">
 			<span class="material-symbols-outlined text-base">save</span>
 			{saving ? 'Saving...' : 'Start Subscription'}
 		</button>

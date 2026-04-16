@@ -352,7 +352,7 @@
 					</div>
 
 					<div class="col-span-1 sm:col-span-2 flex justify-end gap-4 pt-4">
-						<button type="submit" class="w-full sm:w-auto px-10 py-3 bg-gradient-to-br from-primary to-primary-container text-on-primary rounded-xl font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+						<button type="submit" class="w-full sm:w-auto px-10 py-3 bg-linear-to-br from-primary to-primary-container text-on-primary rounded-xl font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
 							{$_('settings.btn_save')}
 						</button>
 					</div>
@@ -1094,7 +1094,7 @@
 				</div>
 				
 				<div class="mt-6 pt-4 border-t border-outline-variant/30">
-					<button onclick={handleSaveFeatures} class="w-full sm:w-auto px-6 py-3 bg-gradient-to-br from-primary to-primary-container text-on-primary rounded-xl font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+					<button onclick={handleSaveFeatures} class="w-full sm:w-auto px-6 py-3 bg-linear-to-br from-primary to-primary-container text-on-primary rounded-xl font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
 						Save Feature Settings
 					</button>
 				</div>

@@ -144,7 +144,7 @@
 	<!-- Printable PO Document -->
 	<div id="po-printable" class="bg-white text-gray-900 max-w-4xl mx-auto rounded-2xl print:rounded-none shadow-lg print:shadow-none overflow-hidden" in:fly={{ y: 20, duration: 400, easing: cubicOut }}>
 		<!-- Header -->
-		<div class="bg-gradient-to-br from-indigo-900 to-indigo-800 text-white px-8 py-8 print:px-6 print:py-4">
+		<div class="bg-linear-to-br from-indigo-900 to-indigo-800 text-white px-8 py-8 print:px-6 print:py-4">
 			<div class="flex items-start justify-between">
 				<div>
 					<h2 class="text-2xl font-extrabold tracking-tight print:text-xl">{business?.name || 'Business'}</h2>

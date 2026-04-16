@@ -146,17 +146,16 @@ export async function createInvoice(data: Omit<Invoice, 'id' | 'is_deleted' | 'c
 		// Deduct stock if it's an INVOICE
 		if (invoice.document_type === 'INVOICE') {
 			const allProducts = await db.products.where('business_id').equals(invoice.business_id).toArray();
+			const productMap = new Map(allProducts.map(p => [p.id, p]));
 			for (const item of invoiceItems) {
-				const product = item.product_id 
-					? allProducts.find(p => p.id === item.product_id)
+				const product = item.product_id
+					? productMap.get(item.product_id)
 					: allProducts.find(p => p.name === item.description);
-					
 				if (product && !product.is_service) {
-					const dbProduct = await db.products.get(product.id);
-					if (dbProduct) {
-						const newStock = Math.max(0, dbProduct.stock_quantity - item.quantity);
-						await db.products.update(dbProduct.id, { stock_quantity: newStock, last_modified: now() });
-					}
+					const newStock = Math.max(0, product.stock_quantity - item.quantity);
+					await db.products.update(product.id, { stock_quantity: newStock, last_modified: now() });
+					// Keep local map in sync so subsequent items see the updated stock
+					product.stock_quantity = newStock;
 				}
 			}
 		}
@@ -196,19 +195,16 @@ export async function updateInvoice(id: string, data: Partial<Omit<Invoice, 'id'
 		if (existingInvoice.document_type === 'INVOICE') {
 			const oldItems = await db.invoice_items.where('invoice_id').equals(id).toArray();
 			const allProducts = await db.products.where('business_id').equals(existingInvoice.business_id).toArray();
-			
+			const productMap = new Map(allProducts.map(p => [p.id, p]));
+
 			for (const item of oldItems) {
-				const product = item.product_id 
-					? allProducts.find(p => p.id === item.product_id)
+				const product = item.product_id
+					? productMap.get(item.product_id)
 					: allProducts.find(p => p.name === item.description);
 				if (product && !product.is_service) {
-					const dbProduct = await db.products.get(product.id);
-					if (dbProduct) {
-						await db.products.update(dbProduct.id, { 
-							stock_quantity: dbProduct.stock_quantity + item.quantity, 
-							last_modified: now() 
-						});
-					}
+					const restored = product.stock_quantity + item.quantity;
+					await db.products.update(product.id, { stock_quantity: restored, last_modified: now() });
+					product.stock_quantity = restored;
 				}
 			}
 		}
@@ -238,17 +234,15 @@ export async function updateInvoice(id: string, data: Partial<Omit<Invoice, 'id'
 		// Deduct new stock
 		if (isInvoiceDoc) {
 			const allProducts = await db.products.where('business_id').equals(existingInvoice.business_id).toArray();
+			const productMap = new Map(allProducts.map(p => [p.id, p]));
 			for (const item of updatedItems) {
-				const product = item.product_id 
-					? allProducts.find(p => p.id === item.product_id)
+				const product = item.product_id
+					? productMap.get(item.product_id)
 					: allProducts.find(p => p.name === item.description);
-				
 				if (product && !product.is_service) {
-					const dbProduct = await db.products.get(product.id);
-					if (dbProduct) {
-						const newStock = Math.max(0, dbProduct.stock_quantity - item.quantity);
-						await db.products.update(dbProduct.id, { stock_quantity: newStock, last_modified: now() });
-					}
+					const newStock = Math.max(0, product.stock_quantity - item.quantity);
+					await db.products.update(product.id, { stock_quantity: newStock, last_modified: now() });
+					product.stock_quantity = newStock;
 				}
 			}
 		}
@@ -263,20 +257,16 @@ export async function softDeleteInvoice(id: string): Promise<void> {
 		if (invoice.document_type === 'INVOICE') {
 			const items = await db.invoice_items.where('invoice_id').equals(id).toArray();
 			const allProducts = await db.products.where('business_id').equals(invoice.business_id).toArray();
-			
+			const productMap = new Map(allProducts.map(p => [p.id, p]));
+
 			for (const item of items) {
-				const product = item.product_id 
-					? allProducts.find(p => p.id === item.product_id)
+				const product = item.product_id
+					? productMap.get(item.product_id)
 					: allProducts.find(p => p.name === item.description);
-				
 				if (product && !product.is_service) {
-					const dbProduct = await db.products.get(product.id);
-					if (dbProduct) {
-						await db.products.update(dbProduct.id, { 
-							stock_quantity: dbProduct.stock_quantity + item.quantity, 
-							last_modified: now() 
-						});
-					}
+					const restored = product.stock_quantity + item.quantity;
+					await db.products.update(product.id, { stock_quantity: restored, last_modified: now() });
+					product.stock_quantity = restored;
 				}
 			}
 		}
@@ -452,6 +442,74 @@ export async function getDashboardAlerts(businessId: string): Promise<{
         overdueInvoices,
         revenueChangePercentage
     };
+}
+
+export interface DashboardData {
+	revenue: number;
+	outstanding: number;
+	patientCount: number;
+	recentInvoices: (Invoice & { patient_name: string })[];
+	lowStock: Product[];
+	overdueInvoices: Invoice[];
+	revenueChangePercentage: number | null;
+}
+
+/**
+ * Single-pass dashboard loader. Fetches invoices, payments, products, and patients
+ * in parallel then derives all dashboard values in one pass each — no redundant scans.
+ */
+export async function getDashboardData(businessId: string, recentLimit = 5): Promise<DashboardData> {
+	const today = new Date().toISOString().split('T')[0];
+	const currentMonthPrefix = today.substring(0, 7);
+	const lastMonthDate = new Date();
+	lastMonthDate.setMonth(lastMonthDate.getMonth() - 1);
+	const lastMonthPrefix = lastMonthDate.toISOString().substring(0, 7);
+
+	const [allInvoices, allPayments, lowStock, patientCount] = await Promise.all([
+		db.invoices.where('business_id').equals(businessId).filter(i => !i.is_deleted).toArray(),
+		db.payments.where('business_id').equals(businessId).filter(p => !p.is_deleted && !!p.invoice_id).toArray(),
+		db.products.where('business_id').equals(businessId)
+			.filter(p => !p.is_deleted && !p.is_service && p.stock_quantity <= p.low_stock_threshold)
+			.toArray(),
+		db.patients.where('business_id').equals(businessId).filter(p => !p.is_deleted).count()
+	]);
+
+	// Single pass over invoices
+	let revenue = 0;
+	let totalBilled = 0;
+	let currMonthRevenue = 0;
+	let prevMonthRevenue = 0;
+	const overdueInvoices: Invoice[] = [];
+	const recentSorted = allInvoices
+		.filter(i => i.document_type === 'INVOICE' || !i.document_type)
+		.sort((a, b) => b.created_at.localeCompare(a.created_at));
+
+	for (const inv of allInvoices) {
+		if (inv.document_type !== 'INVOICE') continue;
+		revenue += inv.grand_total;
+		totalBilled += inv.grand_total;
+		if (inv.issue_date.startsWith(currentMonthPrefix)) currMonthRevenue += inv.grand_total;
+		if (inv.issue_date.startsWith(lastMonthPrefix)) prevMonthRevenue += inv.grand_total;
+		if (inv.status !== 'PAID' && inv.due_date && inv.due_date < today) overdueInvoices.push(inv);
+	}
+
+	const totalPaid = allPayments.reduce((sum, p) => sum + p.amount, 0);
+	const outstanding = totalBilled - totalPaid;
+
+	let revenueChangePercentage: number | null = null;
+	if (prevMonthRevenue > 0) {
+		revenueChangePercentage = ((currMonthRevenue - prevMonthRevenue) / prevMonthRevenue) * 100;
+	} else if (currMonthRevenue > 0) {
+		revenueChangePercentage = 100;
+	}
+
+	const recent = recentSorted.slice(0, recentLimit);
+	const patientIds = [...new Set(recent.map(i => i.patient_id))];
+	const patientRecords = await db.patients.bulkGet(patientIds);
+	const patientNameMap = new Map(patientRecords.filter(Boolean).map(p => [p!.id, p!.name]));
+	const recentInvoices = recent.map(inv => ({ ...inv, patient_name: patientNameMap.get(inv.patient_id) || 'Unknown' }));
+
+	return { revenue, outstanding, patientCount, recentInvoices, lowStock, overdueInvoices, revenueChangePercentage };
 }
 
 export async function getRecentInvoices(businessId: string, limit: number = 5): Promise<(Invoice & { patient_name: string })[]> {
@@ -1016,7 +1074,7 @@ async function __processRecurringSchedulesInternal(): Promise<void> {
 			
 			const invoiceId = generateId();
 			await db.invoices.add({
-				...invData,
+				...(invData as Omit<Invoice, 'id'>),
 				id: invoiceId,
 				business_id: schedule.business_id,
 				patient_id: schedule.patient_id,

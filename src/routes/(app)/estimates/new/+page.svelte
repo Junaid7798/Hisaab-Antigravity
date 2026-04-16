@@ -168,7 +168,7 @@
 		<button onclick={() => goto('/dashboard')} class="px-6 py-2.5 rounded-lg border border-outline-variant font-headline font-semibold text-sm hover:bg-surface-container-low transition-colors">
 			Cancel
 		</button>
-		<button onclick={handleSubmit} disabled={saving} class="px-6 py-2.5 rounded-lg bg-gradient-to-br from-tertiary to-tertiary-container text-on-tertiary font-headline font-bold text-sm shadow-lg flex items-center gap-2 disabled:opacity-50 hover:opacity-90 transition-all active:scale-95">
+		<button onclick={handleSubmit} disabled={saving} class="px-6 py-2.5 rounded-lg bg-linear-to-br from-tertiary to-tertiary-container text-on-tertiary font-headline font-bold text-sm shadow-lg flex items-center gap-2 disabled:opacity-50 hover:opacity-90 transition-all active:scale-95">
 			<span class="material-symbols-outlined text-sm">save</span>
 			{saving ? 'Saving...' : 'Save Estimate'}
 		</button>
@@ -364,7 +364,7 @@
 		<button onclick={() => goto('/dashboard')} class="flex-1 py-3.5 rounded-xl border border-outline-variant font-headline font-semibold text-[15px] hover:bg-surface-container-low transition-colors active:scale-95 bg-surface-container-lowest">
 			Cancel
 		</button>
-		<button onclick={handleSubmit} disabled={saving} class="flex-[2] py-3.5 rounded-xl bg-gradient-to-br from-tertiary to-tertiary-container text-on-tertiary font-headline font-bold text-[15px] shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95">
+		<button onclick={handleSubmit} disabled={saving} class="flex-[2] py-3.5 rounded-xl bg-linear-to-br from-tertiary to-tertiary-container text-on-tertiary font-headline font-bold text-[15px] shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95">
 			<span class="material-symbols-outlined text-base">save</span>
 			{saving ? 'Saving...' : 'Save Estimate'}
 		</button>

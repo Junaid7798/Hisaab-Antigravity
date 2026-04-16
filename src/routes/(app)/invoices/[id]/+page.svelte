@@ -265,7 +265,7 @@
 	<!-- Printable Invoice Document -->
 	<div id="invoice-printable" class="bg-white text-gray-900 max-w-4xl mx-auto rounded-2xl print:rounded-none shadow-lg print:shadow-none overflow-hidden" in:fly={{ y: 20, duration: 400, easing: cubicOut }}>
 		<!-- Header -->
-		<div class="bg-gradient-to-br from-gray-900 to-gray-800 text-white px-8 py-8 print:px-6 print:py-4">
+		<div class="bg-linear-to-br from-gray-900 to-gray-800 text-white px-8 py-8 print:px-6 print:py-4">
 			<div class="flex items-start justify-between">
 				<div>
 					<h2 class="text-2xl font-extrabold tracking-tight print:text-xl">{business?.name || 'Business'}</h2>
@@ -436,12 +436,32 @@
 	@media print {
 		:global(body) {
 			background: white !important;
+			margin: 0 !important;
+			padding: 0 !important;
 		}
-		:global(.print\:hidden),
+		/* Hide all app chrome */
 		:global(nav),
 		:global(aside),
-		:global(header) {
+		:global(header),
+		:global(.print\:hidden) {
 			display: none !important;
+		}
+		/* Remove app layout margins so invoice fills the page */
+		:global(main) {
+			margin: 0 !important;
+			padding: 0 !important;
+		}
+		/* Ensure the printable area fills the page */
+		:global(#invoice-printable) {
+			box-shadow: none !important;
+			border-radius: 0 !important;
+			max-width: 100% !important;
+			page-break-inside: avoid;
+		}
+		/* Force dark header background to print */
+		:global(#invoice-printable .bg-linear-to-br) {
+			-webkit-print-color-adjust: exact;
+			print-color-adjust: exact;
 		}
 	}
 </style>
