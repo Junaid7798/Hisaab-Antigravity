@@ -34,7 +34,7 @@
 		{ href: '/patients', icon: 'group', i18nKey: 'nav.customers', fallback: $activeTerminology.people, show: features.hasCustomers },
 		{ href: '/invoices', icon: 'receipt_long', i18nKey: 'nav.invoices', fallback: 'Invoices', show: true },
 		{ href: '/estimates/new', icon: 'description', i18nKey: 'nav.estimates', fallback: 'Estimates', show: features.hasEstimates },
-		{ href: '/recurring/new', icon: 'autorenew', i18nKey: 'nav.recurring', fallback: 'Subscriptions', show: features.hasRecurring },
+		{ href: '/recurring', icon: 'autorenew', i18nKey: 'nav.recurring', fallback: 'Subscriptions', show: features.hasRecurring },
 		{ href: '/inventory', icon: 'inventory_2', i18nKey: 'nav.inventory', fallback: $activeTerminology.items, show: features.hasInventory },
 		{ href: '/suppliers', icon: 'local_shipping', i18nKey: 'nav.suppliers', fallback: 'Suppliers', show: features.hasSuppliers },
 		{ href: '/purchases/new', icon: 'shopping_cart', i18nKey: 'nav.purchases', fallback: 'Purchases', show: features.hasPurchases },
