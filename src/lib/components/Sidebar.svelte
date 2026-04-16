@@ -40,6 +40,7 @@
 		{ href: '/purchases/new', icon: 'shopping_cart', i18nKey: 'nav.purchases', fallback: 'Purchases', show: features.hasPurchases },
 		{ href: '/expenses', icon: 'payments', i18nKey: 'nav.expenses', fallback: 'Expenses', show: true },
 		{ href: '/staff', icon: 'badge', i18nKey: 'nav.staff', fallback: 'Staff', show: true },
+		{ href: '/attendance', icon: 'fingerprint', i18nKey: 'nav.attendance', fallback: 'Attendance', show: true },
 		{ href: '/tasks', icon: 'task', i18nKey: 'nav.tasks', fallback: 'Tasks', show: true },
 		{ href: '/reports', icon: 'analytics', i18nKey: 'nav.reports', fallback: 'Reports', show: true },
 		{ href: '/analytics', icon: 'monitoring', i18nKey: 'nav.analytics', fallback: 'Intelligence', show: true },
