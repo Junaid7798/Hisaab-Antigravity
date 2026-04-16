@@ -6,18 +6,36 @@
 	import { initSyncEngine } from '$lib/db/sync';
 	import { preferences } from '$lib/stores/preferences';
 	import { theme } from '$lib/stores/theme';
-	
+	import { supabase } from '$lib/db/supabase';
+	import { currentUser, currentSession, authLoading } from '$lib/stores/auth';
+
 	let { children } = $props();
 
 	setupI18n();
 
-	onMount(() => {
-		initSyncEngine();
-		
+	onMount(async () => {
+		// Bootstrap theme
 		const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | 'auto' | null;
-		if (savedTheme) {
-			theme.set(savedTheme);
+		if (savedTheme) theme.set(savedTheme);
+
+		// Bootstrap Supabase session
+		try {
+			const { data } = await supabase.auth.getSession();
+			currentSession.set(data.session);
+			currentUser.set(data.session?.user ?? null);
+
+			// Listen for auth state changes (login, logout, token refresh)
+			supabase.auth.onAuthStateChange((_event, session) => {
+				currentSession.set(session);
+				currentUser.set(session?.user ?? null);
+			});
+		} catch {
+			// Supabase not configured — offline-only mode, proceed without auth
+		} finally {
+			authLoading.set(false);
 		}
+
+		initSyncEngine();
 	});
 </script>
 
@@ -29,7 +47,7 @@
 	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </svelte:head>
 
-{#if $isLoading}
+{#if $isLoading || $authLoading}
 	<div class="h-screen w-screen flex items-center justify-center bg-surface">
 		<div class="animate-pulse flex flex-col items-center gap-4">
 			<div class="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>

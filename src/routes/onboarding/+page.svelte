@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { db } from '$lib/db';
 	import { categoryGroups, type BusinessCategory, type TaxRegistrationType } from '$lib/utils/terminology';
+	import { supabase } from '$lib/db/supabase';
 
 	let taxType = $state<TaxRegistrationType>('unregistered');
 	let selectedCategory = $state<BusinessCategory | null>(null);
@@ -24,10 +25,11 @@
 					industry_sector: categoryGroups.find(g => g.items.some(i => i.id === selectedCategory))?.sector || 'Other'
 				});
 			} else {
-				// Initialize a dummy business
+				// Initialize a new business with real user ID if available
+				const { data: { user } } = await supabase.auth.getUser();
 				await db.businesses.add({
 					id: crypto.randomUUID(),
-					owner_id: 'user_123',
+					owner_id: user?.id ?? 'offline_user',
 					name: 'My Business',
 					gstin: '',
 					state_code: '27',

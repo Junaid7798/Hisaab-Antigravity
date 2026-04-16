@@ -15,20 +15,32 @@
 	import { preferences } from '$lib/stores/preferences';
 	import { closeMobileDrawer } from '$lib/stores/ui';
 	import { exportDatabaseToJSON, triggerDownload } from '$lib/utils/export';
-	
+	import { currentUser, authLoading } from '$lib/stores/auth';
+
 	let { children } = $props();
 	let businesses = $state<Business[]>([]);
 	let activeBusiness = $derived(businesses.find(b => b.id === $activeBusinessId) || businesses[0]);
 	let sidebarCollapsed = $derived($preferences.sidebarCollapsed);
 	let md = $state(false);
 
+	// Route guard: redirect to /login if Supabase is configured and user is not authenticated
+	$effect(() => {
+		if (!$authLoading && !$currentUser) {
+			const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+			const isSupabaseConfigured = supabaseUrl && supabaseUrl !== 'https://your-project.supabase.co';
+			if (isSupabaseConfigured) {
+				goto('/login');
+			}
+		}
+	});
+
 	onMount(async () => {
 		md = window.innerWidth >= 768;
-		const handleResize = () => md = window.innerWidth >= 768;
+		const handleResize = () => { md = window.innerWidth >= 768; };
 		window.addEventListener('resize', handleResize);
 
 		businesses = await getBusinesses();
-		
+
 		try {
 			await processRecurringSchedules();
 		} catch (err) {
@@ -38,13 +50,13 @@
 		if (businesses.length > 0 && !$activeBusinessId) {
 			$activeBusinessId = businesses[0].id;
 		}
-		
+
 		const currentBusiness = businesses.find(b => b.id === $activeBusinessId) || businesses[0];
 		if (!currentBusiness || !currentBusiness.business_category) {
 			goto('/onboarding');
 		} else {
 			activeTerminology.set(getTerminology(currentBusiness.business_category));
-			
+
 			// Auto Backup logic
 			const prefs = $preferences;
 			if (prefs.autoBackup) {
@@ -52,11 +64,11 @@
 				const lastBackup = prefs.lastBackupDate ? new Date(prefs.lastBackupDate) : new Date(0);
 				let shouldBackup = false;
 				const daysSince = (now.getTime() - lastBackup.getTime()) / (1000 * 3600 * 24);
-				
+
 				if (prefs.backupFrequency === 'daily' && daysSince >= 1) shouldBackup = true;
 				else if (prefs.backupFrequency === 'weekly' && daysSince >= 7) shouldBackup = true;
 				else if (prefs.backupFrequency === 'monthly' && daysSince >= 30) shouldBackup = true;
-				
+
 				if (shouldBackup) {
 					setTimeout(async () => {
 						try {
@@ -67,7 +79,7 @@
 						} catch (e) {
 							console.error('Auto backup failed:', e);
 						}
-					}, 3000); // Wait 3s after load to not block UI
+					}, 3000);
 				}
 			}
 		}
@@ -78,28 +90,34 @@
 			closeMobileDrawer();
 		}
 	}
+
+	// Derive display name from Supabase user or fallback
+	let displayName = $derived(
+		$currentUser?.user_metadata?.full_name ||
+		$currentUser?.email?.split('@')[0] ||
+		'Admin'
+	);
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
 
 <Sidebar {businesses} activeId={$activeBusinessId} collapsed={sidebarCollapsed} />
-<TopNav userName="Admin" />
+<TopNav userName={displayName} />
 <Toast />
 <CommandPalette />
 
-<main 
+<main
 	class="transition-all duration-200 ease-out
 		pt-16 lg:pt-20 min-h-screen pb-20 lg:pb-4
 		{sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}
 		px-3 sm:px-4 md:px-6 lg:px-8"
 >
 	{#key $page.url.pathname}
-		<div 
-			in:fade={{ duration: 150, delay: 150, easing: cubicOut }} 
+		<div
+			in:fade={{ duration: 150, delay: 150, easing: cubicOut }}
 			out:fade={{ duration: 150, easing: cubicOut }}
 		>
 			{@render children()}
 		</div>
 	{/key}
 </main>
-

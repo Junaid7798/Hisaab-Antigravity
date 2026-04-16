@@ -18,6 +18,14 @@
 	import { getEffectiveFeatures, saveFeatureOverrides, type BusinessFeatures } from '$lib/utils/business-features';
 	import { fade, slide } from 'svelte/transition';
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
+	import { supabase } from '$lib/db/supabase';
+	import { currentUser } from '$lib/stores/auth';
+	import { goto } from '$app/navigation';
+
+	async function handleSignOut() {
+		await supabase.auth.signOut();
+		goto('/login');
+	}
 
 	let showWipeConfirm = $state(false);
 	let features = $state<BusinessFeatures | null>(null);
@@ -1283,5 +1291,53 @@
 			onConfirm={() => { handleWipe(); showWipeConfirm = false; }}
 			onCancel={() => showWipeConfirm = false}
 		/>
+	</section>
+
+	<!-- Account -->
+	<section class="mt-8 bg-surface-container-lowest p-6 md:p-8 rounded-2xl shadow-sm border border-outline-variant/20">
+		<div class="flex items-center gap-3 mb-6">
+			<span class="material-symbols-outlined text-primary">manage_accounts</span>
+			<h3 class="text-xl font-headline font-bold">Account</h3>
+		</div>
+
+		{#if $currentUser}
+			<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-surface-container rounded-xl">
+				<div class="flex items-center gap-3">
+					<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+						<span class="material-symbols-outlined text-primary">person</span>
+					</div>
+					<div>
+						<p class="text-sm font-semibold text-on-surface">{$currentUser.email}</p>
+						<p class="text-xs text-on-surface-variant mt-0.5 flex items-center gap-1">
+							<span class="material-symbols-outlined text-xs text-primary" style="font-variation-settings: 'FILL' 1;">verified</span>
+							Signed in
+						</p>
+					</div>
+				</div>
+				<button
+					onclick={handleSignOut}
+					class="px-5 py-2.5 text-sm font-semibold text-error border border-error/20 rounded-xl hover:bg-error/10 transition-colors flex items-center gap-2"
+				>
+					<span class="material-symbols-outlined text-base">logout</span>
+					Sign Out
+				</button>
+			</div>
+		{:else}
+			<div class="p-4 bg-surface-container rounded-xl flex items-center justify-between gap-4">
+				<div class="flex items-center gap-3">
+					<span class="material-symbols-outlined text-outline">wifi_off</span>
+					<div>
+						<p class="text-sm font-medium text-on-surface">Offline Mode</p>
+						<p class="text-xs text-on-surface-variant mt-0.5">Sign in to sync your data across devices</p>
+					</div>
+				</div>
+				<a
+					href="/login"
+					class="px-5 py-2.5 text-sm font-semibold text-primary border border-primary/20 rounded-xl hover:bg-primary/10 transition-colors"
+				>
+					Sign In
+				</a>
+			</div>
+		{/if}
 	</section>
 </div>
