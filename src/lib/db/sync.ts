@@ -2,6 +2,7 @@ import { db } from './index';
 import { now } from '$lib/utils/helpers';
 import { supabase } from './supabase';
 import { syncStatus, lastSyncError } from '$lib/stores/sync';
+import { getPreference } from '$lib/stores/preferences';
 
 const SYNCABLE_TABLES = [
 	'businesses',
@@ -132,6 +133,7 @@ export async function pullSync(): Promise<void> {
  */
 export async function runSyncEngine() {
 	if (isSyncing || !navigator.onLine) return;
+	if (!getPreference('cloudSyncEnabled')) return;
 	
 	const { data: { session } } = await supabase.auth.getSession();
 	if (!session) {

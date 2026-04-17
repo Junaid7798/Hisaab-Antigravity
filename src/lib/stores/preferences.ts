@@ -41,6 +41,7 @@ export interface UserPreferences {
 	autoBackup: boolean;
 	backupFrequency: 'daily' | 'weekly' | 'monthly';
 	lastBackupDate: string;
+	cloudSyncEnabled: boolean;
 }
 
 const defaultPreferences: UserPreferences = {
@@ -83,7 +84,8 @@ const defaultPreferences: UserPreferences = {
 	showInactiveCustomers: false,
 	autoBackup: false,
 	backupFrequency: 'weekly',
-	lastBackupDate: ''
+	lastBackupDate: '',
+	cloudSyncEnabled: true
 };
 
 function getInitialPreferences(): UserPreferences {

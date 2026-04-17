@@ -87,7 +87,12 @@
 		</div>
 
 		<!-- Sync Status -->
-		{#if !isOnline}
+		{#if !$preferences.cloudSyncEnabled}
+			<div class="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-surface-container-high text-on-surface-variant" title="Cloud sync is off — data stored locally only">
+				<span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">lock</span>
+				<span class="hidden md:inline">Local Only</span>
+			</div>
+		{:else if !isOnline}
 			<div class="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-error-container/80 text-error">
 				<span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">cloud_off</span>
 				<span class="hidden sm:inline">Offline</span>

@@ -42,7 +42,6 @@
 		{ href: '/staff', icon: 'badge', i18nKey: 'nav.staff', fallback: 'Staff', show: true },
 		{ href: '/attendance', icon: 'fingerprint', i18nKey: 'nav.attendance', fallback: 'Attendance', show: true },
 		{ href: '/loans', icon: 'account_balance', i18nKey: 'nav.loans', fallback: 'Loans & EMI', show: true },
-		{ href: '/tasks', icon: 'task', i18nKey: 'nav.tasks', fallback: 'Tasks', show: true },
 		{ href: '/gst', icon: 'receipt', i18nKey: 'nav.gst', fallback: 'GST', show: features.hasGST },
 		{ href: '/reports', icon: 'analytics', i18nKey: 'nav.reports', fallback: 'Reports', show: true },
 		{ href: '/analytics', icon: 'monitoring', i18nKey: 'nav.analytics', fallback: 'Intelligence', show: true },
@@ -217,9 +216,9 @@
 	<!-- Bottom Links -->
 	{#if !collapsed}
 		<div class="pt-3 px-3 lg:px-4 border-t border-surface-variant/50 space-y-1 mt-2">
-			<a href="/help" onclick={closeMobileDrawer} class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-primary text-[13px] lg:text-xs transition-colors">
-				<span class="material-symbols-outlined text-[20px] lg:text-[18px]">help</span>
-				<span>{$_('nav.help', { default: 'Help Center' })}</span>
+			<a href="mailto:support@hisaab.app" class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-primary text-[13px] lg:text-xs transition-colors">
+				<span class="material-symbols-outlined text-[20px] lg:text-[18px]">support_agent</span>
+				<span>Contact Support</span>
 			</a>
 		</div>
 	{/if}

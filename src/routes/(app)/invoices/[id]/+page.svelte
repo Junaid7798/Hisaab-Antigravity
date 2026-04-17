@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
-	import { _ } from 'svelte-i18n';
+	import { _, locale } from 'svelte-i18n';
+	import { buildWhatsAppInvoiceMessage } from '$lib/utils/whatsapp';
 	import { fade, fly } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import StatusChip from '$lib/components/StatusChip.svelte';
@@ -186,8 +187,18 @@
 			toast.error(`${$activeTerminology.person} phone number missing`);
 			return;
 		}
-		const text = `Hello ${patient.name},%0A%0AHere are your invoice details from *${business?.name}*:%0A%0A*Invoice:* ${invoice.invoice_number}%0A*Amount:* ${formatINR(invoice.grand_total)}%0A*Date:* ${formatDate(invoice.issue_date)}%0A%0AThank you!`;
-		window.open(`https://wa.me/${patient.phone.replace(/\D/g, '')}?text=${text}`, '_blank');
+		const msg = buildWhatsAppInvoiceMessage({
+			customerName: patient.name,
+			invoiceNumber: invoice.invoice_number,
+			grandTotal: invoice.grand_total,
+			issueDate: invoice.issue_date,
+			dueDate: invoice.due_date || undefined,
+			businessName: business?.name || '',
+			businessPhone: business?.phone || undefined,
+			locale: $locale || 'en'
+		});
+		const encoded = encodeURIComponent(msg);
+		window.open(`https://wa.me/${patient.phone.replace(/\D/g, '')}?text=${encoded}`, '_blank');
 	}
 </script>
 

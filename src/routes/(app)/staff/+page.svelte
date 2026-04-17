@@ -6,12 +6,14 @@
 	import Modal from '$lib/components/Modal.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
-	import { getBusiness, createStaff, getStaff, updateStaff, softDeleteStaff, createStaffSalary, getStaffSalaries, createStaffAdvance, approveStaffAdvance, getStaffAdvances, addStaffDocument, getStaffDocuments, deleteStaffDocument, getStaffById } from '$lib/db/crud';
+	import { getBusiness, createStaff, getStaff, updateStaff, softDeleteStaff, createStaffSalary, getStaffSalaries, getStaffSalaryByMonth, createStaffAdvance, approveStaffAdvance, getStaffAdvances, addStaffDocument, getStaffDocuments, deleteStaffDocument, getStaffById } from '$lib/db/crud';
+	import { getAttendanceByMonth } from '$lib/db/crud-extended';
 	import { activeBusinessId, activeTerminology } from '$lib/stores/session';
 	import { formatINRCompact, formatINR } from '$lib/utils/currency';
 	import { formatDate, INDIAN_STATES } from '$lib/utils/helpers';
 	import { toast } from '$lib/stores/toast';
 	import { invalidateBusinessCache } from '$lib/utils/cache';
+	import { calculatePayroll, buildSalaryRecord, formatMonthYear, getWorkingDaysInMonth } from '$lib/utils/payroll';
 	import type { Staff, StaffSalary, StaffAdvance, StaffDocument, StaffRole } from '$lib/db/index';
 	import { fade, slide } from 'svelte/transition';
 
@@ -57,6 +59,70 @@
 	};
 
 	let currentUserRole = $state<StaffRole>('admin');
+
+	// ── Payroll state ──────────────────────────────────────────────────────────
+	const today = new Date();
+	let salaryMonth = $state(today.getMonth() + 1); // 1-based
+	let salaryYear = $state(today.getFullYear());
+	let salaries = $state<StaffSalary[]>([]);
+	let isGeneratingSalary = $state(false);
+	let showSalaryModal = $state(false);
+	let salaryPreview = $state<{ staffId: string; name: string; basic: number; absent: number; late: number; absentDeduct: number; lateDeduct: number; gross: number; workingDays: number } | null>(null);
+	let salaryBonus = $state(0);
+	let salaryExtraDeductions = $state(0);
+	let salaryPaymentMethod = $state<StaffSalary['payment_method']>('cash');
+	let salaryRemarks = $state('');
+
+	async function loadSalaries() {
+		if (!businessId) return;
+		salaries = await getStaffSalaries(businessId);
+	}
+
+	async function openSalaryModal(s: Staff) {
+		if (!businessId) return;
+		const attendance = await getAttendanceByMonth(businessId, s.id, salaryMonth, salaryYear);
+		const calc = calculatePayroll(s, salaryMonth, salaryYear, attendance);
+		salaryPreview = {
+			staffId: s.id,
+			name: s.name,
+			basic: calc.basicSalary,
+			absent: calc.absentDays,
+			late: calc.lateDays,
+			absentDeduct: calc.absentDeduction,
+			lateDeduct: calc.lateDeduction,
+			gross: calc.grossSalary,
+			workingDays: calc.workingDays
+		};
+		salaryBonus = 0;
+		salaryExtraDeductions = 0;
+		salaryPaymentMethod = 'cash';
+		salaryRemarks = '';
+		showSalaryModal = true;
+	}
+
+	async function saveSalary() {
+		if (!salaryPreview || !businessId) return;
+		isGeneratingSalary = true;
+		try {
+			const staffMember = staff.find(s => s.id === salaryPreview!.staffId);
+			if (!staffMember) return;
+			const attendance = await getAttendanceByMonth(businessId, staffMember.id, salaryMonth, salaryYear);
+			const calc = calculatePayroll(staffMember, salaryMonth, salaryYear, attendance);
+			const record = buildSalaryRecord(businessId, calc, salaryBonus, salaryExtraDeductions, salaryPaymentMethod, salaryRemarks);
+			await createStaffSalary(businessId, record);
+			await loadSalaries();
+			showSalaryModal = false;
+			toast.success(`Salary saved for ${staffMember.name}`);
+		} catch {
+			toast.error('Failed to save salary');
+		} finally {
+			isGeneratingSalary = false;
+		}
+	}
+
+	$effect(() => {
+		if (businessId) loadSalaries();
+	});
 
 	async function loadData(bizId: string) {
 		loading = true;
@@ -299,14 +365,60 @@
 			</div>
 		{/if}
 	{:else if activeTab === 'salary'}
-		<div class="bg-surface-container-lowest rounded-2xl p-8 text-center">
-			<span class="material-symbols-outlined text-5xl text-on-surface-variant/30">payments</span>
-			<h3 class="text-xl font-bold text-on-surface mt-4">Salary Management</h3>
-			<p class="text-on-surface-variant mt-2">Process monthly salaries for your staff</p>
-			<button class="mt-4 px-6 py-3 bg-primary text-white rounded-xl font-bold">
-				Process Monthly Salary
-			</button>
+		<!-- Month/Year selector -->
+		<div class="flex items-center gap-3 mb-4 flex-wrap">
+			<span class="text-sm font-semibold text-on-surface-variant">Processing salary for:</span>
+			<select bind:value={salaryMonth} class="bg-surface-container border border-outline-variant rounded-lg px-3 py-1.5 text-sm font-semibold focus:ring-2 focus:ring-primary/20 outline-none">
+				{#each [{v:1,l:'January'},{v:2,l:'February'},{v:3,l:'March'},{v:4,l:'April'},{v:5,l:'May'},{v:6,l:'June'},{v:7,l:'July'},{v:8,l:'August'},{v:9,l:'September'},{v:10,l:'October'},{v:11,l:'November'},{v:12,l:'December'}] as m}
+					<option value={m.v}>{m.l}</option>
+				{/each}
+			</select>
+			<select bind:value={salaryYear} class="bg-surface-container border border-outline-variant rounded-lg px-3 py-1.5 text-sm font-semibold focus:ring-2 focus:ring-primary/20 outline-none">
+				{#each [today.getFullYear()-1, today.getFullYear()] as y}
+					<option value={y}>{y}</option>
+				{/each}
+			</select>
+			<span class="text-xs text-on-surface-variant ml-auto">{getWorkingDaysInMonth(salaryMonth, salaryYear)} working days this month</span>
 		</div>
+
+		{#if staff.filter(s => s.is_active).length === 0}
+			<div class="bg-surface-container-lowest rounded-2xl p-8 text-center">
+				<span class="material-symbols-outlined text-5xl text-on-surface-variant/30">payments</span>
+				<h3 class="text-xl font-bold text-on-surface mt-4">No Active Staff</h3>
+				<p class="text-on-surface-variant mt-2">Add staff members first to process salaries.</p>
+			</div>
+		{:else}
+			<div class="grid gap-3">
+				{#each staff.filter(s => s.is_active) as s}
+					{@const existingSalary = salaries.find(sal => sal.staff_id === s.id && sal.month === salaryMonth && sal.year === salaryYear)}
+					<div class="bg-surface-container-lowest rounded-xl p-4 flex items-center justify-between gap-4">
+						<div class="flex items-center gap-3 min-w-0">
+							<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary shrink-0">
+								{s.name.charAt(0).toUpperCase()}
+							</div>
+							<div class="min-w-0">
+								<p class="font-semibold truncate">{s.name}</p>
+								<p class="text-xs text-on-surface-variant capitalize">{s.role.replace('_', ' ')} · Base: {formatINR(s.basic_salary)}/mo</p>
+							</div>
+						</div>
+						{#if existingSalary}
+							<div class="text-right shrink-0">
+								<p class="text-xs text-tertiary font-bold uppercase tracking-wide">Paid</p>
+								<p class="font-bold">{formatINR(existingSalary.net_salary)}</p>
+							</div>
+							<span class="material-symbols-outlined text-tertiary text-xl" style="font-variation-settings:'FILL' 1">check_circle</span>
+						{:else}
+							<button
+								onclick={() => openSalaryModal(s)}
+								class="shrink-0 px-4 py-2 bg-primary text-on-primary rounded-xl text-sm font-bold hover:opacity-90 active:scale-95 transition-all"
+							>
+								Generate Salary
+							</button>
+						{/if}
+					</div>
+				{/each}
+			</div>
+		{/if}
 	{:else if activeTab === 'advances'}
 		<div class="bg-surface-container-lowest rounded-2xl p-8 text-center">
 			<span class="material-symbols-outlined text-5xl text-on-surface-variant/30">account_balance</span>
@@ -420,3 +532,97 @@
 	onConfirm={confirmDelete}
 	onCancel={() => { showConfirm = false; staffToDelete = null; }}
 />
+
+<!-- Salary Generation Modal -->
+{#if showSalaryModal && salaryPreview}
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick={() => showSalaryModal = false}>
+		<div class="bg-surface-container-lowest w-full max-w-md rounded-2xl shadow-2xl overflow-hidden" onclick={(e) => e.stopPropagation()}>
+			<div class="p-6 border-b border-outline-variant/10 flex items-center justify-between">
+				<div>
+					<h3 class="text-lg font-headline font-bold">Generate Salary</h3>
+					<p class="text-sm text-on-surface-variant">{salaryPreview.name} · {formatMonthYear(salaryMonth, salaryYear)}</p>
+				</div>
+				<button onclick={() => showSalaryModal = false} class="p-2 rounded-full hover:bg-surface-container transition-colors">
+					<span class="material-symbols-outlined">close</span>
+				</button>
+			</div>
+
+			<div class="p-6 space-y-4">
+				<!-- Attendance breakdown -->
+				<div class="bg-surface-container rounded-xl p-4 space-y-2 text-sm">
+					<div class="flex justify-between">
+						<span class="text-on-surface-variant">Working Days</span>
+						<span class="font-semibold">{salaryPreview.workingDays}</span>
+					</div>
+					<div class="flex justify-between">
+						<span class="text-on-surface-variant">Absent Days</span>
+						<span class="font-semibold text-error">{salaryPreview.absent}</span>
+					</div>
+					<div class="flex justify-between">
+						<span class="text-on-surface-variant">Late Days (½ deduction)</span>
+						<span class="font-semibold text-warning">{salaryPreview.late}</span>
+					</div>
+					<div class="border-t border-outline-variant/20 pt-2 flex justify-between">
+						<span class="text-on-surface-variant">Basic Salary</span>
+						<span class="font-semibold">{formatINR(salaryPreview.basic)}</span>
+					</div>
+					<div class="flex justify-between text-error">
+						<span>Absent Deduction</span>
+						<span>− {formatINR(salaryPreview.absentDeduct)}</span>
+					</div>
+					<div class="flex justify-between text-error">
+						<span>Late Deduction</span>
+						<span>− {formatINR(salaryPreview.lateDeduct)}</span>
+					</div>
+					<div class="border-t border-outline-variant/20 pt-2 flex justify-between font-bold text-base">
+						<span>Gross Salary</span>
+						<span class="text-primary">{formatINR(salaryPreview.gross)}</span>
+					</div>
+				</div>
+
+				<!-- Adjustments -->
+				<div class="grid grid-cols-2 gap-3">
+					<div>
+						<label for="sal-bonus" class="block text-xs font-bold text-outline uppercase tracking-wider mb-1">Bonus</label>
+						<input id="sal-bonus" type="number" bind:value={salaryBonus} min="0" class="w-full bg-surface-container-highest rounded-lg px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-primary/20 outline-none" placeholder="0" />
+					</div>
+					<div>
+						<label for="sal-deduct" class="block text-xs font-bold text-outline uppercase tracking-wider mb-1">Extra Deductions</label>
+						<input id="sal-deduct" type="number" bind:value={salaryExtraDeductions} min="0" class="w-full bg-surface-container-highest rounded-lg px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-primary/20 outline-none" placeholder="0" />
+					</div>
+				</div>
+
+				<div>
+					<label for="sal-method" class="block text-xs font-bold text-outline uppercase tracking-wider mb-1">Payment Method</label>
+					<select id="sal-method" bind:value={salaryPaymentMethod} class="w-full bg-surface-container-highest rounded-lg px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-primary/20 outline-none">
+						<option value="cash">Cash</option>
+						<option value="bank_transfer">Bank Transfer</option>
+						<option value="upi">UPI</option>
+					</select>
+				</div>
+
+				<div>
+					<label for="sal-remarks" class="block text-xs font-bold text-outline uppercase tracking-wider mb-1">Remarks</label>
+					<input id="sal-remarks" type="text" bind:value={salaryRemarks} class="w-full bg-surface-container-highest rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none" placeholder="Optional note" />
+				</div>
+
+				<!-- Net salary -->
+				<div class="bg-primary/5 border border-primary/20 rounded-xl p-4 flex justify-between items-center">
+					<span class="font-bold text-on-surface">Net Salary</span>
+					<span class="text-2xl font-extrabold text-primary">{formatINR(Math.max(0, salaryPreview.gross + salaryBonus - salaryExtraDeductions))}</span>
+				</div>
+			</div>
+
+			<div class="p-6 pt-0 flex gap-3">
+				<button onclick={() => showSalaryModal = false} class="flex-1 py-3 rounded-xl border border-outline-variant font-semibold text-on-surface-variant hover:bg-surface-container transition-colors">
+					Cancel
+				</button>
+				<button onclick={saveSalary} disabled={isGeneratingSalary} class="flex-1 py-3 rounded-xl bg-primary text-on-primary font-bold hover:opacity-90 active:scale-95 transition-all disabled:opacity-50">
+					{isGeneratingSalary ? 'Saving...' : 'Save & Mark Paid'}
+				</button>
+			</div>
+		</div>
+	</div>
+{/if}

@@ -23,6 +23,10 @@
 	let lowStockProducts = $state<any[]>([]);
 	let overdueInvoices = $state<any[]>([]);
 	let revenueChange = $state<number | null>(null);
+	let slowMovingProducts = $state<any[]>([]);
+	let pendingLeaveCount = $state(0);
+	let longOverdueCount = $state(0);
+	let longOverdueAmount = $state(0);
 
 	async function loadDashboard(businessId: string) {
 		loading = true;
@@ -38,6 +42,10 @@
 		lowStockProducts = data.lowStock;
 		overdueInvoices = data.overdueInvoices;
 		revenueChange = data.revenueChangePercentage;
+		slowMovingProducts = data.slowMovingProducts;
+		pendingLeaveCount = data.pendingLeaveCount;
+		longOverdueCount = data.longOverdueCount;
+		longOverdueAmount = data.longOverdueAmount;
 		loading = false;
 	}
 
@@ -157,31 +165,69 @@
 	</div>
 </div>
 
-	<!-- Smart Alerts -->
-	{#if lowStockProducts.length > 0 || overdueInvoices.length > 0}
-		<div class="col-span-12 mb-10 space-y-4">
+	<!-- Smart Nudges -->
+	{#if longOverdueCount > 0 || slowMovingProducts.length > 0 || lowStockProducts.length > 0 || pendingLeaveCount > 0}
+		<div class="mb-10">
 			<h4 class="font-headline font-bold text-xl mb-4">Smart Alerts</h4>
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-				{#if overdueInvoices.length > 0}
-					<div class="bg-error-container text-on-error-container p-4 rounded-xl flex items-start gap-4 shadow-sm border border-error/20">
-						<span class="material-symbols-outlined text-error mt-0.5">warning</span>
-						<div class="flex-1">
-							<p class="font-headline font-bold text-sm">Overdue Invoices</p>
-							<p class="text-sm opacity-80 mb-2">{overdueInvoices.length} {overdueInvoices.length === 1 ? 'invoice is' : 'invoices are'} past their due date.</p>
-							<a href="/invoices" class="text-xs font-bold text-error flex items-center gap-1 hover:underline">View Invoices <span class="material-symbols-outlined text-[14px]">arrow_forward</span></a>
+			<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+
+				<!-- Long overdue customers (>30 days) -->
+				{#if longOverdueCount > 0}
+					<a href="/invoices" class="group bg-error-container/70 border border-error/20 rounded-xl p-4 flex items-start gap-3 hover:bg-error-container transition-colors">
+						<span class="material-symbols-outlined text-error text-xl mt-0.5 shrink-0" style="font-variation-settings:'FILL' 1">alarm</span>
+						<div>
+							<p class="font-bold text-sm text-on-error-container">{longOverdueCount} overdue 30+ days</p>
+							<p class="text-xs text-error/80 mt-0.5">Total: {formatINRCompact(longOverdueAmount)}</p>
+							<p class="text-[11px] text-error font-semibold mt-2 flex items-center gap-0.5 group-hover:underline">Collect now <span class="material-symbols-outlined text-[13px]">arrow_forward</span></p>
 						</div>
-					</div>
+					</a>
+				{:else if overdueInvoices.length > 0}
+					<a href="/invoices" class="group bg-error-container/40 border border-error/10 rounded-xl p-4 flex items-start gap-3 hover:bg-error-container/70 transition-colors">
+						<span class="material-symbols-outlined text-error text-xl mt-0.5 shrink-0">warning</span>
+						<div>
+							<p class="font-bold text-sm text-on-surface">{overdueInvoices.length} overdue invoice{overdueInvoices.length > 1 ? 's' : ''}</p>
+							<p class="text-xs text-on-surface-variant mt-0.5">Follow up with customers</p>
+							<p class="text-[11px] text-error font-semibold mt-2 flex items-center gap-0.5 group-hover:underline">View invoices <span class="material-symbols-outlined text-[13px]">arrow_forward</span></p>
+						</div>
+					</a>
 				{/if}
+
+				<!-- Slow-moving products -->
+				{#if slowMovingProducts.length > 0}
+					<a href="/inventory" class="group bg-tertiary-container/40 border border-tertiary/10 rounded-xl p-4 flex items-start gap-3 hover:bg-tertiary-container/70 transition-colors">
+						<span class="material-symbols-outlined text-tertiary text-xl mt-0.5 shrink-0" style="font-variation-settings:'FILL' 1">trending_down</span>
+						<div>
+							<p class="font-bold text-sm text-on-surface">{slowMovingProducts.length} slow-moving item{slowMovingProducts.length > 1 ? 's' : ''}</p>
+							<p class="text-xs text-on-surface-variant mt-0.5 truncate">{slowMovingProducts.slice(0,2).map(p => p.name).join(', ')}{slowMovingProducts.length > 2 ? '…' : ''}</p>
+							<p class="text-[11px] text-tertiary font-semibold mt-2 flex items-center gap-0.5 group-hover:underline">Review stock <span class="material-symbols-outlined text-[13px]">arrow_forward</span></p>
+						</div>
+					</a>
+				{/if}
+
+				<!-- Low stock -->
 				{#if lowStockProducts.length > 0}
-					<div class="bg-info-container/50 text-info border border-info/20 p-4 rounded-xl flex items-start gap-4 shadow-sm">
-						<span class="material-symbols-outlined text-info mt-0.5">inventory</span>
-						<div class="flex-1">
-							<p class="font-headline font-bold text-sm">Low Stock Alert</p>
-							<p class="text-sm opacity-80 mb-2">{lowStockProducts.length} {lowStockProducts.length === 1 ? 'product is' : 'products are'} low on stock.</p>
-							<a href="/inventory" class="text-xs font-bold text-info flex items-center gap-1 hover:underline">View Inventory <span class="material-symbols-outlined text-[14px]">arrow_forward</span></a>
+					<a href="/inventory" class="group bg-primary-container/30 border border-primary/10 rounded-xl p-4 flex items-start gap-3 hover:bg-primary-container/50 transition-colors">
+						<span class="material-symbols-outlined text-primary text-xl mt-0.5 shrink-0" style="font-variation-settings:'FILL' 1">inventory_2</span>
+						<div>
+							<p class="font-bold text-sm text-on-surface">{lowStockProducts.length} low stock item{lowStockProducts.length > 1 ? 's' : ''}</p>
+							<p class="text-xs text-on-surface-variant mt-0.5">Reorder soon to avoid stockout</p>
+							<p class="text-[11px] text-primary font-semibold mt-2 flex items-center gap-0.5 group-hover:underline">View inventory <span class="material-symbols-outlined text-[13px]">arrow_forward</span></p>
 						</div>
-					</div>
+					</a>
 				{/if}
+
+				<!-- Pending leave approvals -->
+				{#if pendingLeaveCount > 0}
+					<a href="/attendance" class="group bg-surface-container border border-outline-variant/30 rounded-xl p-4 flex items-start gap-3 hover:bg-surface-container-high transition-colors">
+						<span class="material-symbols-outlined text-on-surface-variant text-xl mt-0.5 shrink-0" style="font-variation-settings:'FILL' 1">pending_actions</span>
+						<div>
+							<p class="font-bold text-sm text-on-surface">{pendingLeaveCount} leave request{pendingLeaveCount > 1 ? 's' : ''} pending</p>
+							<p class="text-xs text-on-surface-variant mt-0.5">Staff waiting for approval</p>
+							<p class="text-[11px] text-on-surface-variant font-semibold mt-2 flex items-center gap-0.5 group-hover:underline">Approve now <span class="material-symbols-outlined text-[13px]">arrow_forward</span></p>
+						</div>
+					</a>
+				{/if}
+
 			</div>
 		</div>
 	{/if}

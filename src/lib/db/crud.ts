@@ -452,6 +452,10 @@ export interface DashboardData {
 	lowStock: Product[];
 	overdueInvoices: Invoice[];
 	revenueChangePercentage: number | null;
+	slowMovingProducts: Product[];
+	pendingLeaveCount: number;
+	longOverdueCount: number;     // invoices overdue > 30 days
+	longOverdueAmount: number;    // total amount of long-overdue invoices
 }
 
 /**
@@ -465,13 +469,19 @@ export async function getDashboardData(businessId: string, recentLimit = 5): Pro
 	lastMonthDate.setMonth(lastMonthDate.getMonth() - 1);
 	const lastMonthPrefix = lastMonthDate.toISOString().substring(0, 7);
 
-	const [allInvoices, allPayments, lowStock, patientCount] = await Promise.all([
+	const thirtyDaysAgo = new Date();
+	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+	const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().split('T')[0];
+
+	const [allInvoices, allPayments, lowStock, patientCount, allProducts, pendingLeaveCount] = await Promise.all([
 		db.invoices.where('business_id').equals(businessId).filter(i => !i.is_deleted).toArray(),
 		db.payments.where('business_id').equals(businessId).filter(p => !p.is_deleted && !!p.invoice_id).toArray(),
 		db.products.where('business_id').equals(businessId)
 			.filter(p => !p.is_deleted && !p.is_service && p.stock_quantity <= p.low_stock_threshold)
 			.toArray(),
-		db.patients.where('business_id').equals(businessId).filter(p => !p.is_deleted).count()
+		db.patients.where('business_id').equals(businessId).filter(p => !p.is_deleted).count(),
+		db.products.where('business_id').equals(businessId).filter(p => !p.is_deleted && !p.is_service).toArray(),
+		db.leave_requests.where('business_id').equals(businessId).filter(lr => !lr.is_deleted && lr.status === 'pending').count()
 	]);
 
 	// Single pass over invoices
@@ -479,7 +489,11 @@ export async function getDashboardData(businessId: string, recentLimit = 5): Pro
 	let totalBilled = 0;
 	let currMonthRevenue = 0;
 	let prevMonthRevenue = 0;
+	let longOverdueCount = 0;
+	let longOverdueAmount = 0;
 	const overdueInvoices: Invoice[] = [];
+	// Track which products were sold in last 30 days
+	const soldProductIds = new Set<string>();
 	const recentSorted = allInvoices
 		.filter(i => i.document_type === 'INVOICE' || !i.document_type)
 		.sort((a, b) => b.created_at.localeCompare(a.created_at));
@@ -490,8 +504,27 @@ export async function getDashboardData(businessId: string, recentLimit = 5): Pro
 		totalBilled += inv.grand_total;
 		if (inv.issue_date.startsWith(currentMonthPrefix)) currMonthRevenue += inv.grand_total;
 		if (inv.issue_date.startsWith(lastMonthPrefix)) prevMonthRevenue += inv.grand_total;
-		if (inv.status !== 'PAID' && inv.due_date && inv.due_date < today) overdueInvoices.push(inv);
+		if (inv.status !== 'PAID' && inv.due_date && inv.due_date < today) {
+			overdueInvoices.push(inv);
+			if (inv.due_date < thirtyDaysAgoStr) {
+				longOverdueCount++;
+				longOverdueAmount += inv.grand_total;
+			}
+		}
 	}
+
+	// Collect product IDs sold in last 30 days
+	const recentItems = await db.invoice_items
+		.where('invoice_id')
+		.anyOf(allInvoices.filter(i => i.issue_date >= thirtyDaysAgoStr).map(i => i.id))
+		.filter(item => !item.is_deleted && !!item.product_id)
+		.toArray();
+	recentItems.forEach(item => { if (item.product_id) soldProductIds.add(item.product_id); });
+
+	// Slow-moving: not sold in last 30 days, has stock > 0
+	const slowMovingProducts = allProducts
+		.filter(p => p.stock_quantity > 0 && !soldProductIds.has(p.id))
+		.slice(0, 5);
 
 	const totalPaid = allPayments.reduce((sum, p) => sum + p.amount, 0);
 	const outstanding = totalBilled - totalPaid;
@@ -509,7 +542,7 @@ export async function getDashboardData(businessId: string, recentLimit = 5): Pro
 	const patientNameMap = new Map(patientRecords.filter(Boolean).map(p => [p!.id, p!.name]));
 	const recentInvoices = recent.map(inv => ({ ...inv, patient_name: patientNameMap.get(inv.patient_id) || 'Unknown' }));
 
-	return { revenue, outstanding, patientCount, recentInvoices, lowStock, overdueInvoices, revenueChangePercentage };
+	return { revenue, outstanding, patientCount, recentInvoices, lowStock, overdueInvoices, revenueChangePercentage, slowMovingProducts, pendingLeaveCount, longOverdueCount, longOverdueAmount };
 }
 
 export async function getRecentInvoices(businessId: string, limit: number = 5): Promise<(Invoice & { patient_name: string })[]> {
@@ -1033,21 +1066,23 @@ export async function deleteRecurringSchedule(id: string): Promise<void> {
 	});
 }
 
-export async function processRecurringSchedules(): Promise<void> {
+export async function processRecurringSchedules(): Promise<number> {
 	if (typeof navigator === 'undefined' || !navigator.locks) {
-		await __processRecurringSchedulesInternal();
-		return;
+		return __processRecurringSchedulesInternal();
 	}
-	
+
+	let count = 0;
 	// Cross-tab lock to prevent duplicate invoice generation
 	await navigator.locks.request('hisaab_recurring_schedule_lock', { mode: 'exclusive' }, async () => {
-		await __processRecurringSchedulesInternal();
+		count = await __processRecurringSchedulesInternal();
 	});
+	return count;
 }
 
-async function __processRecurringSchedulesInternal(): Promise<void> {
+async function __processRecurringSchedulesInternal(): Promise<number> {
 	const todayDate = new Date().toISOString().split('T')[0];
-	
+	let generatedCount = 0;
+
 	const activeSchedules = await db.recurring_schedules
 		.filter(rs => !rs.is_deleted && rs.is_active && rs.next_run <= todayDate)
 		.toArray();
@@ -1123,8 +1158,11 @@ async function __processRecurringSchedulesInternal(): Promise<void> {
 				next_run: d.toISOString().split('T')[0],
 				last_modified: now()
 			});
+
+			generatedCount++;
 		});
 	}
+	return generatedCount;
 }
 
 // ─── Staff HR Management CRUD ───────────────────────────────────────────────────────────

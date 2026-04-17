@@ -4,6 +4,7 @@
 	import Toast from '$lib/components/Toast.svelte';
 	import CommandPalette from '$lib/components/CommandPalette.svelte';
 	import { getBusinesses, processRecurringSchedules } from '$lib/db/crud';
+	import { toast } from '$lib/stores/toast';
 	import type { Business } from '$lib/db/index';
 	import { activeBusinessId, activeTerminology } from '$lib/stores/session';
 	import { getTerminology } from '$lib/utils/terminology';
@@ -42,7 +43,10 @@
 		businesses = await getBusinesses();
 
 		try {
-			await processRecurringSchedules();
+			const generated = await processRecurringSchedules();
+			if (generated > 0) {
+				toast.info(`${generated} recurring invoice${generated > 1 ? 's' : ''} generated — review them in Invoices.`);
+			}
 		} catch (err) {
 			console.error('Failed to process recurring schedules:', err);
 		}

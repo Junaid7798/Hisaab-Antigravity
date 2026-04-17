@@ -1,0 +1,53 @@
+import { formatINR } from './currency';
+import { formatDate } from './helpers';
+
+export interface WhatsAppInvoiceData {
+	customerName: string;
+	invoiceNumber: string;
+	grandTotal: number;
+	issueDate: string;
+	dueDate?: string;
+	businessName: string;
+	businessPhone?: string;
+	locale?: string;
+}
+
+export function buildWhatsAppInvoiceMessage(data: WhatsAppInvoiceData): string {
+	const isHindi = data.locale === 'hi' || data.locale === 'mr';
+
+	const amount = formatINR(data.grandTotal);
+	const date = formatDate(data.issueDate);
+	const due = data.dueDate ? formatDate(data.dueDate) : null;
+
+	if (isHindi) {
+		const lines = [
+			`Namaskar *${data.customerName}* ji 🙏`,
+			'',
+			`*${data.businessName}* ki taraf se aapka invoice ready hai:`,
+			'',
+			`📄 *Invoice:* ${data.invoiceNumber}`,
+			`💰 *Amount:* ${amount}`,
+			`📅 *Date:* ${date}`,
+			...(due ? [`⏰ *Due Date:* ${due}`] : []),
+			...(data.businessPhone ? [``, `💳 UPI: ${data.businessPhone}@upi`] : []),
+			'',
+			'Shukriya! 🙏'
+		];
+		return lines.join('\n');
+	}
+
+	const lines = [
+		`Hello *${data.customerName}*,`,
+		'',
+		`Here is your invoice from *${data.businessName}*:`,
+		'',
+		`📄 *Invoice:* ${data.invoiceNumber}`,
+		`💰 *Amount:* ${amount}`,
+		`📅 *Date:* ${date}`,
+		...(due ? [`⏰ *Due Date:* ${due}`] : []),
+		...(data.businessPhone ? [``, `💳 Pay via UPI: ${data.businessPhone}@upi`] : []),
+		'',
+		'Thank you! 🙏'
+	];
+	return lines.join('\n');
+}

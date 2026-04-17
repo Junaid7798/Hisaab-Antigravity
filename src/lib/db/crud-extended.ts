@@ -39,6 +39,17 @@ export async function getAttendance(businessId: string, date?: string): Promise<
 		.toArray();
 }
 
+/** Get all attendance records for a staff member in a given month (1-based) and year. */
+export async function getAttendanceByMonth(businessId: string, staffId: string, month: number, year: number): Promise<Attendance[]> {
+	const pad = (n: number) => String(n).padStart(2, '0');
+	const prefix = `${year}-${pad(month)}-`;
+	return db.attendance
+		.where('business_id')
+		.equals(businessId)
+		.filter(a => !a.is_deleted && a.staff_id === staffId && a.date.startsWith(prefix))
+		.toArray();
+}
+
 export async function createLeaveRequest(businessId: string, staffId: string, leaveType: LeaveRequest['leave_type'], startDate: string, endDate: string, reason: string): Promise<LeaveRequest> {
 	const start = new Date(startDate);
 	const end = new Date(endDate);

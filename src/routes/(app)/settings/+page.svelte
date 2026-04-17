@@ -1233,6 +1233,32 @@
 		</div>
 		<p class="text-sm text-on-surface-variant mb-6">{$_('settings.data_management_desc', { default: 'Export your data as a JSON backup, restore from a previous backup, or clear all data.' })}</p>
 
+		<!-- Cloud Sync Toggle -->
+		<div class="mb-4 p-4 rounded-xl bg-surface-container-high flex flex-col sm:flex-row items-center justify-between gap-4">
+			<div class="flex items-center gap-4">
+				<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+					<span class="material-symbols-outlined text-primary text-xl">{$preferences.cloudSyncEnabled ? 'cloud_done' : 'lock'}</span>
+				</div>
+				<div>
+					<h4 class="font-bold text-on-surface">Cloud Sync</h4>
+					<p class="text-xs text-on-surface-variant">
+						{$preferences.cloudSyncEnabled
+							? 'Your data syncs to the cloud. Turn off to keep data on this device only.'
+							: 'Local-only mode — data stays on this device. No cloud upload.'}
+					</p>
+				</div>
+			</div>
+			<button
+				onclick={() => preferences.update(p => ({ ...p, cloudSyncEnabled: !p.cloudSyncEnabled }))}
+				class="w-12 h-6 rounded-full transition-colors relative flex-shrink-0 {$preferences.cloudSyncEnabled ? 'bg-primary' : 'bg-outline-variant'}"
+				aria-label="Toggle cloud sync"
+				role="switch"
+				aria-checked={$preferences.cloudSyncEnabled}
+			>
+				<span class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform {$preferences.cloudSyncEnabled ? 'translate-x-6' : 'translate-x-0'}"></span>
+			</button>
+		</div>
+
 		<!-- Auto Backup Toggle -->
 		<div class="mb-8 p-4 rounded-xl bg-surface-container-high flex flex-col sm:flex-row items-center justify-between gap-4">
 			<div class="flex items-center gap-4">
