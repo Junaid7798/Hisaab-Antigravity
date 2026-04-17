@@ -122,50 +122,64 @@
 		</div>
 	</div>
 {:else}
-<div class="grid grid-cols-12 gap-6 mb-10">
-	<!-- Revenue -->
-	<div in:fly={{ y: 20, duration: 400, delay: 50, easing: cubicOut }} class="col-span-12 md:col-span-4 bg-primary text-white p-5 lg:p-6 rounded-2xl shadow-xl shadow-primary/10 relative overflow-hidden">
+<div class="grid grid-cols-12 gap-4 lg:gap-5 mb-8">
+	<!-- Revenue — Primary accent card -->
+	<div in:fly={{ y: 16, duration: 350, delay: 50, easing: cubicOut }} class="col-span-12 md:col-span-4 relative overflow-hidden rounded-2xl p-5 lg:p-6"
+		style="background: linear-gradient(135deg, var(--color-primary) 0%, color-mix(in srgb, var(--color-primary) 70%, #1e40af) 100%); box-shadow: 0 8px 32px color-mix(in srgb, var(--color-primary) 35%, transparent), 0 1px 3px rgba(0,0,0,0.2);">
 		<div class="relative z-10">
-			<p class="text-xs font-label uppercase tracking-widest text-primary-fixed-dim opacity-80">{$_('dashboard.total_revenue', { default: 'Total Revenue' })}</p>
-			<h3 class="text-3xl lg:text-4xl font-headline font-extrabold mt-2 leading-none">{formatINRCompact(revenue)}</h3>
-			<div class="mt-3 flex items-center gap-2 text-sm text-primary-fixed">
+			<div class="flex items-center gap-2 mb-3">
+				<div class="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center">
+					<span class="material-symbols-outlined text-white text-base" style="font-variation-settings:'FILL' 1">payments</span>
+				</div>
+				<p class="text-[11px] font-bold uppercase tracking-widest text-white/70">{$_('dashboard.total_revenue', { default: 'Total Revenue' })}</p>
+			</div>
+			<h3 class="text-3xl lg:text-4xl font-headline font-extrabold leading-none text-white">{formatINRCompact(revenue)}</h3>
+			<div class="mt-3 flex items-center gap-1.5 text-xs text-white/80">
 				{#if revenueChange !== null}
 					{#if revenueChange >= 0}
-						<span class="material-symbols-outlined text-base">trending_up</span>
-						<span>+{revenueChange.toFixed(1)}% vs last month</span>
+						<span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1">trending_up</span>
+						<span class="font-semibold">+{revenueChange.toFixed(1)}%</span><span class="opacity-70">vs last month</span>
 					{:else}
-						<span class="material-symbols-outlined text-base text-error">trending_down</span>
-						<span class="text-error">{revenueChange.toFixed(1)}% vs last month</span>
+						<span class="material-symbols-outlined text-sm text-red-200" style="font-variation-settings:'FILL' 1">trending_down</span>
+						<span class="font-semibold text-red-200">{revenueChange.toFixed(1)}%</span><span class="opacity-70">vs last month</span>
 					{/if}
 				{:else}
-					<span class="material-symbols-outlined text-base">trending_up</span>
+					<span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1">trending_up</span>
 					<span>{$_('dashboard.all_time', { default: 'All time' })}</span>
 				{/if}
 			</div>
 		</div>
-		<div class="absolute -right-4 -bottom-4 opacity-10">
-			<span class="material-symbols-outlined text-[100px] lg:text-[120px]">payments</span>
+		<div class="absolute -right-3 -bottom-3 opacity-[0.07]">
+			<span class="material-symbols-outlined text-[110px]" style="font-variation-settings:'FILL' 1">payments</span>
 		</div>
 	</div>
 
 	<!-- Outstanding -->
-	<div in:fly={{ y: 20, duration: 400, delay: 150, easing: cubicOut }} class="col-span-12 md:col-span-4 bg-surface-container-lowest p-5 lg:p-6 rounded-2xl shadow-sm border border-outline-variant/10">
-		<p class="text-xs font-label uppercase tracking-widest text-on-surface-variant">{$_('dashboard.outstanding', { default: 'Outstanding Payments' })}</p>
-		<h3 class="text-3xl lg:text-4xl font-headline font-extrabold mt-2 text-error leading-none">{formatINRCompact(outstanding)}</h3>
-		<div class="mt-3 flex items-center gap-2 text-sm text-on-surface-variant">
-			<span class="material-symbols-outlined text-base">schedule</span>
-			<span>{$_('dashboard.unpaid_invoices', { default: 'Unpaid invoices' })}</span>
+	<div in:fly={{ y: 16, duration: 350, delay: 130, easing: cubicOut }} class="col-span-12 md:col-span-4 bg-surface-container-lowest rounded-2xl p-5 lg:p-6 relative overflow-hidden border border-outline-variant/20"
+		style="box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);">
+		<div class="absolute top-0 left-0 w-1 h-full rounded-l-2xl bg-error opacity-70"></div>
+		<div class="flex items-center gap-2 mb-3 pl-2">
+			<div class="w-7 h-7 rounded-lg bg-error/10 flex items-center justify-center">
+				<span class="material-symbols-outlined text-error text-base" style="font-variation-settings:'FILL' 1">schedule</span>
+			</div>
+			<p class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">{$_('dashboard.outstanding', { default: 'Outstanding' })}</p>
 		</div>
+		<h3 class="text-3xl lg:text-4xl font-headline font-extrabold mt-1 text-error leading-none pl-2">{formatINRCompact(outstanding)}</h3>
+		<p class="mt-2 text-xs text-on-surface-variant pl-2">{$_('dashboard.unpaid_invoices', { default: 'Unpaid invoices pending collection' })}</p>
 	</div>
 
-	<!-- Patients -->
-	<div in:fly={{ y: 20, duration: 400, delay: 250, easing: cubicOut }} class="col-span-12 md:col-span-4 bg-surface-container-lowest p-5 lg:p-6 rounded-2xl shadow-sm border border-outline-variant/10">
-		<p class="text-xs font-label uppercase tracking-widest text-on-surface-variant">{$_('dashboard.total_patients', { default: `Total ${$activeTerminology.people}` })}</p>
-		<h3 class="text-3xl lg:text-4xl font-headline font-extrabold mt-2 text-secondary leading-none">{patientCount}</h3>
-		<div class="mt-3 flex items-center gap-2 text-sm text-on-surface-variant">
-			<span class="material-symbols-outlined text-base">group</span>
-			<span>{$_('dashboard.registered_patients', { default: `Registered ${$activeTerminology.people.toLowerCase()}` })}</span>
+	<!-- Customers -->
+	<div in:fly={{ y: 16, duration: 350, delay: 210, easing: cubicOut }} class="col-span-12 md:col-span-4 bg-surface-container-lowest rounded-2xl p-5 lg:p-6 relative overflow-hidden border border-outline-variant/20"
+		style="box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);">
+		<div class="absolute top-0 left-0 w-1 h-full rounded-l-2xl bg-secondary opacity-70"></div>
+		<div class="flex items-center gap-2 mb-3 pl-2">
+			<div class="w-7 h-7 rounded-lg bg-secondary/10 flex items-center justify-center">
+				<span class="material-symbols-outlined text-secondary text-base" style="font-variation-settings:'FILL' 1">group</span>
+			</div>
+			<p class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">{$_('dashboard.total_patients', { default: $activeTerminology.people })}</p>
 		</div>
+		<h3 class="text-3xl lg:text-4xl font-headline font-extrabold mt-1 text-secondary leading-none pl-2">{patientCount}</h3>
+		<p class="mt-2 text-xs text-on-surface-variant pl-2">{$_('dashboard.registered_patients', { default: `Registered ${$activeTerminology.people.toLowerCase()}` })}</p>
 	</div>
 </div>
 

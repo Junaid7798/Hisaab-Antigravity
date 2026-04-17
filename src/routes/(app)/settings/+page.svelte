@@ -1239,7 +1239,7 @@
 			<span class="material-symbols-outlined text-primary">database</span>
 			<h3 class="text-xl font-headline font-bold">{$_('settings.data_management', { default: 'Data Management' })}</h3>
 		</div>
-		<p class="text-sm text-on-surface-variant mb-6">{$_('settings.data_management_desc', { default: 'Export your data as a JSON backup, restore from a previous backup, or clear all data.' })}</p>
+		<p class="text-sm text-on-surface-variant mb-6">Keep your business data safe. Save a copy anytime and restore it on any device.</p>
 
 		<!-- Cloud Sync Toggle -->
 		<div class="mb-4 p-4 rounded-xl bg-surface-container-high flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -1298,55 +1298,67 @@
 			</div>
 		</div>
 
-		<div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+		<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 			<!-- Backup -->
 			<button
 				onclick={handleBackup}
-				class="flex flex-col items-center gap-3 p-6 rounded-2xl bg-surface-container-low hover:bg-surface-container border border-outline-variant/15 transition-all hover:shadow-md active:scale-[0.98] group"
+				class="flex items-center gap-4 p-4 rounded-2xl bg-surface-container-low hover:bg-primary/5 border border-outline-variant/15 hover:border-primary/20 transition-all active:scale-[0.98] group text-left"
 			>
-				<div class="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-					<span class="material-symbols-outlined text-primary text-2xl">download</span>
+				<div class="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors shrink-0">
+					<span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings:'FILL' 1">save</span>
 				</div>
-				<span class="text-sm font-bold text-on-surface">{$_('settings.backup_download', { default: 'Download Backup' })}</span>
-				<span class="text-[10px] text-on-surface-variant text-center">{$_('settings.backup_desc', { default: 'Save all business data as a JSON file' })}</span>
+				<div class="min-w-0">
+					<p class="text-sm font-bold text-on-surface">Save a Copy</p>
+					<p class="text-xs text-on-surface-variant mt-0.5">Download all your data to keep it safe on your device</p>
+				</div>
+				<span class="material-symbols-outlined text-on-surface-variant/40 text-lg shrink-0 ml-auto">download</span>
 			</button>
 
 			<!-- Restore -->
 			<button
 				onclick={handleRestoreClick}
 				disabled={importing}
-				class="flex flex-col items-center gap-3 p-6 rounded-2xl bg-surface-container-low hover:bg-surface-container border border-outline-variant/15 transition-all hover:shadow-md active:scale-[0.98] group disabled:opacity-50"
+				class="flex items-center gap-4 p-4 rounded-2xl bg-surface-container-low hover:bg-secondary/5 border border-outline-variant/15 hover:border-secondary/20 transition-all active:scale-[0.98] group text-left disabled:opacity-50"
 			>
-				<div class="w-14 h-14 rounded-2xl bg-secondary/10 flex items-center justify-center group-hover:bg-secondary/20 transition-colors">
-					<span class="material-symbols-outlined text-secondary text-2xl">{importing ? 'hourglass_empty' : 'upload'}</span>
+				<div class="w-11 h-11 rounded-xl bg-secondary/10 flex items-center justify-center group-hover:bg-secondary/20 transition-colors shrink-0">
+					<span class="material-symbols-outlined text-secondary text-xl" style="font-variation-settings:'FILL' 1">{importing ? 'hourglass_empty' : 'settings_backup_restore'}</span>
 				</div>
-				<span class="text-sm font-bold text-on-surface">{importing ? $_('settings.restoring', { default: 'Restoring...' }) : $_('settings.restore_backup', { default: 'Restore Backup' })}</span>
-				<span class="text-[10px] text-on-surface-variant text-center">{$_('settings.restore_desc', { default: 'Upload a JSON backup to restore data' })}</span>
-			</button>
-
-			<!-- Wipe -->
-			<button
-				onclick={() => showWipeConfirm = true}
-				class="flex flex-col items-center gap-3 p-6 rounded-2xl bg-surface-container-low hover:bg-error-container/30 border border-outline-variant/15 transition-all hover:shadow-md active:scale-[0.98] group hover:border-error/30"
-			>
-				<div class="w-14 h-14 rounded-2xl bg-error/10 flex items-center justify-center group-hover:bg-error/20 transition-colors">
-					<span class="material-symbols-outlined text-error text-2xl">delete_forever</span>
+				<div class="min-w-0">
+					<p class="text-sm font-bold text-on-surface">{importing ? 'Restoring...' : 'Restore from Copy'}</p>
+					<p class="text-xs text-on-surface-variant mt-0.5">Bring back data from a previously saved copy</p>
 				</div>
-				<span class="text-sm font-bold text-error">{$_('settings.wipe_data', { default: 'Clear All Data' })}</span>
-				<span class="text-[10px] text-on-surface-variant text-center">{$_('settings.wipe_desc', { default: 'Permanently delete all business data' })}</span>
+				<span class="material-symbols-outlined text-on-surface-variant/40 text-lg shrink-0 ml-auto">upload</span>
 			</button>
 
 			<!-- Clean Up Storage -->
 			<button
 				onclick={handlePurge}
 				disabled={purging}
-				class="flex flex-col items-center gap-3 p-6 rounded-2xl bg-surface-container-low hover:bg-surface-container border border-outline-variant/15 transition-all hover:shadow-md active:scale-[0.98] group disabled:opacity-50"
+				class="flex items-center gap-4 p-4 rounded-2xl bg-surface-container-low hover:bg-surface-container border border-outline-variant/15 transition-all active:scale-[0.98] group text-left disabled:opacity-50"
 			>
-				<div class="w-14 h-14 rounded-2xl bg-tertiary/10 flex items-center justify-center group-hover:bg-tertiary/20 transition-colors">
-					<span class="material-symbols-outlined text-tertiary text-2xl">{purging ? 'hourglass_empty' : 'mop'}</span>
+				<div class="w-11 h-11 rounded-xl bg-tertiary/10 flex items-center justify-center group-hover:bg-tertiary/20 transition-colors shrink-0">
+					<span class="material-symbols-outlined text-tertiary text-xl" style="font-variation-settings:'FILL' 1">{purging ? 'hourglass_empty' : 'cleaning_services'}</span>
 				</div>
-				<span class="text-sm font-bold text-on-surface">{purging ? 'Cleaning...' : 'Clean Up Storage'}</span>
-				<span class="text-[10px] text-on-surface-variant text-center">Remove deleted records older than 30 days</span>
+				<div class="min-w-0">
+					<p class="text-sm font-bold text-on-surface">{purging ? 'Cleaning...' : 'Free Up Space'}</p>
+					<p class="text-xs text-on-surface-variant mt-0.5">Remove old deleted records to keep the app fast</p>
+				</div>
+				<span class="material-symbols-outlined text-on-surface-variant/40 text-lg shrink-0 ml-auto">auto_fix_high</span>
+			</button>
+
+			<!-- Wipe -->
+			<button
+				onclick={() => showWipeConfirm = true}
+				class="flex items-center gap-4 p-4 rounded-2xl bg-error/5 hover:bg-error/10 border border-error/15 hover:border-error/30 transition-all active:scale-[0.98] group text-left"
+			>
+				<div class="w-11 h-11 rounded-xl bg-error/10 flex items-center justify-center group-hover:bg-error/20 transition-colors shrink-0">
+					<span class="material-symbols-outlined text-error text-xl" style="font-variation-settings:'FILL' 1">warning</span>
+				</div>
+				<div class="min-w-0">
+					<p class="text-sm font-bold text-error">Reset Everything</p>
+					<p class="text-xs text-on-surface-variant mt-0.5">Permanently erase all data — cannot be undone</p>
+				</div>
+				<span class="material-symbols-outlined text-error/40 text-lg shrink-0 ml-auto">delete_forever</span>
 			</button>
 		</div>
 

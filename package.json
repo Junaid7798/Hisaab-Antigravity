@@ -36,6 +36,7 @@
 		"qrcode": "^1.5.4",
 		"svelte-chartjs": "^4.0.1",
 		"svelte-i18n": "^4.0.1",
+		"tailwind-scrollbar": "^4.0.2",
 		"zod": "^4.3.6"
 	}
 }

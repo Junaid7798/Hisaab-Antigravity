@@ -18,6 +18,17 @@
 		const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | 'auto' | null;
 		if (savedTheme) theme.set(savedTheme);
 
+		// Check if Supabase is configured
+		const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+		const isSupabaseConfigured = supabaseUrl && supabaseUrl !== 'https://your-project.supabase.co';
+
+		if (!isSupabaseConfigured) {
+			// Dev bypass: no auth required when Supabase is not configured
+			authLoading.set(false);
+			initSyncEngine();
+			return;
+		}
+
 		// Bootstrap Supabase session
 		try {
 			const { data } = await supabase.auth.getSession();

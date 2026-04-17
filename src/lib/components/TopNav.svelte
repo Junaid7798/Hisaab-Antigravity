@@ -38,8 +38,9 @@
 </script>
 
 <header
-	class="topnav-header fixed top-0 right-0 h-14 lg:h-16 bg-surface/90 lg:bg-surface/95 backdrop-blur-xl border-b transition-all duration-300 z-30
-		{scrolled ? 'border-surface-variant/60 shadow-md' : 'border-surface-variant/30'}"
+	class="topnav-header fixed top-0 right-0 h-14 lg:h-16 backdrop-blur-xl border-b transition-all duration-300 z-30
+		{scrolled ? 'border-outline-variant/30 shadow-lg' : 'border-outline-variant/10'}"
+	style="background: color-mix(in srgb, var(--color-surface) 88%, transparent);"
 >
 
 	<!-- Left Side: Hamburger (Mobile) + Search -->
@@ -54,15 +55,15 @@
 		</button>
 
 		<!-- Search bar — visible from md+ on mobile, always on desktop -->
-		<div class="hidden md:flex relative flex-1 max-w-xs lg:max-w-md">
-			<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50 text-lg">search</span>
+		<div class="hidden md:flex relative flex-1 max-w-xs lg:max-w-sm">
+			<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/40 text-[18px]">search</span>
 			<input
 				type="text"
-				placeholder="Search..."
-				class="w-full bg-surface-container-low border-none rounded-full py-2.5 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-on-surface-variant/40 font-body transition-colors"
+				placeholder="Search anything..."
+				class="w-full bg-surface-container border border-outline-variant/30 rounded-xl py-2 pl-9 pr-14 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/40 placeholder:text-on-surface-variant/40 font-body transition-all outline-none"
 			/>
-			<kbd class="hidden lg:flex absolute right-3 top-1/2 -translate-y-1/2 items-center gap-1 px-1.5 py-0.5 bg-surface-container rounded text-[11px] text-on-surface-variant">
-				<span>⌘</span>K
+			<kbd class="hidden lg:flex absolute right-2.5 top-1/2 -translate-y-1/2 items-center gap-0.5 px-1.5 py-0.5 bg-surface-container-high border border-outline-variant/30 rounded-lg text-[10px] font-bold text-on-surface-variant">
+				⌘K
 			</kbd>
 		</div>
 

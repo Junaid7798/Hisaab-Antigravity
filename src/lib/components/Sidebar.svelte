@@ -41,7 +41,7 @@
 		{ href: '/purchases/new', icon: 'shopping_cart', i18nKey: 'nav.purchases', fallback: 'Purchases', show: features.hasPurchases },
 		{ href: '/expenses', icon: 'payments', i18nKey: 'nav.expenses', fallback: 'Expenses', show: true },
 		{ href: '/staff', icon: 'badge', i18nKey: 'nav.staff', fallback: 'Staff', show: true },
-		{ href: '/attendance', icon: 'fingerprint', i18nKey: 'nav.attendance', fallback: 'Attendance', show: true },
+		{ href: '/attendance', icon: 'fingerprint', i18nKey: 'nav.attendance', fallback: 'Attendance', show: false },
 		{ href: '/loans', icon: 'account_balance', i18nKey: 'nav.loans', fallback: 'Loans & EMI', show: true },
 		{ href: '/gst', icon: 'receipt', i18nKey: 'nav.gst', fallback: 'GST', show: features.hasGST },
 		{ href: '/reports', icon: 'analytics', i18nKey: 'nav.reports', fallback: 'Reports', show: true },
@@ -105,9 +105,10 @@
 {/if}
 
 <!-- Desktop Sidebar -->
-<aside class="h-screen fixed left-0 top-0 bg-surface-container flex flex-col z-50 transition-all duration-300 ease-out border-r border-surface-variant/40
+<aside class="h-screen fixed left-0 top-0 bg-surface-container-low flex flex-col z-50 transition-all duration-300 ease-out border-r border-outline-variant/20
 	{windowWidth < 1024 ? 'w-64' : (collapsed ? 'w-20' : 'w-64')}
-	{$isMobileDrawerOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'}">
+	{$isMobileDrawerOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'}"
+	style="background: linear-gradient(180deg, var(--color-surface-container-low) 0%, var(--color-surface-container) 100%)">
 	
 	<!-- Logo & Multi-Tenant Switcher -->
 	<div class="mb-4 px-3 lg:px-4 pt-4 relative">
@@ -191,13 +192,16 @@
 					if (window.innerWidth < 1024) closeMobileDrawer();
 					if (item.href === '/recurring') pendingRecurringCount.set(0);
 				}}
-				class="flex items-center gap-3 px-3 py-3.5 lg:py-2.5 rounded-xl transition-all duration-150 text-[15px] lg:text-[13px] font-body min-h-[48px] lg:min-h-[40px]
+				class="relative flex items-center gap-3 px-3 py-3 lg:py-2 rounded-xl transition-all duration-150 text-[15px] lg:text-[13px] font-body min-h-[48px] lg:min-h-[38px]
 					{isActive
-						? 'bg-surface text-primary font-semibold shadow-sm border border-surface-variant'
-						: 'text-on-surface-variant hover:bg-surface/50 hover:text-primary active:bg-surface-variant'}
+						? 'bg-primary/10 text-primary font-semibold'
+						: 'text-on-surface-variant hover:bg-surface-container-high/60 hover:text-on-surface active:scale-[0.98]'}
 					{collapsed ? 'justify-center' : ''}"
 				title={collapsed ? $_(item.i18nKey, { default: item.fallback }) : undefined}
 			>
+				{#if isActive && !collapsed}
+					<span class="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-primary rounded-full"></span>
+				{/if}
 				<span class="relative shrink-0">
 					<span class="material-symbols-outlined text-[22px] lg:text-[20px]" style="font-variation-settings: 'FILL' {isActive ? 1 : 0}">{item.icon}</span>
 					{#if badge > 0}
