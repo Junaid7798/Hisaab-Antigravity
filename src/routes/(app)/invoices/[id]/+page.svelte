@@ -195,6 +195,7 @@
 			dueDate: invoice.due_date || undefined,
 			businessName: business?.name || '',
 			businessPhone: business?.phone || undefined,
+			upiId: business?.upi_id || undefined,
 			locale: $locale || 'en'
 		});
 		const encoded = encodeURIComponent(msg);

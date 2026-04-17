@@ -121,6 +121,7 @@
 	let address = $state('');
 	let phone = $state('');
 	let email = $state('');
+	let upiId = $state('');
 	let business_category = $state('');
 	let tax_registration_type = $state<TaxRegistrationType>('unregistered');
 	let industry_sector = $state('');
@@ -142,6 +143,7 @@
 			address = biz.address;
 			phone = biz.phone;
 			email = biz.email;
+			upiId = biz.upi_id || '';
 			business_category = biz.business_category || 'kirana_store';
 			tax_registration_type = (biz.tax_registration_type as TaxRegistrationType) || 'unregistered';
 			industry_sector = biz.industry_sector || 'retail';
@@ -209,6 +211,7 @@
 			address: address.trim(),
 			phone: phone.trim(),
 			email: email.trim(),
+			upi_id: upiId.trim(),
 			business_category: business_category || 'kirana_store',
 			tax_registration_type: tax_registration_type,
 			industry_sector: newIndustrySector
@@ -314,6 +317,11 @@
 						bind:value={email}
 						type="email"
 						placeholder="business@email.com"
+					/>
+					<Input
+						label="UPI ID"
+						bind:value={upiId}
+						placeholder="yourname@upi"
 					/>
 					<label class="col-span-1 sm:col-span-2 w-full">
 						<span class="block text-[11px] font-bold text-outline uppercase tracking-wider mb-2">{$_('settings.label_address')}</span>

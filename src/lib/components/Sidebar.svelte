@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { isMobileDrawerOpen, closeMobileDrawer } from '$lib/stores/ui';
+	import { isMobileDrawerOpen, closeMobileDrawer, pendingRecurringCount } from '$lib/stores/ui';
 	import type { Business } from '$lib/db/index';
 	import { activeBusinessId, activeTerminology } from '$lib/stores/session';
 	import { fade, slide } from 'svelte/transition';
@@ -179,10 +179,12 @@
 	<nav class="flex flex-col gap-0.5 flex-grow overflow-y-auto px-2 lg:px-3 pb-4">
 		{#each navItems as item}
 			{@const isActive = $page.url.pathname.startsWith(item.href)}
+			{@const badge = item.href === '/recurring' && $pendingRecurringCount > 0 ? $pendingRecurringCount : 0}
 			<a
 				href={item.href}
 				onclick={() => {
 					if (window.innerWidth < 1024) closeMobileDrawer();
+					if (item.href === '/recurring') pendingRecurringCount.set(0);
 				}}
 				class="flex items-center gap-3 px-3 py-3.5 lg:py-2.5 rounded-xl transition-all duration-150 text-[15px] lg:text-[13px] font-body min-h-[48px] lg:min-h-[40px]
 					{isActive
@@ -191,9 +193,14 @@
 					{collapsed ? 'justify-center' : ''}"
 				title={collapsed ? $_(item.i18nKey, { default: item.fallback }) : undefined}
 			>
-				<span class="material-symbols-outlined text-[22px] lg:text-[20px] shrink-0" style="font-variation-settings: 'FILL' {isActive ? 1 : 0}">{item.icon}</span>
+				<span class="relative shrink-0">
+					<span class="material-symbols-outlined text-[22px] lg:text-[20px]" style="font-variation-settings: 'FILL' {isActive ? 1 : 0}">{item.icon}</span>
+					{#if badge > 0}
+						<span class="absolute -top-1 -right-1 min-w-[16px] h-4 px-0.5 bg-error text-on-error text-[10px] font-bold rounded-full flex items-center justify-center leading-none">{badge}</span>
+					{/if}
+				</span>
 				{#if !collapsed}
-					<span class="leading-tight">{$_(item.i18nKey, { default: item.fallback })}</span>
+					<span class="leading-tight flex-1">{$_(item.i18nKey, { default: item.fallback })}</span>
 				{/if}
 			</a>
 		{/each}

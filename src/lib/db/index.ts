@@ -19,6 +19,7 @@ export interface Business {
 	industry_sector: string; // e.g., "healthcare", "retail", "services"
 	custom_person_label?: string;  // e.g., "Customer", "Client", "Patient" — user's choice
 	custom_people_label?: string;  // e.g., "Customers", "Clients", "Patients"
+	upi_id?: string; // e.g., "businessname@upi"
 	is_deleted: boolean;
 	created_at: string;
 	last_modified: string;
@@ -556,6 +557,13 @@ class HisaabDB extends Dexie {
 			return tx.table('businesses').toCollection().modify(business => {
 				if (!business.custom_person_label) business.custom_person_label = '';
 				if (!business.custom_people_label) business.custom_people_label = '';
+			});
+		});
+
+		// v14: add upi_id to businesses for WhatsApp payment hints
+		this.version(14).stores({}).upgrade(tx => {
+			return tx.table('businesses').toCollection().modify(business => {
+				if (!business.upi_id) business.upi_id = '';
 			});
 		});
 	}

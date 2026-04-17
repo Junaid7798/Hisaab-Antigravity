@@ -100,6 +100,80 @@
 		showSalaryModal = true;
 	}
 
+	async function generateSalaryPdf(s: Staff, sal: StaffSalary) {
+		try {
+			const { jsPDF } = await import('jspdf');
+			const doc = new jsPDF('p', 'mm', 'a4');
+			const W = doc.internal.pageSize.getWidth();
+			const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+			const monthLabel = `${monthNames[sal.month - 1]} ${sal.year}`;
+
+			// Header
+			doc.setFontSize(20);
+			doc.setFont('helvetica', 'bold');
+			doc.text('SALARY SLIP', W / 2, 20, { align: 'center' });
+
+			doc.setFontSize(11);
+			doc.setFont('helvetica', 'normal');
+			doc.text(monthLabel, W / 2, 27, { align: 'center' });
+
+			// Divider
+			doc.setDrawColor(200, 200, 200);
+			doc.line(14, 32, W - 14, 32);
+
+			// Employee details
+			doc.setFontSize(10);
+			doc.setFont('helvetica', 'bold');
+			doc.text('Employee Details', 14, 40);
+			doc.setFont('helvetica', 'normal');
+			doc.text(`Name: ${s.name}`, 14, 48);
+			doc.text(`Role: ${s.role.replace('_', ' ')}`, 14, 54);
+			doc.text(`Payment Method: ${sal.payment_method.replace('_', ' ')}`, 14, 60);
+			if (sal.payment_date) doc.text(`Payment Date: ${formatDate(sal.payment_date)}`, 14, 66);
+
+			// Earnings / Deductions table
+			doc.setFont('helvetica', 'bold');
+			doc.text('Earnings', 14, 78);
+			doc.text('Amount (₹)', W - 14, 78, { align: 'right' });
+			doc.setDrawColor(200, 200, 200);
+			doc.line(14, 80, W - 14, 80);
+
+			doc.setFont('helvetica', 'normal');
+			let y = 87;
+			doc.text('Basic Salary', 14, y);
+			doc.text(sal.basic_salary.toLocaleString('en-IN'), W - 14, y, { align: 'right' });
+			y += 7;
+			if (sal.bonus > 0) {
+				doc.text('Bonus', 14, y);
+				doc.text(`+ ${sal.bonus.toLocaleString('en-IN')}`, W - 14, y, { align: 'right' });
+				y += 7;
+			}
+			if (sal.deductions > 0) {
+				doc.text('Deductions', 14, y);
+				doc.text(`- ${sal.deductions.toLocaleString('en-IN')}`, W - 14, y, { align: 'right' });
+				y += 7;
+			}
+
+			doc.line(14, y, W - 14, y);
+			y += 6;
+			doc.setFont('helvetica', 'bold');
+			doc.text('Net Salary', 14, y);
+			doc.text(`₹ ${sal.net_salary.toLocaleString('en-IN')}`, W - 14, y, { align: 'right' });
+
+			if (sal.remarks) {
+				y += 12;
+				doc.setFont('helvetica', 'italic');
+				doc.setFontSize(9);
+				doc.text(`Remarks: ${sal.remarks}`, 14, y);
+			}
+
+			doc.save(`salary-slip-${s.name.replace(/\s+/g, '-')}-${monthLabel}.pdf`);
+			toast.success('Salary slip downloaded');
+		} catch {
+			toast.error('Failed to generate salary slip');
+		}
+	}
+
 	async function saveSalary() {
 		if (!salaryPreview || !businessId) return;
 		isGeneratingSalary = true;
@@ -123,6 +197,68 @@
 	$effect(() => {
 		if (businessId) loadSalaries();
 	});
+
+	// ── Advances state ─────────────────────────────────────────────────────────
+	let advances = $state<StaffAdvance[]>([]);
+	let showAdvanceModal = $state(false);
+	let advanceStaffId = $state('');
+	let advanceAmount = $state(0);
+	let advanceReason = $state('');
+	let advanceRepayStart = $state(today.getMonth() + 1);
+	let advanceRepayAmount = $state(0);
+	let advanceInstallments = $state(1);
+	let isSavingAdvance = $state(false);
+
+	async function loadAdvances() {
+		if (!businessId) return;
+		advances = await getStaffAdvances(businessId);
+	}
+
+	function openAdvanceModal(staffMember?: Staff) {
+		advanceStaffId = staffMember?.id || (staff[0]?.id ?? '');
+		advanceAmount = 0;
+		advanceReason = '';
+		advanceRepayStart = today.getMonth() + 1;
+		advanceRepayAmount = 0;
+		advanceInstallments = 1;
+		showAdvanceModal = true;
+	}
+
+	async function saveAdvance() {
+		if (!advanceStaffId || advanceAmount <= 0 || !businessId) return;
+		isSavingAdvance = true;
+		try {
+			await createStaffAdvance(businessId, {
+				staff_id: advanceStaffId,
+				amount: advanceAmount,
+				reason: advanceReason.trim(),
+				repayment_start_month: advanceRepayStart,
+				repayment_amount: advanceRepayAmount,
+				repayment_installments: advanceInstallments
+			});
+			await loadAdvances();
+			showAdvanceModal = false;
+			toast.success('Advance request created');
+		} catch {
+			toast.error('Failed to create advance');
+		} finally {
+			isSavingAdvance = false;
+		}
+	}
+
+	async function handleApproveAdvance(id: string, approve: boolean) {
+		await approveStaffAdvance(id, 'admin', approve);
+		await loadAdvances();
+		toast.success(approve ? 'Advance approved' : 'Advance rejected');
+	}
+
+	$effect(() => {
+		if (businessId && activeTab === 'advances') loadAdvances();
+	});
+
+	function getStaffName(staffId: string) {
+		return staff.find(s => s.id === staffId)?.name ?? staffId;
+	}
 
 	async function loadData(bizId: string) {
 		loading = true;
@@ -406,6 +542,13 @@
 								<p class="text-xs text-tertiary font-bold uppercase tracking-wide">Paid</p>
 								<p class="font-bold">{formatINR(existingSalary.net_salary)}</p>
 							</div>
+							<button
+								onclick={() => generateSalaryPdf(s, existingSalary)}
+								title="Download salary slip"
+								class="p-2 rounded-lg hover:bg-surface-container transition-colors text-on-surface-variant hover:text-primary"
+							>
+								<span class="material-symbols-outlined text-xl">download</span>
+							</button>
 							<span class="material-symbols-outlined text-tertiary text-xl" style="font-variation-settings:'FILL' 1">check_circle</span>
 						{:else}
 							<button
@@ -420,13 +563,129 @@
 			</div>
 		{/if}
 	{:else if activeTab === 'advances'}
-		<div class="bg-surface-container-lowest rounded-2xl p-8 text-center">
-			<span class="material-symbols-outlined text-5xl text-on-surface-variant/30">account_balance</span>
-			<h3 class="text-xl font-bold text-on-surface mt-4">Advance Requests</h3>
-			<p class="text-on-surface-variant mt-2">View and approve salary advances</p>
-			<button class="mt-4 px-6 py-3 bg-primary text-white rounded-xl font-bold">
-				View Requests
+		<div class="flex items-center justify-between mb-6">
+			<div>
+				<h3 class="text-lg font-bold text-on-surface">Advance Requests</h3>
+				<p class="text-sm text-on-surface-variant">Salary advances and repayment tracking</p>
+			</div>
+			<button
+				onclick={() => openAdvanceModal()}
+				class="flex items-center gap-2 px-4 py-2.5 bg-primary text-on-primary rounded-xl font-bold text-sm shadow-sm hover:opacity-90 transition-all"
+			>
+				<span class="material-symbols-outlined text-base">add</span>
+				New Advance
 			</button>
+		</div>
+
+		{#if advances.length === 0}
+			<div class="bg-surface-container-lowest rounded-2xl p-10 text-center">
+				<span class="material-symbols-outlined text-5xl text-on-surface-variant/30">account_balance</span>
+				<h3 class="text-lg font-bold text-on-surface mt-4">No advance requests yet</h3>
+				<p class="text-sm text-on-surface-variant mt-1">Create one using the button above</p>
+			</div>
+		{:else}
+			<div class="space-y-3">
+				{#each advances as adv}
+					{@const staffName = getStaffName(adv.staff_id)}
+					{@const remaining = adv.amount - (adv.total_repaid || 0)}
+					<div class="bg-surface-container-lowest rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+						<div class="flex-1 min-w-0">
+							<div class="flex items-center gap-2 flex-wrap">
+								<span class="font-bold text-on-surface">{staffName}</span>
+								<span class="px-2 py-0.5 rounded-full text-[11px] font-bold
+									{adv.status === 'pending' ? 'bg-warning/15 text-warning' :
+									 adv.status === 'approved' ? 'bg-success/15 text-success' :
+									 adv.status === 'repaid' ? 'bg-primary/10 text-primary' :
+									 'bg-error/10 text-error'}">
+									{adv.status.toUpperCase()}
+								</span>
+							</div>
+							<p class="text-sm text-on-surface-variant mt-0.5 truncate">{adv.reason || 'No reason provided'}</p>
+							<div class="flex gap-4 mt-2 text-xs text-on-surface-variant">
+								<span>Requested: {formatDate(adv.request_date)}</span>
+								{#if adv.repayment_installments > 0}
+									<span>EMI: ₹{adv.repayment_amount} × {adv.repayment_installments}</span>
+								{/if}
+							</div>
+							{#if adv.status === 'approved' && remaining > 0}
+								<div class="mt-2 h-1.5 w-full max-w-xs bg-surface-container rounded-full overflow-hidden">
+									<div class="h-full bg-primary rounded-full" style="width: {Math.round(((adv.total_repaid || 0) / adv.amount) * 100)}%"></div>
+								</div>
+								<p class="text-[11px] text-on-surface-variant mt-0.5">₹{adv.total_repaid || 0} repaid · ₹{remaining} remaining</p>
+							{/if}
+						</div>
+						<div class="flex flex-col items-end gap-2 shrink-0">
+							<span class="text-lg font-bold text-on-surface">₹{adv.amount.toLocaleString('en-IN')}</span>
+							{#if adv.status === 'pending'}
+								<div class="flex gap-2">
+									<button
+										onclick={() => handleApproveAdvance(adv.id, true)}
+										class="px-3 py-1.5 bg-success/15 text-success rounded-lg text-xs font-bold hover:bg-success/25 transition-colors"
+									>Approve</button>
+									<button
+										onclick={() => handleApproveAdvance(adv.id, false)}
+										class="px-3 py-1.5 bg-error/10 text-error rounded-lg text-xs font-bold hover:bg-error/20 transition-colors"
+									>Reject</button>
+								</div>
+							{/if}
+						</div>
+					</div>
+				{/each}
+			</div>
+		{/if}
+	{/if}
+
+	<!-- Advance Modal -->
+	{#if showAdvanceModal}
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick={() => showAdvanceModal = false}>
+			<div class="bg-surface-container-lowest w-full max-w-md rounded-2xl shadow-2xl" onclick={(e) => e.stopPropagation()}>
+				<div class="p-6 border-b border-outline-variant/10 flex items-center justify-between">
+					<h3 class="text-lg font-headline font-bold">New Advance Request</h3>
+					<button onclick={() => showAdvanceModal = false} class="p-2 rounded-full hover:bg-surface-container transition-colors">
+						<span class="material-symbols-outlined">close</span>
+					</button>
+				</div>
+				<form onsubmit={(e) => { e.preventDefault(); saveAdvance(); }} class="p-6 space-y-4">
+					<label class="block">
+						<span class="block text-[11px] font-bold text-outline uppercase tracking-wider mb-2">Staff Member</span>
+						<select bind:value={advanceStaffId} class="w-full bg-surface-container-highest border-b-2 border-transparent focus:border-primary rounded-t-lg px-4 py-3 text-on-surface font-medium transition-all">
+							{#each staff.filter(s => s.is_active && !s.is_deleted) as s}
+								<option value={s.id}>{s.name}</option>
+							{/each}
+						</select>
+					</label>
+
+					<label for="adv-amount" class="block">
+						<span class="block text-[11px] font-bold text-outline uppercase tracking-wider mb-2">Amount (₹)</span>
+						<input id="adv-amount" type="number" min="0" bind:value={advanceAmount} class="w-full bg-surface-container-highest border-b-2 border-transparent focus:border-primary rounded-t-lg px-4 py-3 text-on-surface font-medium transition-all" />
+					</label>
+
+					<label for="adv-reason" class="block">
+						<span class="block text-[11px] font-bold text-outline uppercase tracking-wider mb-2">Reason</span>
+						<input id="adv-reason" type="text" bind:value={advanceReason} placeholder="e.g. Medical emergency" class="w-full bg-surface-container-highest border-b-2 border-transparent focus:border-primary rounded-t-lg px-4 py-3 text-on-surface font-medium transition-all" />
+					</label>
+
+					<div class="grid grid-cols-2 gap-4">
+						<label for="adv-emi" class="block">
+							<span class="block text-[11px] font-bold text-outline uppercase tracking-wider mb-2">Monthly EMI (₹)</span>
+							<input id="adv-emi" type="number" min="0" bind:value={advanceRepayAmount} class="w-full bg-surface-container-highest border-b-2 border-transparent focus:border-primary rounded-t-lg px-4 py-3 text-on-surface font-medium transition-all" />
+						</label>
+						<label for="adv-installments" class="block">
+							<span class="block text-[11px] font-bold text-outline uppercase tracking-wider mb-2">Installments</span>
+							<input id="adv-installments" type="number" min="1" bind:value={advanceInstallments} class="w-full bg-surface-container-highest border-b-2 border-transparent focus:border-primary rounded-t-lg px-4 py-3 text-on-surface font-medium transition-all" />
+						</label>
+					</div>
+
+					<div class="flex gap-3 pt-2">
+						<button type="button" onclick={() => showAdvanceModal = false} class="flex-1 py-3 rounded-xl border border-outline-variant font-bold text-sm">Cancel</button>
+						<button type="submit" disabled={isSavingAdvance || advanceAmount <= 0} class="flex-1 py-3 rounded-xl bg-primary text-on-primary font-bold text-sm disabled:opacity-50">
+							{isSavingAdvance ? 'Saving...' : 'Create Request'}
+						</button>
+					</div>
+				</form>
+			</div>
 		</div>
 	{/if}
 </div>

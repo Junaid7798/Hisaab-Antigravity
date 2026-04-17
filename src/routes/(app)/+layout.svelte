@@ -14,7 +14,7 @@
 	import { cubicOut } from 'svelte/easing';
 	import { goto } from '$app/navigation';
 	import { preferences } from '$lib/stores/preferences';
-	import { closeMobileDrawer } from '$lib/stores/ui';
+	import { closeMobileDrawer, pendingRecurringCount } from '$lib/stores/ui';
 	import { exportDatabaseToJSON, triggerDownload } from '$lib/utils/export';
 	import { currentUser, authLoading } from '$lib/stores/auth';
 
@@ -46,6 +46,7 @@
 			const generated = await processRecurringSchedules();
 			if (generated > 0) {
 				toast.info(`${generated} recurring invoice${generated > 1 ? 's' : ''} generated — review them in Invoices.`);
+				pendingRecurringCount.set(generated);
 			}
 		} catch (err) {
 			console.error('Failed to process recurring schedules:', err);

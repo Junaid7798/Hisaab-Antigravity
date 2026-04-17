@@ -9,6 +9,7 @@ export interface WhatsAppInvoiceData {
 	dueDate?: string;
 	businessName: string;
 	businessPhone?: string;
+	upiId?: string;
 	locale?: string;
 }
 
@@ -18,6 +19,9 @@ export function buildWhatsAppInvoiceMessage(data: WhatsAppInvoiceData): string {
 	const amount = formatINR(data.grandTotal);
 	const date = formatDate(data.issueDate);
 	const due = data.dueDate ? formatDate(data.dueDate) : null;
+
+	// Prefer explicit upi_id; fall back to phone@upi if phone is provided
+	const upiHint = data.upiId || (data.businessPhone ? `${data.businessPhone}@upi` : null);
 
 	if (isHindi) {
 		const lines = [
@@ -29,7 +33,7 @@ export function buildWhatsAppInvoiceMessage(data: WhatsAppInvoiceData): string {
 			`💰 *Amount:* ${amount}`,
 			`📅 *Date:* ${date}`,
 			...(due ? [`⏰ *Due Date:* ${due}`] : []),
-			...(data.businessPhone ? [``, `💳 UPI: ${data.businessPhone}@upi`] : []),
+			...(upiHint ? [``, `💳 UPI: ${upiHint}`] : []),
 			'',
 			'Shukriya! 🙏'
 		];
@@ -45,7 +49,7 @@ export function buildWhatsAppInvoiceMessage(data: WhatsAppInvoiceData): string {
 		`💰 *Amount:* ${amount}`,
 		`📅 *Date:* ${date}`,
 		...(due ? [`⏰ *Due Date:* ${due}`] : []),
-		...(data.businessPhone ? [``, `💳 Pay via UPI: ${data.businessPhone}@upi`] : []),
+		...(upiHint ? [``, `💳 Pay via UPI: ${upiHint}`] : []),
 		'',
 		'Thank you! 🙏'
 	];
