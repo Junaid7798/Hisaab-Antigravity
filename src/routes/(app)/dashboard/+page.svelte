@@ -277,6 +277,24 @@
 						<p class="text-[10px] text-on-surface-variant">{$_('dashboard.log_expense_desc', { default: 'Track spending' })}</p>
 					</div>
 				</a>
+				<a href="/attendance" class="p-3 bg-surface-container-lowest rounded-lg flex items-center gap-3 border border-transparent hover:border-primary/20 transition-all">
+					<div class="w-10 h-10 rounded-full bg-secondary/10 text-secondary flex items-center justify-center">
+						<span class="material-symbols-outlined text-xl">fingerprint</span>
+					</div>
+					<div>
+						<p class="text-sm font-semibold">Mark Attendance</p>
+						<p class="text-[10px] text-on-surface-variant">Staff attendance log</p>
+					</div>
+				</a>
+				<a href="/loans" class="p-3 bg-surface-container-lowest rounded-lg flex items-center gap-3 border border-transparent hover:border-primary/20 transition-all">
+					<div class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+						<span class="material-symbols-outlined text-xl">account_balance</span>
+					</div>
+					<div>
+						<p class="text-sm font-semibold">Loans & EMI</p>
+						<p class="text-[10px] text-on-surface-variant">Track repayments</p>
+					</div>
+				</a>
 			</div>
 		</div>
 

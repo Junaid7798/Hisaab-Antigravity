@@ -249,6 +249,8 @@
     "invoice_created": "बिल सफलतापूर्वक बन गया",
     "invoice_failed": "बिल बनाने में विफल",
     "expense_logged": "खर्च दर्ज हो गया",
+    "expense_recorded": "खर्च दर्ज हो गया",
+    "expense_updated": "खर्च अपडेट हो गया",
     "settings_saved": "सेटिंग्स सफलतापूर्वक सेव हो गई"
   }
 }

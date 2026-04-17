@@ -1,6 +1,7 @@
 {
   "nav": {
     "dashboard": "डॅशबोर्ड",
+    "customers": "ग्राहक",
     "patients": "रुग्ण",
     "invoices": "बिल (Invoices)",
     "expenses": "खर्च",
@@ -10,6 +11,7 @@
   },
   "actions": {
     "new_invoice": "नवीन बिल",
+    "add_customer": "ग्राहक जोडा",
     "add_patient": "रुग्ण जोडा",
     "log_expense": "खर्च नोंदवा",
     "save": "जतन करा",
@@ -249,6 +251,8 @@
     "invoice_created": "बिल यशस्वीरित्या तयार झाले",
     "invoice_failed": "बिल तयार करण्यात अयशस्वी",
     "expense_logged": "खर्चाची नोंद झाली",
+    "expense_recorded": "खर्चाची नोंद झाली",
+    "expense_updated": "खर्च अद्यतनित केला",
     "settings_saved": "सेटिंग्ज यशस्वीरित्या जतन केल्या"
   }
 }
