@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import { getInvoices, getPatients } from '$lib/db/crud';
+	import { insights } from '$lib/stores/insights';
 	import { activeBusinessId, activeTerminology } from '$lib/stores/session';
 	import { formatINRCompact } from '$lib/utils/currency';
 	import { formatDate } from '$lib/utils/helpers';
@@ -71,6 +72,18 @@
 </svelte:head>
 
 <div class="py-6 lg:py-8">
+	{#if $insights.find(i => i.id === 'collection_60plus' || i.id === 'collection_30_60' || i.id === 'overdue_invoices')}
+		{@const collectionAlert = $insights.find(i => i.id === 'collection_60plus' || i.id === 'collection_30_60' || i.id === 'overdue_invoices')!}
+		<div class="mb-5 {collectionAlert.type === 'danger' ? 'bg-error-container/60 border-error/20' : 'bg-tertiary-container/50 border-tertiary/20'} border rounded-xl p-3 flex items-center gap-3">
+			<span class="material-symbols-outlined {collectionAlert.type === 'danger' ? 'text-error' : 'text-tertiary'} text-lg shrink-0" style="font-variation-settings:'FILL' 1">{collectionAlert.icon}</span>
+			<div class="flex-1 min-w-0">
+				<p class="text-sm font-bold text-on-surface">{collectionAlert.title}</p>
+				<p class="text-xs text-on-surface-variant">{collectionAlert.description}</p>
+			</div>
+			<a href="/insights" class="text-xs font-bold text-primary whitespace-nowrap shrink-0">Full Report →</a>
+		</div>
+	{/if}
+
 	<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 lg:mb-8">
 		<div>
 			<h1 class="text-2xl lg:text-3xl font-headline font-bold text-on-surface">{$_('invoices.title', { default: 'Invoices' })}</h1>

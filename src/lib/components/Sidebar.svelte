@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { isMobileDrawerOpen, closeMobileDrawer, pendingRecurringCount } from '$lib/stores/ui';
+	import { insightAlertCount } from '$lib/stores/insights';
 	import type { Business } from '$lib/db/index';
 	import { activeBusinessId, activeTerminology } from '$lib/stores/session';
 	import { fade, slide } from 'svelte/transition';
@@ -45,6 +46,7 @@
 		{ href: '/gst', icon: 'receipt', i18nKey: 'nav.gst', fallback: 'GST', show: features.hasGST },
 		{ href: '/reports', icon: 'analytics', i18nKey: 'nav.reports', fallback: 'Reports', show: true },
 		{ href: '/analytics', icon: 'monitoring', i18nKey: 'nav.analytics', fallback: 'Intelligence', show: true },
+		{ href: '/insights', icon: 'tips_and_updates', i18nKey: 'nav.insights', fallback: 'Insights', show: true },
 		{ href: '/branches', icon: 'storefront', i18nKey: 'nav.branches', fallback: 'Branches', show: true },
 		{ href: '/settings', icon: 'settings', i18nKey: 'nav.settings', fallback: 'Settings', show: true }
 	].filter(item => item.show));
@@ -179,7 +181,10 @@
 	<nav class="flex flex-col gap-0.5 flex-grow overflow-y-auto px-2 lg:px-3 pb-4">
 		{#each navItems as item}
 			{@const isActive = $page.url.pathname.startsWith(item.href)}
-			{@const badge = item.href === '/recurring' && $pendingRecurringCount > 0 ? $pendingRecurringCount : 0}
+			{@const badge =
+				item.href === '/recurring' && $pendingRecurringCount > 0 ? $pendingRecurringCount :
+				item.href === '/insights' && $insightAlertCount > 0 ? $insightAlertCount :
+				0}
 			<a
 				href={item.href}
 				onclick={() => {

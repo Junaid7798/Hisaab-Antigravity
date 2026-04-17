@@ -13,6 +13,7 @@
 	import { formatDate, INDIAN_STATES } from '$lib/utils/helpers';
 	import { toast } from '$lib/stores/toast';
 	import type { Patient } from '$lib/db/index';
+	import { insights } from '$lib/stores/insights';
 
 	let patients = $state<Patient[]>([]);
 	let businessId = $state('');
@@ -79,6 +80,18 @@
 <svelte:head>
 	<title>{$activeTerminology.people} | Hisaab</title>
 </svelte:head>
+
+{#if $insights.find(i => i.id === 'churn_risk')}
+	{@const churnAlert = $insights.find(i => i.id === 'churn_risk')!}
+	<div class="mb-5 bg-tertiary-container/50 border-tertiary/20 border rounded-xl p-3 flex items-center gap-3">
+		<span class="material-symbols-outlined text-tertiary text-lg shrink-0" style="font-variation-settings:'FILL' 1">{churnAlert.icon}</span>
+		<div class="flex-1 min-w-0">
+			<p class="text-sm font-bold text-on-surface">{churnAlert.title}</p>
+			<p class="text-xs text-on-surface-variant">{churnAlert.description}</p>
+		</div>
+		<a href="/insights" class="text-xs font-bold text-primary whitespace-nowrap shrink-0">Details →</a>
+	</div>
+{/if}
 
 <!-- Header -->
 <div class="flex flex-col md:flex-row md:justify-between md:items-end gap-4 mb-8">

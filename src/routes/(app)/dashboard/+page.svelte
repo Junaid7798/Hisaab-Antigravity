@@ -7,6 +7,7 @@
 	import Skeleton from '$lib/components/Skeleton.svelte';
 	import { getBusiness, getDashboardData } from '$lib/db/crud';
 	import { activeBusinessId, activeTerminology } from '$lib/stores/session';
+	import { topInsight, refreshInsights } from '$lib/stores/insights';
 	import { formatINRCompact, formatINR } from '$lib/utils/currency';
 	import { formatDate, timeAgo } from '$lib/utils/helpers';
 	import { fly, fade } from 'svelte/transition';
@@ -19,6 +20,7 @@
 	let recentInvoices = $state<any[]>([]);
 	let businessName = $state('');
 	let loading = $state(true);
+	let bannerDismissed = $state(false);
 
 	let lowStockProducts = $state<any[]>([]);
 	let overdueInvoices = $state<any[]>([]);
@@ -52,6 +54,8 @@
 	$effect(() => {
 		if ($activeBusinessId) {
 			loadDashboard($activeBusinessId);
+			refreshInsights($activeBusinessId);
+			bannerDismissed = false;
 		}
 	});
 	
@@ -164,6 +168,30 @@
 		</div>
 	</div>
 </div>
+
+	<!-- Top Insight Banner -->
+	{#if $topInsight && !bannerDismissed}
+		{@const isError = $topInsight.type === 'danger'}
+		<div class="mb-6 {isError ? 'bg-error-container/70 border-error/20' : 'bg-tertiary-container/50 border-tertiary/20'} border rounded-xl p-4 flex items-start gap-3">
+			<span class="material-symbols-outlined {isError ? 'text-error' : 'text-tertiary'} text-xl mt-0.5 shrink-0" style="font-variation-settings:'FILL' 1">{$topInsight.icon}</span>
+			<div class="flex-1 min-w-0">
+				<p class="font-bold text-sm text-on-surface">{$topInsight.title}</p>
+				<p class="text-xs text-on-surface-variant mt-0.5">{$topInsight.description}</p>
+				{#if $topInsight.action}
+					<a href={$topInsight.action.href} class="inline-flex items-center gap-0.5 text-[11px] font-semibold text-primary mt-1.5 hover:underline">
+						{$topInsight.action.label}
+						<span class="material-symbols-outlined text-[13px]">arrow_forward</span>
+					</a>
+				{/if}
+			</div>
+			<div class="flex items-center gap-2 shrink-0">
+				<a href="/insights" class="text-[11px] font-bold text-primary whitespace-nowrap">All Insights →</a>
+				<button onclick={() => bannerDismissed = true} class="p-1 rounded-lg hover:bg-black/10 transition-colors" aria-label="Dismiss">
+					<span class="material-symbols-outlined text-base text-on-surface-variant">close</span>
+				</button>
+			</div>
+		</div>
+	{/if}
 
 	<!-- Smart Nudges -->
 	{#if longOverdueCount > 0 || slowMovingProducts.length > 0 || lowStockProducts.length > 0 || pendingLeaveCount > 0}

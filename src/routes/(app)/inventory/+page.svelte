@@ -7,6 +7,7 @@
 	import Modal from '$lib/components/Modal.svelte';
 	import { getBusiness, createProduct, updateProduct, countProducts, countLowStockProducts } from '$lib/db/crud';
 	import { getCachedProducts } from '$lib/utils/cache';
+	import { insights } from '$lib/stores/insights';
 	import { activeBusinessId, activeTerminology } from '$lib/stores/session';
 	import { formatINRCompact, formatINR } from '$lib/utils/currency';
 	import { toast } from '$lib/stores/toast';
@@ -126,6 +127,19 @@
 <svelte:head>
 	<title>{$activeTerminology.items} & Inventory | Hisaab</title>
 </svelte:head>
+
+<!-- Inventory Insight Alert -->
+{#if $insights.find(i => i.id === 'stockout_imminent' || i.id === 'low_stock')}
+	{@const stockAlert = $insights.find(i => i.id === 'stockout_imminent' || i.id === 'low_stock')!}
+	<div class="mb-5 {stockAlert.type === 'danger' ? 'bg-error-container/60 border-error/20' : 'bg-tertiary-container/50 border-tertiary/20'} border rounded-xl p-3 flex items-center gap-3">
+		<span class="material-symbols-outlined {stockAlert.type === 'danger' ? 'text-error' : 'text-tertiary'} text-lg shrink-0" style="font-variation-settings:'FILL' 1">{stockAlert.icon}</span>
+		<div class="flex-1 min-w-0">
+			<p class="text-sm font-bold text-on-surface">{stockAlert.title}</p>
+			<p class="text-xs text-on-surface-variant">{stockAlert.description}</p>
+		</div>
+		<a href="/insights" class="text-xs font-bold text-primary whitespace-nowrap shrink-0">Details →</a>
+	</div>
+{/if}
 
 <!-- Header -->
 <div class="flex flex-col md:flex-row md:justify-between md:items-end gap-4 mb-8">
