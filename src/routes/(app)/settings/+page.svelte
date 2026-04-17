@@ -6,7 +6,7 @@
 	import { INDIAN_STATES } from '$lib/utils/helpers';
 	import { toast } from '$lib/stores/toast';
 	import { theme } from '$lib/stores/theme';
-	import { preferences, type UserPreferences, resetPreferences } from '$lib/stores/preferences';
+	import { preferences, type UserPreferences, resetPreferences, APP_THEMES } from '$lib/stores/preferences';
 	import { db } from '$lib/db/index';
 	import type { Business } from '$lib/db/index';
 	import { formatINRCompact } from '$lib/utils/currency';
@@ -39,17 +39,17 @@
 	let importing = $state(false);
 	let purging = $state(false);
 
-	// Premium palettes: [primary, container] — muted, desaturated, professional
-	const accentPalettes = [
-		{ id: 'navy', name: 'Navy',      primary: '#1e3a5f', container: '#2d5282' },
-		{ id: 'indigo', name: 'Indigo',  primary: '#3730a3', container: '#4338ca' },
-		{ id: 'slate', name: 'Slate',    primary: '#334155', container: '#475569' },
-		{ id: 'forest', name: 'Forest',  primary: '#14532d', container: '#166534' },
-		{ id: 'teal', name: 'Teal',      primary: '#0f4c5c', container: '#0e6b7c' },
-		{ id: 'plum', name: 'Plum',      primary: '#581c87', container: '#6b21a8' },
-		{ id: 'charcoal', name: 'Carbon', primary: '#1c1c1c', container: '#2d2d2d' },
-		{ id: 'sienna', name: 'Sienna',  primary: '#7c2d12', container: '#9a3412' },
-	];
+	function applyTheme(t: typeof APP_THEMES[0]) {
+		preferences.update(p => ({
+			...p,
+			themeId: t.id,
+			theme: t.dark ? 'dark' : 'light',
+			accentColor: t.accent,
+			accentContainer: t.accentContainer
+		}));
+		// theme store drives dark class — sync it
+		theme.set(t.dark ? 'dark' : 'light');
+	}
 
 	const currencies = [
 		{ id: 'INR', name: 'Indian Rupee (₹)', symbol: '₹' },
@@ -389,68 +389,99 @@
 				</div>
 				<p class="text-sm text-on-surface-variant mb-8">Customize the app look and feel to match your preferences. Changes apply instantly.</p>
 
-<!-- Theme Mode -->
+<!-- Appearance Themes -->
 			<div class="mb-8">
-				<span class="block text-[11px] font-bold text-outline uppercase tracking-wider mb-4">Theme Mode</span>
-				<div class="flex bg-surface-container-highest rounded-xl p-1.5 w-full max-w-md">
-						<button 
-							type="button" 
-							class="flex-1 py-3 px-4 text-sm font-bold rounded-lg transition-all {$theme === 'light' ? 'bg-surface-container-lowest text-primary shadow-sm' : 'text-on-surface-variant hover:bg-surface-container-low'}" 
-							onclick={() => updatePreference('theme', 'light')}
-						>
-							<span class="material-symbols-outlined text-lg mr-1 align-middle">light_mode</span>
-							{$_('settings.theme_light')}
-						</button>
-						<button 
-							type="button" 
-							class="flex-1 py-3 px-4 text-sm font-bold rounded-lg transition-all {$theme === 'dark' ? 'bg-surface-container-lowest text-primary shadow-sm' : 'text-on-surface-variant hover:bg-surface-container-low'}" 
-							onclick={() => updatePreference('theme', 'dark')}
-						>
-							<span class="material-symbols-outlined text-lg mr-1 align-middle">dark_mode</span>
-							{$_('settings.theme_dark')}
-						</button>
-						<button 
-							type="button" 
-							class="flex-1 py-3 px-4 text-sm font-bold rounded-lg transition-all {$theme === 'auto' ? 'bg-surface-container-lowest text-primary shadow-sm' : 'text-on-surface-variant hover:bg-surface-container-low'}" 
-							onclick={() => updatePreference('theme', 'auto')}
-						>
-							<span class="material-symbols-outlined text-lg mr-1 align-middle">settings_brightness</span>
-							{$_('settings.theme_auto')}
-						</button>
-					</div>
-				</div>
+				<span class="block text-[11px] font-bold text-outline uppercase tracking-wider mb-1">Appearance</span>
+				<p class="text-xs text-on-surface-variant mb-5">Each theme sets the background, sidebar, and accent color together for a cohesive look.</p>
 
-<!-- Brand Color -->
-			<div class="mb-8">
-				<span class="block text-[11px] font-bold text-outline uppercase tracking-wider mb-1">Brand Color</span>
-				<p class="text-xs text-on-surface-variant mb-4">Choose a palette that defines your app's primary color across buttons, links, and highlights.</p>
-				<div class="grid grid-cols-4 sm:grid-cols-8 gap-2">
-					{#each accentPalettes as palette}
-						{@const isActive = $preferences.accentColor === palette.primary}
+				<!-- Light themes -->
+				<p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Light</p>
+				<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+					{#each APP_THEMES.filter(t => !t.dark) as t}
+						{@const isActive = $preferences.themeId === t.id}
 						<button
 							type="button"
-							onclick={() => {
-								preferences.update(p => ({ ...p, accentColor: palette.primary, accentContainer: palette.container }));
-								document.documentElement.style.setProperty('--sys-primary', palette.primary);
-								document.documentElement.style.setProperty('--sys-primary-container', palette.container);
-							}}
-							class="flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all border {isActive ? 'border-primary bg-primary/5' : 'border-transparent hover:border-outline-variant/40 hover:bg-surface-container'}"
-							title={palette.name}
+							onclick={() => applyTheme(t)}
+							class="group relative rounded-2xl overflow-hidden border-2 transition-all {isActive ? 'border-primary shadow-lg shadow-primary/20' : 'border-outline-variant/20 hover:border-outline-variant/60'}"
 						>
-							<div class="w-8 h-8 rounded-lg shadow-sm relative flex items-center justify-center transition-transform {isActive ? 'scale-105' : ''}"
-								style="background: linear-gradient(135deg, {palette.primary} 0%, {palette.container} 100%)">
+							<!-- Mini preview -->
+							<div class="h-20 relative flex" style="background: {t.preview.bg}">
+								<!-- Sidebar strip -->
+								<div class="w-8 h-full flex flex-col gap-1 p-1.5" style="background: {t.preview.sidebar}">
+									<div class="w-full h-1.5 rounded-full" style="background: {t.preview.dot}; opacity: 0.9"></div>
+									{#each [0,1,2,3] as _}
+										<div class="w-full h-1 rounded-full" style="background: {t.preview.dot}; opacity: 0.2"></div>
+									{/each}
+								</div>
+								<!-- Content area -->
+								<div class="flex-1 p-2 flex flex-col gap-1.5">
+									<div class="h-2 w-3/4 rounded-sm" style="background: {t.preview.dot}; opacity: 0.15"></div>
+									<div class="h-8 rounded-lg w-full" style="background: {t.preview.card}; border: 1px solid rgba(0,0,0,0.06)">
+										<div class="h-full rounded-lg flex items-center px-2 gap-1">
+											<div class="w-2 h-2 rounded-full" style="background: {t.preview.dot}"></div>
+											<div class="h-1.5 flex-1 rounded-full" style="background: {t.preview.dot}; opacity: 0.25"></div>
+										</div>
+									</div>
+									<div class="h-5 rounded-md w-1/2 flex items-center justify-center" style="background: {t.preview.dot}">
+										<div class="h-1 w-3/4 rounded-full bg-white opacity-80"></div>
+									</div>
+								</div>
 								{#if isActive}
-									<span class="material-symbols-outlined text-white text-sm" style="font-variation-settings:'FILL' 1">check</span>
+									<div class="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-primary flex items-center justify-center shadow-md">
+										<span class="material-symbols-outlined text-on-primary text-[11px]" style="font-variation-settings:'FILL' 1">check</span>
+									</div>
 								{/if}
 							</div>
-							<span class="text-[10px] font-semibold {isActive ? 'text-primary' : 'text-on-surface-variant'} leading-none">{palette.name}</span>
+							<div class="px-2.5 py-1.5 flex items-center justify-between" style="background: {t.preview.card}; border-top: 1px solid rgba(0,0,0,0.06)">
+								<span class="text-[11px] font-bold" style="color: {t.preview.dot}">{t.name}</span>
+								<span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full" style="background: {t.preview.dot}20; color: {t.preview.dot}">{t.label}</span>
+							</div>
 						</button>
 					{/each}
 				</div>
-				<p class="text-[11px] text-on-surface-variant mt-3 flex items-center gap-1.5">
-					<span class="w-3 h-3 rounded-sm inline-block" style="background: {$preferences.accentColor}"></span>
-					Active: {accentPalettes.find(p => p.primary === $preferences.accentColor)?.name ?? 'Custom'}
-				</p>
+
+				<!-- Dark themes -->
+				<p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Dark</p>
+				<div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+					{#each APP_THEMES.filter(t => t.dark) as t}
+						{@const isActive = $preferences.themeId === t.id}
+						<button
+							type="button"
+							onclick={() => applyTheme(t)}
+							class="group relative rounded-2xl overflow-hidden border-2 transition-all {isActive ? 'border-primary shadow-lg shadow-primary/20' : 'border-outline-variant/20 hover:border-outline-variant/50'}"
+						>
+							<div class="h-20 relative flex" style="background: {t.preview.bg}">
+								<div class="w-8 h-full flex flex-col gap-1 p-1.5" style="background: {t.preview.sidebar}">
+									<div class="w-full h-1.5 rounded-full" style="background: {t.preview.dot}; opacity: 0.9"></div>
+									{#each [0,1,2,3] as _}
+										<div class="w-full h-1 rounded-full" style="background: {t.preview.dot}; opacity: 0.15"></div>
+									{/each}
+								</div>
+								<div class="flex-1 p-2 flex flex-col gap-1.5">
+									<div class="h-2 w-3/4 rounded-sm" style="background: {t.preview.dot}; opacity: 0.15"></div>
+									<div class="h-8 rounded-lg w-full" style="background: {t.preview.card}; border: 1px solid rgba(255,255,255,0.06)">
+										<div class="h-full rounded-lg flex items-center px-2 gap-1">
+											<div class="w-2 h-2 rounded-full" style="background: {t.preview.dot}"></div>
+											<div class="h-1.5 flex-1 rounded-full" style="background: {t.preview.dot}; opacity: 0.2"></div>
+										</div>
+									</div>
+									<div class="h-5 rounded-md w-1/2 flex items-center justify-center" style="background: {t.preview.dot}; opacity: 0.85">
+										<div class="h-1 w-3/4 rounded-full" style="background: {t.preview.bg}; opacity: 0.8"></div>
+									</div>
+								</div>
+								{#if isActive}
+									<div class="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-primary flex items-center justify-center shadow-md">
+										<span class="material-symbols-outlined text-on-primary text-[11px]" style="font-variation-settings:'FILL' 1">check</span>
+									</div>
+								{/if}
+							</div>
+							<div class="px-2.5 py-1.5 flex items-center justify-between" style="background: {t.preview.card}; border-top: 1px solid rgba(255,255,255,0.05)">
+								<span class="text-[11px] font-bold" style="color: {t.preview.dot}">{t.name}</span>
+								<span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full" style="background: {t.preview.dot}25; color: {t.preview.dot}">{t.label}</span>
+							</div>
+						</button>
+					{/each}
+				</div>
 			</div>
 
 <!-- Display Density -->

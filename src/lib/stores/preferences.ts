@@ -2,6 +2,7 @@ import { writable } from 'svelte/store';
 
 export interface UserPreferences {
 	theme: 'light' | 'dark' | 'auto';
+	themeId: string;
 	accentColor: string;
 	accentContainer: string;
 	compactMode: boolean;
@@ -46,9 +47,10 @@ export interface UserPreferences {
 }
 
 const defaultPreferences: UserPreferences = {
-	theme: 'auto',
-	accentColor: '#003f87',
-	accentContainer: '#0056b3',
+	theme: 'light',
+	themeId: 'arctic',
+	accentColor: '#1e3a5f',
+	accentContainer: '#2d5282',
 	compactMode: false,
 	fontSize: 'medium',
 	animations: 'full',
@@ -104,12 +106,99 @@ function getInitialPreferences(): UserPreferences {
 	return defaultPreferences;
 }
 
+export interface AppTheme {
+	id: string;
+	name: string;
+	label: string;
+	dark: boolean;
+	surface: string;         // page bg
+	card: string;            // card bg
+	sidebar: string;         // sidebar bg
+	accent: string;          // primary
+	accentContainer: string; // primary-container
+	preview: { bg: string; card: string; sidebar: string; dot: string };
+}
+
+export const APP_THEMES: AppTheme[] = [
+	{
+		id: 'arctic', name: 'Arctic', label: 'Light',
+		dark: false,
+		surface: '#f4f6f9', card: '#ffffff', sidebar: '#eef1f6',
+		accent: '#1e3a5f', accentContainer: '#2d5282',
+		preview: { bg: '#f4f6f9', card: '#ffffff', sidebar: '#dde3ed', dot: '#1e3a5f' }
+	},
+	{
+		id: 'pearl', name: 'Pearl', label: 'Light',
+		dark: false,
+		surface: '#faf9f7', card: '#ffffff', sidebar: '#f2efe9',
+		accent: '#44403c', accentContainer: '#57534e',
+		preview: { bg: '#faf9f7', card: '#ffffff', sidebar: '#e8e3da', dot: '#44403c' }
+	},
+	{
+		id: 'sage', name: 'Sage', label: 'Light',
+		dark: false,
+		surface: '#f4f7f5', card: '#ffffff', sidebar: '#e8f0eb',
+		accent: '#14532d', accentContainer: '#166534',
+		preview: { bg: '#f4f7f5', card: '#ffffff', sidebar: '#d4e6da', dot: '#14532d' }
+	},
+	{
+		id: 'lavender', name: 'Lavender', label: 'Light',
+		dark: false,
+		surface: '#f6f5fb', card: '#ffffff', sidebar: '#eeecf8',
+		accent: '#3730a3', accentContainer: '#4338ca',
+		preview: { bg: '#f6f5fb', card: '#ffffff', sidebar: '#e0dcf5', dot: '#3730a3' }
+	},
+	{
+		id: 'midnight', name: 'Midnight', label: 'Dark',
+		dark: true,
+		surface: '#0e1117', card: '#161b24', sidebar: '#131720',
+		accent: '#acc7ff', accentContainer: '#4a90d9',
+		preview: { bg: '#0e1117', card: '#1e2535', sidebar: '#161b24', dot: '#acc7ff' }
+	},
+	{
+		id: 'obsidian', name: 'Obsidian', label: 'Dark',
+		dark: true,
+		surface: '#111110', card: '#1c1b18', sidebar: '#161614',
+		accent: '#d4c5a9', accentContainer: '#8a7660',
+		preview: { bg: '#111110', card: '#1c1b18', sidebar: '#161614', dot: '#d4c5a9' }
+	},
+	{
+		id: 'forest-night', name: 'Forest', label: 'Dark',
+		dark: true,
+		surface: '#0d1410', card: '#141f17', sidebar: '#111a14',
+		accent: '#86efac', accentContainer: '#166534',
+		preview: { bg: '#0d1410', card: '#1a2e1e', sidebar: '#141f17', dot: '#86efac' }
+	},
+	{
+		id: 'aurora', name: 'Aurora', label: 'Dark',
+		dark: true,
+		surface: '#0f0f1a', card: '#16162a', sidebar: '#13132200',
+		accent: '#c4b5fd', accentContainer: '#5b21b6',
+		preview: { bg: '#0f0f1a', card: '#1e1e35', sidebar: '#16162a', dot: '#c4b5fd' }
+	},
+];
+
 function applyPreferencesToDOM(value: UserPreferences) {
 	if (typeof window === 'undefined') return;
-	
+
 	document.documentElement.style.setProperty('--sys-primary', value.accentColor);
 	document.documentElement.style.setProperty('--sys-primary-container', value.accentContainer || value.accentColor);
-	
+
+	// Apply full theme if themeId is set
+	const appTheme = APP_THEMES.find(t => t.id === value.themeId);
+	if (appTheme) {
+		if (appTheme.dark) {
+			document.documentElement.classList.add('dark');
+		} else {
+			document.documentElement.classList.remove('dark');
+		}
+		document.documentElement.style.setProperty('--sys-surface', appTheme.surface);
+		document.documentElement.style.setProperty('--sys-background', appTheme.surface);
+		document.documentElement.style.setProperty('--sys-surface-container-lowest', appTheme.card);
+		document.documentElement.style.setProperty('--sys-surface-container-low', appTheme.sidebar);
+		document.documentElement.style.setProperty('--sys-surface-container', appTheme.sidebar);
+	}
+
 	document.documentElement.classList.toggle('compact', value.compactMode);
 	
 	document.documentElement.classList.remove('font-small', 'font-medium', 'font-large');
