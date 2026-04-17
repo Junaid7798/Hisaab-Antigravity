@@ -17,8 +17,7 @@ export function setupI18n() {
 		} else {
 			initialLocale = getLocaleFromNavigator() || 'en';
 			// Fallback mapped to generic top-level languages
-			if (initialLocale.startsWith('hi')) initialLocale = 'hi';
-			else if (initialLocale.startsWith('mr')) initialLocale = 'mr';
+			if (initialLocale.startsWith('hi') || initialLocale.startsWith('mr')) initialLocale = 'hi';
 			else initialLocale = 'en';
 		}
 	}

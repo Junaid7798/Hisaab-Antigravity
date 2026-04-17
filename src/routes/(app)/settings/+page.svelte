@@ -543,7 +543,7 @@
 				<div class="mb-8">
 					<span class="block text-[11px] font-bold text-outline uppercase tracking-wider mb-3">App Language</span>
 					<div class="flex flex-wrap gap-3">
-						{#each [{ code: 'en', label: 'English', native: 'English' }, { code: 'hi', label: 'Hindi', native: 'हिंदी' }, { code: 'mr', label: 'Marathi', native: 'मराठी' }] as lang}
+						{#each [{ code: 'en', label: 'English', native: 'English' }, { code: 'hi', label: 'Hindi', native: 'हिंदी' }] as lang}
 							<button
 								type="button"
 								onclick={() => changeLocale(lang.code)}

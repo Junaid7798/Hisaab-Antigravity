@@ -83,7 +83,6 @@
 			>
 				<option value="en">EN</option>
 				<option value="hi">HI</option>
-				<option value="mr">MR</option>
 			</select>
 		</div>
 
