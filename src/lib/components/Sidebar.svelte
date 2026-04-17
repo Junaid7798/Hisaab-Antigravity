@@ -69,27 +69,27 @@
 
 <!-- Mobile Bottom Navigation -->
 <nav class="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-surface-container border-t border-surface-variant/40 safe-area-pb">
-	<div class="flex items-center justify-around py-1.5 px-2">
+	<div class="flex items-center justify-around py-1 px-1">
 		{#each mobileNavItems as item}
 			{@const isActive = $page.url.pathname === item.href || ($page.url.pathname.startsWith(item.href) && item.href !== '/dashboard')}
 			<a
 				href={item.href}
 				onclick={closeMobileDrawer}
-				class="flex flex-col items-center justify-center gap-0.5 py-1.5 px-2 rounded-xl transition-all {isActive ? 'text-primary' : 'text-on-surface-variant'}"
+				class="flex flex-col items-center justify-center gap-0.5 min-h-[52px] min-w-[52px] px-3 py-2 rounded-xl transition-all {isActive ? 'text-primary' : 'text-on-surface-variant'}"
 			>
-				<span class="material-symbols-outlined text-[22px] transition-transform {isActive ? 'scale-110' : ''}" style="font-variation-settings: 'FILL' {isActive ? 1 : 0}">{item.icon}</span>
-				<span class="text-[10px] font-semibold">{item.label}</span>
+				<span class="material-symbols-outlined text-2xl transition-transform {isActive ? 'scale-110' : ''}" style="font-variation-settings: 'FILL' {isActive ? 1 : 0}">{item.icon}</span>
+				<span class="text-[11px] font-semibold leading-tight">{item.label}</span>
 			</a>
 		{/each}
-		
+
 		<!-- More button -->
 		<button
 			onclick={() => $isMobileDrawerOpen = true}
-			class="flex flex-col items-center justify-center gap-0.5 py-1.5 px-2 rounded-xl transition-all text-on-surface-variant"
+			class="flex flex-col items-center justify-center gap-0.5 min-h-[52px] min-w-[52px] px-3 py-2 rounded-xl transition-all text-on-surface-variant"
 			aria-label="More navigation"
 		>
-			<span class="material-symbols-outlined text-[22px]">more_horiz</span>
-			<span class="text-[10px] font-semibold">More</span>
+			<span class="material-symbols-outlined text-2xl">more_horiz</span>
+			<span class="text-[11px] font-semibold leading-tight">More</span>
 		</button>
 	</div>
 </nav>
@@ -177,7 +177,7 @@
 	</div>
 
 	<!-- Navigation -->
-	<nav class="flex flex-col gap-1 flex-grow overflow-y-auto px-2 lg:px-3 pb-4">
+	<nav class="flex flex-col gap-0.5 flex-grow overflow-y-auto px-2 lg:px-3 pb-4">
 		{#each navItems as item}
 			{@const isActive = $page.url.pathname.startsWith(item.href)}
 			<a
@@ -185,7 +185,7 @@
 				onclick={() => {
 					if (window.innerWidth < 1024) closeMobileDrawer();
 				}}
-				class="flex items-center gap-3 px-3 py-3 lg:py-2.5 rounded-xl transition-all duration-150 text-[15px] lg:text-sm font-body
+				class="flex items-center gap-3 px-3 py-3.5 lg:py-2.5 rounded-xl transition-all duration-150 text-[15px] lg:text-[13px] font-body min-h-[48px] lg:min-h-[40px]
 					{isActive
 						? 'bg-surface text-primary font-semibold shadow-sm border border-surface-variant'
 						: 'text-on-surface-variant hover:bg-surface/50 hover:text-primary active:bg-surface-variant'}
@@ -194,7 +194,7 @@
 			>
 				<span class="material-symbols-outlined text-[22px] lg:text-[20px] shrink-0" style="font-variation-settings: 'FILL' {isActive ? 1 : 0}">{item.icon}</span>
 				{#if !collapsed}
-					<span>{$_(item.i18nKey, { default: item.fallback })}</span>
+					<span class="leading-tight">{$_(item.i18nKey, { default: item.fallback })}</span>
 				{/if}
 			</a>
 		{/each}

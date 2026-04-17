@@ -108,9 +108,9 @@
 
 <main
 	class="transition-all duration-200 ease-out
-		pt-16 lg:pt-20 min-h-screen pb-20 lg:pb-4
+		pt-14 lg:pt-16 min-h-screen pb-24 lg:pb-8
 		{sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}
-		px-3 sm:px-4 md:px-6 lg:px-8"
+		px-4 sm:px-5 md:px-8 lg:px-10"
 >
 	{#key $page.url.pathname}
 		<div

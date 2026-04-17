@@ -10,6 +10,6 @@
 	};
 </script>
 
-<span class="px-3 py-1 text-[10px] font-bold rounded-full uppercase tracking-wide {styles[status] || styles['UNPAID']}">
+<span class="px-2.5 py-1 text-[11px] font-bold rounded-full uppercase tracking-wide leading-none inline-flex items-center {styles[status] || styles['UNPAID']}">
 	{$_(`status.${status.toLowerCase()}`, { default: status })}
 </span>

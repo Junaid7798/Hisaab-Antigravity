@@ -63,9 +63,9 @@
 </svelte:head>
 
 <!-- Header -->
-<div class="mb-10">
-	<h2 class="text-3xl font-headline font-bold text-on-surface">{$_('dashboard.overview', { default: 'Dashboard Overview' })}</h2>
-	<p class="text-on-surface-variant font-body mt-1">
+<div class="mb-6 lg:mb-10">
+	<h2 class="text-2xl lg:text-3xl font-headline font-bold text-on-surface">{$_('dashboard.overview', { default: 'Dashboard Overview' })}</h2>
+	<p class="text-on-surface-variant font-body mt-1 text-sm lg:text-base">
 		{#if businessName}{$_('dashboard.financial_perf', { default: 'Financial performance for' })} {businessName}{:else}{$_('dashboard.welcome', { default: 'Welcome to Hisaab' })}{/if}
 	</p>
 </div>
@@ -112,46 +112,46 @@
 {:else}
 <div class="grid grid-cols-12 gap-6 mb-10">
 	<!-- Revenue -->
-	<div in:fly={{ y: 20, duration: 400, delay: 50, easing: cubicOut }} class="col-span-12 md:col-span-4 bg-primary text-white p-6 rounded-xl shadow-xl shadow-primary/10 relative overflow-hidden">
+	<div in:fly={{ y: 20, duration: 400, delay: 50, easing: cubicOut }} class="col-span-12 md:col-span-4 bg-primary text-white p-5 lg:p-6 rounded-2xl shadow-xl shadow-primary/10 relative overflow-hidden">
 		<div class="relative z-10">
 			<p class="text-xs font-label uppercase tracking-widest text-primary-fixed-dim opacity-80">{$_('dashboard.total_revenue', { default: 'Total Revenue' })}</p>
-			<h3 class="text-4xl font-headline font-extrabold mt-2">{formatINRCompact(revenue)}</h3>
-			<div class="mt-4 flex items-center gap-2 text-sm text-primary-fixed">
+			<h3 class="text-3xl lg:text-4xl font-headline font-extrabold mt-2 leading-none">{formatINRCompact(revenue)}</h3>
+			<div class="mt-3 flex items-center gap-2 text-sm text-primary-fixed">
 				{#if revenueChange !== null}
 					{#if revenueChange >= 0}
-						<span class="material-symbols-outlined text-sm">trending_up</span>
+						<span class="material-symbols-outlined text-base">trending_up</span>
 						<span>+{revenueChange.toFixed(1)}% vs last month</span>
 					{:else}
-						<span class="material-symbols-outlined text-sm text-error">trending_down</span>
+						<span class="material-symbols-outlined text-base text-error">trending_down</span>
 						<span class="text-error">{revenueChange.toFixed(1)}% vs last month</span>
 					{/if}
 				{:else}
-					<span class="material-symbols-outlined text-sm">trending_up</span>
+					<span class="material-symbols-outlined text-base">trending_up</span>
 					<span>{$_('dashboard.all_time', { default: 'All time' })}</span>
 				{/if}
 			</div>
 		</div>
 		<div class="absolute -right-4 -bottom-4 opacity-10">
-			<span class="material-symbols-outlined text-[120px]">payments</span>
+			<span class="material-symbols-outlined text-[100px] lg:text-[120px]">payments</span>
 		</div>
 	</div>
 
 	<!-- Outstanding -->
-	<div in:fly={{ y: 20, duration: 400, delay: 150, easing: cubicOut }} class="col-span-12 md:col-span-4 bg-surface-container-lowest p-6 rounded-xl shadow-sm">
+	<div in:fly={{ y: 20, duration: 400, delay: 150, easing: cubicOut }} class="col-span-12 md:col-span-4 bg-surface-container-lowest p-5 lg:p-6 rounded-2xl shadow-sm border border-outline-variant/10">
 		<p class="text-xs font-label uppercase tracking-widest text-on-surface-variant">{$_('dashboard.outstanding', { default: 'Outstanding Payments' })}</p>
-		<h3 class="text-4xl font-headline font-extrabold mt-2 text-error">{formatINRCompact(outstanding)}</h3>
-		<div class="mt-4 flex items-center gap-2 text-sm text-on-surface-variant">
-			<span class="material-symbols-outlined text-sm">schedule</span>
+		<h3 class="text-3xl lg:text-4xl font-headline font-extrabold mt-2 text-error leading-none">{formatINRCompact(outstanding)}</h3>
+		<div class="mt-3 flex items-center gap-2 text-sm text-on-surface-variant">
+			<span class="material-symbols-outlined text-base">schedule</span>
 			<span>{$_('dashboard.unpaid_invoices', { default: 'Unpaid invoices' })}</span>
 		</div>
 	</div>
 
 	<!-- Patients -->
-	<div in:fly={{ y: 20, duration: 400, delay: 250, easing: cubicOut }} class="col-span-12 md:col-span-4 bg-surface-container-lowest p-6 rounded-xl shadow-sm">
+	<div in:fly={{ y: 20, duration: 400, delay: 250, easing: cubicOut }} class="col-span-12 md:col-span-4 bg-surface-container-lowest p-5 lg:p-6 rounded-2xl shadow-sm border border-outline-variant/10">
 		<p class="text-xs font-label uppercase tracking-widest text-on-surface-variant">{$_('dashboard.total_patients', { default: `Total ${$activeTerminology.people}` })}</p>
-		<h3 class="text-4xl font-headline font-extrabold mt-2 text-secondary">{patientCount}</h3>
-		<div class="mt-4 flex items-center gap-2 text-sm text-on-surface-variant">
-			<span class="material-symbols-outlined text-sm">group</span>
+		<h3 class="text-3xl lg:text-4xl font-headline font-extrabold mt-2 text-secondary leading-none">{patientCount}</h3>
+		<div class="mt-3 flex items-center gap-2 text-sm text-on-surface-variant">
+			<span class="material-symbols-outlined text-base">group</span>
 			<span>{$_('dashboard.registered_patients', { default: `Registered ${$activeTerminology.people.toLowerCase()}` })}</span>
 		</div>
 	</div>
@@ -245,68 +245,68 @@
 	</div>
 
 	<!-- Quick Actions Sidebar -->
-	<div class="col-span-12 lg:col-span-4 space-y-6">
+	<div class="col-span-12 lg:col-span-4 space-y-5">
 		<!-- Quick Actions -->
-		<div in:fly={{ x: 20, duration: 400, delay: 450, easing: cubicOut }} class="bg-surface-container-high p-6 rounded-xl">
-			<h5 class="font-headline font-bold text-lg mb-4">{$_('dashboard.quick_actions', { default: 'Quick Actions' })}</h5>
-			<div class="space-y-3">
-				<a href="/invoices/new" class="p-3 bg-surface-container-lowest rounded-lg flex items-center gap-3 border border-transparent hover:border-primary/20 transition-all">
-					<div class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+		<div in:fly={{ x: 20, duration: 400, delay: 450, easing: cubicOut }} class="bg-surface-container-high p-5 lg:p-6 rounded-2xl">
+			<h5 class="font-headline font-bold text-base lg:text-lg mb-4">{$_('dashboard.quick_actions', { default: 'Quick Actions' })}</h5>
+			<div class="space-y-2.5">
+				<a href="/invoices/new" class="min-h-[56px] px-3 py-3 bg-surface-container-lowest rounded-xl flex items-center gap-3 border border-transparent hover:border-primary/20 active:scale-[0.98] transition-all">
+					<div class="w-10 h-10 shrink-0 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
 						<span class="material-symbols-outlined text-xl">add_circle</span>
 					</div>
-					<div>
-						<p class="text-sm font-semibold">{$_('actions.new_invoice', { default: `New ${$activeTerminology.document}` })}</p>
-						<p class="text-[10px] text-on-surface-variant">{$_('dashboard.new_invoice_desc', { default: 'Create GST bill' })}</p>
+					<div class="min-w-0">
+						<p class="text-sm font-semibold leading-tight">{$_('actions.new_invoice', { default: `New ${$activeTerminology.document}` })}</p>
+						<p class="text-xs text-on-surface-variant mt-0.5">{$_('dashboard.new_invoice_desc', { default: 'Create GST bill' })}</p>
 					</div>
 				</a>
-				<a href="/patients" class="p-3 bg-surface-container-lowest rounded-lg flex items-center gap-3 border border-transparent hover:border-primary/20 transition-all">
-					<div class="w-10 h-10 rounded-full bg-secondary/10 text-secondary flex items-center justify-center">
+				<a href="/patients" class="min-h-[56px] px-3 py-3 bg-surface-container-lowest rounded-xl flex items-center gap-3 border border-transparent hover:border-primary/20 active:scale-[0.98] transition-all">
+					<div class="w-10 h-10 shrink-0 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center">
 						<span class="material-symbols-outlined text-xl">person_add</span>
 					</div>
-					<div>
-						<p class="text-sm font-semibold">{$_('actions.add_patient', { default: `Add ${$activeTerminology.person}` })}</p>
-						<p class="text-[10px] text-on-surface-variant">{$_('dashboard.add_patient_desc', { default: `Register new ${$activeTerminology.person.toLowerCase()}` })}</p>
+					<div class="min-w-0">
+						<p class="text-sm font-semibold leading-tight">{$_('actions.add_patient', { default: `Add ${$activeTerminology.person}` })}</p>
+						<p class="text-xs text-on-surface-variant mt-0.5">{$_('dashboard.add_patient_desc', { default: `Register new ${$activeTerminology.person.toLowerCase()}` })}</p>
 					</div>
 				</a>
-				<a href="/expenses" class="p-3 bg-surface-container-lowest rounded-lg flex items-center gap-3 border border-transparent hover:border-primary/20 transition-all">
-					<div class="w-10 h-10 rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant flex items-center justify-center">
+				<a href="/expenses" class="min-h-[56px] px-3 py-3 bg-surface-container-lowest rounded-xl flex items-center gap-3 border border-transparent hover:border-primary/20 active:scale-[0.98] transition-all">
+					<div class="w-10 h-10 shrink-0 rounded-xl bg-tertiary-fixed text-on-tertiary-fixed-variant flex items-center justify-center">
 						<span class="material-symbols-outlined text-xl">post_add</span>
 					</div>
-					<div>
-						<p class="text-sm font-semibold">{$_('actions.log_expense', { default: 'Log Expense' })}</p>
-						<p class="text-[10px] text-on-surface-variant">{$_('dashboard.log_expense_desc', { default: 'Track spending' })}</p>
+					<div class="min-w-0">
+						<p class="text-sm font-semibold leading-tight">{$_('actions.log_expense', { default: 'Log Expense' })}</p>
+						<p class="text-xs text-on-surface-variant mt-0.5">{$_('dashboard.log_expense_desc', { default: 'Track spending' })}</p>
 					</div>
 				</a>
-				<a href="/attendance" class="p-3 bg-surface-container-lowest rounded-lg flex items-center gap-3 border border-transparent hover:border-primary/20 transition-all">
-					<div class="w-10 h-10 rounded-full bg-secondary/10 text-secondary flex items-center justify-center">
+				<a href="/attendance" class="min-h-[56px] px-3 py-3 bg-surface-container-lowest rounded-xl flex items-center gap-3 border border-transparent hover:border-primary/20 active:scale-[0.98] transition-all">
+					<div class="w-10 h-10 shrink-0 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center">
 						<span class="material-symbols-outlined text-xl">fingerprint</span>
 					</div>
-					<div>
-						<p class="text-sm font-semibold">Mark Attendance</p>
-						<p class="text-[10px] text-on-surface-variant">Staff attendance log</p>
+					<div class="min-w-0">
+						<p class="text-sm font-semibold leading-tight">Mark Attendance</p>
+						<p class="text-xs text-on-surface-variant mt-0.5">Staff attendance log</p>
 					</div>
 				</a>
-				<a href="/loans" class="p-3 bg-surface-container-lowest rounded-lg flex items-center gap-3 border border-transparent hover:border-primary/20 transition-all">
-					<div class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+				<a href="/loans" class="min-h-[56px] px-3 py-3 bg-surface-container-lowest rounded-xl flex items-center gap-3 border border-transparent hover:border-primary/20 active:scale-[0.98] transition-all">
+					<div class="w-10 h-10 shrink-0 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
 						<span class="material-symbols-outlined text-xl">account_balance</span>
 					</div>
-					<div>
-						<p class="text-sm font-semibold">Loans & EMI</p>
-						<p class="text-[10px] text-on-surface-variant">Track repayments</p>
+					<div class="min-w-0">
+						<p class="text-sm font-semibold leading-tight">Loans & EMI</p>
+						<p class="text-xs text-on-surface-variant mt-0.5">Track repayments</p>
 					</div>
 				</a>
 			</div>
 		</div>
 
 		<!-- Help Card -->
-		<div in:fly={{ x: 20, duration: 400, delay: 550, easing: cubicOut }} class="relative bg-tertiary-container text-white p-6 rounded-xl overflow-hidden min-h-[140px] flex flex-col justify-end">
+		<div in:fly={{ x: 20, duration: 400, delay: 550, easing: cubicOut }} class="relative bg-tertiary-container text-white p-5 lg:p-6 rounded-2xl overflow-hidden min-h-[130px] flex flex-col justify-end">
 			<div class="absolute -right-4 -top-4 opacity-10">
 				<span class="material-symbols-outlined text-[80px]">support_agent</span>
 			</div>
 			<div class="relative z-10">
-				<h6 class="font-headline font-bold text-lg">{$_('dashboard.need_help', { default: 'Need Help?' })}</h6>
-				<p class="text-sm opacity-80 mb-4">{$_('dashboard.help_desc', { default: 'Check our guides for GST billing and setup.' })}</p>
-				<a href="/help" class="bg-surface-container-lowest text-tertiary px-4 py-2 rounded-lg text-xs font-bold hover:bg-surface-variant transition-colors inline-block">{$_('dashboard.get_support', { default: 'Get Support' })}</a>
+				<h6 class="font-headline font-bold text-base lg:text-lg">{$_('dashboard.need_help', { default: 'Need Help?' })}</h6>
+				<p class="text-sm opacity-80 mb-3">{$_('dashboard.help_desc', { default: 'Check our guides for GST billing and setup.' })}</p>
+				<a href="/help" class="bg-surface-container-lowest text-tertiary px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-surface-variant transition-colors inline-flex items-center min-h-[40px]">{$_('dashboard.get_support', { default: 'Get Support' })}</a>
 			</div>
 		</div>
 	</div>
