@@ -1,15 +1,20 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { db } from '$lib/db';
-	import { categoryGroups, type BusinessCategory, type TaxRegistrationType } from '$lib/utils/terminology';
+	import { categoryGroups, getSuggestedPersonLabel, personLabelOptions, type BusinessCategory, type TaxRegistrationType } from '$lib/utils/terminology';
 	import { supabase } from '$lib/db/supabase';
 	import { INDIAN_STATES } from '$lib/utils/helpers';
 
-	// Step tracking: 1 = tax type, 2 = business category, 3 = business profile
+	// Step tracking: 1 = business type, 2 = personalize, 3 = business profile
 	let currentStep = $state(1);
 
-	let taxType = $state<TaxRegistrationType>('unregistered');
 	let selectedCategory = $state<BusinessCategory | null>(null);
+	let taxType = $state<TaxRegistrationType>('unregistered');
+
+	// Person label — derived from category, but user can override
+	let personSingular = $state('Customer');
+	let personPlural = $state('Customers');
+
 	let isSaving = $state(false);
 
 	// Step 3: Business profile fields
@@ -19,6 +24,20 @@
 	let bizAddress = $state('');
 	let bizStateCode = $state('27');
 	let bizGstin = $state('');
+
+	// When category changes, auto-suggest person label
+	$effect(() => {
+		if (selectedCategory) {
+			const suggested = getSuggestedPersonLabel(selectedCategory);
+			personSingular = suggested.singular;
+			personPlural = suggested.plural;
+		}
+	});
+
+	function selectPersonLabel(singular: string, plural: string) {
+		personSingular = singular;
+		personPlural = plural;
+	}
 
 	function goToStep(step: number) {
 		currentStep = step;
@@ -39,6 +58,8 @@
 				business_category: selectedCategory,
 				tax_registration_type: taxType,
 				industry_sector: sector,
+				custom_person_label: personSingular,
+				custom_people_label: personPlural,
 				name: bizName.trim() || 'My Business',
 				phone: bizPhone.trim(),
 				email: bizEmail.trim(),
@@ -72,8 +93,8 @@
 	}
 
 	const steps = [
-		{ number: 1, label: 'Tax Type' },
-		{ number: 2, label: 'Business Type' },
+		{ number: 1, label: 'Business Type' },
+		{ number: 2, label: 'Personalize' },
 		{ number: 3, label: 'Your Details' }
 	];
 </script>
@@ -82,15 +103,15 @@
 	<title>Welcome to Hisaab - Let's set up your business</title>
 </svelte:head>
 
-<div class="min-h-screen bg-surface flex flex-col items-center py-12 px-4 sm:px-6">
+<div class="min-h-screen bg-surface flex flex-col items-center py-10 px-4 sm:px-6">
 	<div class="w-full max-w-4xl space-y-8">
 		<!-- Header -->
 		<div class="text-center">
 			<div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-container text-primary mb-4">
 				<span class="material-symbols-outlined text-3xl">rocket_launch</span>
 			</div>
-			<h1 class="text-4xl font-headline font-bold text-on-surface mb-2">Welcome to Hisaab</h1>
-			<p class="text-xl text-on-surface-variant font-medium">Let's set up your business in just a few steps.</p>
+			<h1 class="text-3xl font-headline font-bold text-on-surface mb-1">Welcome to Hisaab</h1>
+			<p class="text-base text-on-surface-variant font-medium">Set up your business in just a few steps.</p>
 		</div>
 
 		<!-- Step Indicator -->
@@ -115,79 +136,33 @@
 			{/each}
 		</div>
 
-		<div class="bg-surface-container-lowest border border-outline-variant rounded-2xl p-8 shadow-sm space-y-8">
+		<div class="bg-surface-container-lowest border border-outline-variant rounded-2xl p-6 sm:p-8 shadow-sm space-y-8">
 
-			<!-- Step 1: Tax Registration -->
+			<!-- ────────────────────────────────────────────────────
+			     Step 1: Business Category
+			     ──────────────────────────────────────────────────── -->
 			{#if currentStep === 1}
 				<section>
-					<div class="flex items-center gap-2 mb-4">
+					<div class="flex items-center gap-2 mb-1">
 						<span class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">1</span>
-						<h2 class="text-xl font-bold text-on-surface">Tax Registration Type</h2>
+						<h2 class="text-xl font-bold text-on-surface">What kind of business do you run?</h2>
 					</div>
-					<p class="text-on-surface-variant text-sm mb-6 max-w-2xl">
-						This helps us format your invoices correctly. Are you registered for GST?
+					<p class="text-on-surface-variant text-sm mb-6 ml-10">
+						We'll personalize Hisaab specifically for your industry.
 					</p>
 
-					<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-						<label class="relative flex flex-col p-5 border-2 rounded-xl cursor-pointer hover:bg-surface-container-low transition-colors {taxType === 'unregistered' ? 'border-primary bg-primary-container/20' : 'border-outline-variant'}">
-							<input type="radio" bind:group={taxType} value="unregistered" class="sr-only" />
-							<div class="flex justify-between items-start mb-2">
-								<span class="font-bold text-on-surface">Unregistered</span>
-								{#if taxType === 'unregistered'}
-									<span class="material-symbols-outlined text-primary">check_circle</span>
-								{/if}
-							</div>
-							<p class="text-xs text-on-surface-variant">I do not have a GST number. I issue a Bill of Supply.</p>
-						</label>
-
-						<label class="relative flex flex-col p-5 border-2 rounded-xl cursor-pointer hover:bg-surface-container-low transition-colors {taxType === 'gst_registered' ? 'border-primary bg-primary-container/20' : 'border-outline-variant'}">
-							<input type="radio" bind:group={taxType} value="gst_registered" class="sr-only" />
-							<div class="flex justify-between items-start mb-2">
-								<span class="font-bold text-on-surface">GST Registered</span>
-								{#if taxType === 'gst_registered'}
-									<span class="material-symbols-outlined text-primary">check_circle</span>
-								{/if}
-							</div>
-							<p class="text-xs text-on-surface-variant">I have a regular GST number and charge GST on invoices.</p>
-						</label>
-
-						<label class="relative flex flex-col p-5 border-2 rounded-xl cursor-pointer hover:bg-surface-container-low transition-colors {taxType === 'composition' ? 'border-primary bg-primary-container/20' : 'border-outline-variant'}">
-							<input type="radio" bind:group={taxType} value="composition" class="sr-only" />
-							<div class="flex justify-between items-start mb-2">
-								<span class="font-bold text-on-surface">Composition Scheme</span>
-								{#if taxType === 'composition'}
-									<span class="material-symbols-outlined text-primary">check_circle</span>
-								{/if}
-							</div>
-							<p class="text-xs text-on-surface-variant">I pay a fixed percentage of turnover. I issue a Bill of Supply.</p>
-						</label>
-					</div>
-				</section>
-			{/if}
-
-			<!-- Step 2: Business Category -->
-			{#if currentStep === 2}
-				<section>
-					<div class="flex items-center gap-2 mb-4">
-						<span class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">2</span>
-						<h2 class="text-xl font-bold text-on-surface">Business Type</h2>
-					</div>
-					<p class="text-on-surface-variant text-sm mb-6">
-						We will personalize the app specifically for your industry.
-					</p>
-
-					<div class="space-y-10 max-h-[60vh] overflow-y-auto pr-1">
+					<div class="space-y-8 max-h-[55vh] overflow-y-auto pr-1">
 						{#each categoryGroups as group}
 							<div>
-								<h3 class="flex items-center gap-2 font-bold text-on-surface-variant uppercase tracking-wider text-xs mb-4 pb-2 border-b border-outline-variant/30">
+								<h3 class="flex items-center gap-2 font-bold text-on-surface-variant uppercase tracking-wider text-xs mb-3 pb-2 border-b border-outline-variant/30">
 									<span class="material-symbols-outlined text-base">{group.icon}</span>
 									{group.sector}
 								</h3>
-								<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+								<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
 									{#each group.items as item}
 										<button
 											type="button"
-											class="text-left px-4 py-3 rounded-xl border text-sm font-medium transition-all
+											class="text-left px-4 py-3 rounded-xl border text-[13px] font-medium transition-all min-h-[48px]
 											{selectedCategory === item.id
 												? 'border-primary bg-primary text-on-primary ring-2 ring-primary ring-offset-2 ring-offset-surface'
 												: 'border-outline-variant bg-surface hover:bg-surface-container hover:border-outline text-on-surface'}"
@@ -203,70 +178,154 @@
 				</section>
 			{/if}
 
-			<!-- Step 3: Business Profile -->
+			<!-- ────────────────────────────────────────────────────
+			     Step 2: Personalize — person label + tax type
+			     ──────────────────────────────────────────────────── -->
+			{#if currentStep === 2}
+				<section class="space-y-8">
+					<!-- Person label -->
+					<div>
+						<div class="flex items-center gap-2 mb-1">
+							<span class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">2</span>
+							<h2 class="text-xl font-bold text-on-surface">What do you call the people you serve?</h2>
+						</div>
+						<p class="text-on-surface-variant text-sm mb-5 ml-10">
+							This is how Hisaab will refer to them throughout the app — on invoices, lists, and more.
+						</p>
+
+						<div class="flex flex-wrap gap-3 ml-10">
+							{#each personLabelOptions as opt}
+								<button
+									type="button"
+									onclick={() => selectPersonLabel(opt.singular, opt.plural)}
+									class="px-5 py-3 rounded-xl border-2 text-[15px] font-semibold transition-all min-h-[48px]
+										{personSingular === opt.singular
+											? 'border-primary bg-primary text-on-primary'
+											: 'border-outline-variant text-on-surface hover:border-outline hover:bg-surface-container'}"
+								>
+									{opt.singular}
+								</button>
+							{/each}
+						</div>
+
+						{#if personSingular}
+							<p class="text-sm text-on-surface-variant mt-4 ml-10">
+								Your invoices will say <span class="font-bold text-on-surface">"{personSingular}"</span> and the list will show <span class="font-bold text-on-surface">"{personPlural}"</span>.
+							</p>
+						{/if}
+					</div>
+
+					<!-- Tax registration -->
+					<div>
+						<h3 class="text-base font-bold text-on-surface mb-1 ml-10">Are you registered for GST?</h3>
+						<p class="text-on-surface-variant text-sm mb-5 ml-10">
+							This helps us format your invoices and bills correctly. You can change this later in Settings.
+						</p>
+
+						<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 ml-10">
+							<label class="relative flex flex-col p-5 border-2 rounded-xl cursor-pointer hover:bg-surface-container-low transition-colors {taxType === 'unregistered' ? 'border-primary bg-primary-container/20' : 'border-outline-variant'}">
+								<input type="radio" bind:group={taxType} value="unregistered" class="sr-only" />
+								<div class="flex justify-between items-start mb-1.5">
+									<span class="font-bold text-on-surface text-[15px]">Not Registered</span>
+									{#if taxType === 'unregistered'}
+										<span class="material-symbols-outlined text-primary text-xl">check_circle</span>
+									{/if}
+								</div>
+								<p class="text-xs text-on-surface-variant">No GST number. I issue a regular Bill / Receipt.</p>
+							</label>
+
+							<label class="relative flex flex-col p-5 border-2 rounded-xl cursor-pointer hover:bg-surface-container-low transition-colors {taxType === 'gst_registered' ? 'border-primary bg-primary-container/20' : 'border-outline-variant'}">
+								<input type="radio" bind:group={taxType} value="gst_registered" class="sr-only" />
+								<div class="flex justify-between items-start mb-1.5">
+									<span class="font-bold text-on-surface text-[15px]">GST Registered</span>
+									{#if taxType === 'gst_registered'}
+										<span class="material-symbols-outlined text-primary text-xl">check_circle</span>
+									{/if}
+								</div>
+								<p class="text-xs text-on-surface-variant">I have a GST number and charge GST on invoices.</p>
+							</label>
+
+							<label class="relative flex flex-col p-5 border-2 rounded-xl cursor-pointer hover:bg-surface-container-low transition-colors {taxType === 'composition' ? 'border-primary bg-primary-container/20' : 'border-outline-variant'}">
+								<input type="radio" bind:group={taxType} value="composition" class="sr-only" />
+								<div class="flex justify-between items-start mb-1.5">
+									<span class="font-bold text-on-surface text-[15px]">Composition Scheme</span>
+									{#if taxType === 'composition'}
+										<span class="material-symbols-outlined text-primary text-xl">check_circle</span>
+									{/if}
+								</div>
+								<p class="text-xs text-on-surface-variant">I pay a fixed % of turnover and issue a Bill of Supply.</p>
+							</label>
+						</div>
+					</div>
+				</section>
+			{/if}
+
+			<!-- ────────────────────────────────────────────────────
+			     Step 3: Business Profile
+			     ──────────────────────────────────────────────────── -->
 			{#if currentStep === 3}
 				<section>
-					<div class="flex items-center gap-2 mb-4">
+					<div class="flex items-center gap-2 mb-1">
 						<span class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">3</span>
 						<h2 class="text-xl font-bold text-on-surface">Your Business Details</h2>
 					</div>
-					<p class="text-on-surface-variant text-sm mb-6">
-						Tell us a bit more so we can personalize your invoices. You can update these later in Settings.
+					<p class="text-on-surface-variant text-sm mb-6 ml-10">
+						This goes on your invoices. You can update everything later in Settings.
 					</p>
 
 					<div class="space-y-5">
 						<div>
-							<label for="biz-name" class="block text-[11px] font-bold text-outline uppercase tracking-wider mb-2">Business Name *</label>
+							<label for="biz-name" class="block text-xs font-bold text-outline uppercase tracking-wider mb-2">Business Name *</label>
 							<input
 								id="biz-name"
 								type="text"
 								bind:value={bizName}
 								placeholder="E.g. Sharma Medical Store"
 								required
-								class="w-full bg-surface-container-highest border-b-2 border-outline-variant focus:border-primary rounded-t-lg px-4 py-3 text-on-surface font-medium transition-all outline-none"
+								class="w-full bg-surface-container-highest border-b-2 border-outline-variant focus:border-primary rounded-t-lg px-4 py-3.5 text-on-surface text-[15px] font-medium transition-all outline-none"
 							/>
 						</div>
 
 						<div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
 							<div>
-								<label for="biz-phone" class="block text-[11px] font-bold text-outline uppercase tracking-wider mb-2">Phone</label>
+								<label for="biz-phone" class="block text-xs font-bold text-outline uppercase tracking-wider mb-2">Phone</label>
 								<input
 									id="biz-phone"
 									type="tel"
 									bind:value={bizPhone}
 									placeholder="10-digit mobile number"
-									class="w-full bg-surface-container-highest border-b-2 border-outline-variant focus:border-primary rounded-t-lg px-4 py-3 text-on-surface font-medium transition-all outline-none"
+									class="w-full bg-surface-container-highest border-b-2 border-outline-variant focus:border-primary rounded-t-lg px-4 py-3.5 text-on-surface text-[15px] font-medium transition-all outline-none"
 								/>
 							</div>
 							<div>
-								<label for="biz-email" class="block text-[11px] font-bold text-outline uppercase tracking-wider mb-2">Email</label>
+								<label for="biz-email" class="block text-xs font-bold text-outline uppercase tracking-wider mb-2">Email</label>
 								<input
 									id="biz-email"
 									type="email"
 									bind:value={bizEmail}
 									placeholder="business@example.com"
-									class="w-full bg-surface-container-highest border-b-2 border-outline-variant focus:border-primary rounded-t-lg px-4 py-3 text-on-surface font-medium transition-all outline-none"
+									class="w-full bg-surface-container-highest border-b-2 border-outline-variant focus:border-primary rounded-t-lg px-4 py-3.5 text-on-surface text-[15px] font-medium transition-all outline-none"
 								/>
 							</div>
 						</div>
 
 						<div>
-							<label for="biz-address" class="block text-[11px] font-bold text-outline uppercase tracking-wider mb-2">Address</label>
+							<label for="biz-address" class="block text-xs font-bold text-outline uppercase tracking-wider mb-2">Address</label>
 							<textarea
 								id="biz-address"
 								bind:value={bizAddress}
 								rows="2"
-								placeholder="Shop/Office address..."
-								class="w-full bg-surface-container-highest border-b-2 border-outline-variant focus:border-primary rounded-t-lg px-4 py-3 text-on-surface font-medium transition-all outline-none resize-none"
+								placeholder="Shop / Office address..."
+								class="w-full bg-surface-container-highest border-b-2 border-outline-variant focus:border-primary rounded-t-lg px-4 py-3.5 text-on-surface text-[15px] font-medium transition-all outline-none resize-none"
 							></textarea>
 						</div>
 
 						<div>
-							<label for="biz-state" class="block text-[11px] font-bold text-outline uppercase tracking-wider mb-2">State</label>
+							<label for="biz-state" class="block text-xs font-bold text-outline uppercase tracking-wider mb-2">State</label>
 							<select
 								id="biz-state"
 								bind:value={bizStateCode}
-								class="w-full bg-surface-container-highest border-b-2 border-outline-variant focus:border-primary rounded-t-lg px-4 py-3 text-on-surface font-medium transition-all outline-none"
+								class="w-full bg-surface-container-highest border-b-2 border-outline-variant focus:border-primary rounded-t-lg px-4 py-3.5 text-on-surface text-[15px] font-medium transition-all outline-none"
 							>
 								{#each INDIAN_STATES as state}
 									<option value={state.code}>{state.code} – {state.name}</option>
@@ -276,14 +335,14 @@
 
 						{#if taxType === 'gst_registered'}
 							<div>
-								<label for="biz-gstin" class="block text-[11px] font-bold text-outline uppercase tracking-wider mb-2">GSTIN</label>
+								<label for="biz-gstin" class="block text-xs font-bold text-outline uppercase tracking-wider mb-2">GSTIN</label>
 								<input
 									id="biz-gstin"
 									type="text"
 									bind:value={bizGstin}
 									placeholder="22AAAAA0000A1Z5"
 									maxlength="15"
-									class="w-full bg-surface-container-highest border-b-2 border-outline-variant focus:border-primary rounded-t-lg px-4 py-3 text-on-surface font-mono font-medium transition-all outline-none"
+									class="w-full bg-surface-container-highest border-b-2 border-outline-variant focus:border-primary rounded-t-lg px-4 py-3.5 text-on-surface text-[15px] font-mono font-medium transition-all outline-none"
 								/>
 							</div>
 						{/if}
@@ -293,13 +352,13 @@
 		</div>
 
 		<!-- Bottom Navigation Bar -->
-		<div class="fixed bottom-0 left-0 right-0 p-6 bg-surface-container-lowest/80 backdrop-blur-md border-t border-outline-variant shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-50 flex justify-center">
+		<div class="fixed bottom-0 left-0 right-0 p-4 sm:p-6 bg-surface-container-lowest/80 backdrop-blur-md border-t border-outline-variant shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-50 flex justify-center">
 			<div class="w-full max-w-4xl flex justify-between items-center">
 				<!-- Back button -->
 				<button
 					type="button"
 					onclick={() => goToStep(currentStep - 1)}
-					class="px-6 py-2.5 border border-outline-variant text-on-surface-variant font-semibold rounded-xl hover:bg-surface-container transition-all flex items-center gap-2
+					class="px-5 py-2.5 border border-outline-variant text-on-surface-variant font-semibold rounded-xl hover:bg-surface-container transition-all flex items-center gap-2 min-h-[48px]
 						{currentStep === 1 ? 'invisible' : ''}"
 				>
 					<span class="material-symbols-outlined text-sm">arrow_back</span>
@@ -309,11 +368,11 @@
 				<!-- Status hint -->
 				<p class="text-sm text-on-surface-variant hidden sm:block">
 					{#if currentStep === 1}
-						Step 1 of 3 — Tax registration
+						{#if !selectedCategory}Choose your business type to continue.{:else}Great! Continue to personalize.{/if}
 					{:else if currentStep === 2}
-						{#if !selectedCategory}Select a business type to continue.{:else}Great choice! Continue to your details.{/if}
+						Step 2 of 3 — Personalize your app
 					{:else}
-						Almost done! Enter your business details.
+						Almost done! Enter your business name.
 					{/if}
 				</p>
 
@@ -321,9 +380,9 @@
 				{#if currentStep < 3}
 					<button
 						type="button"
-						disabled={currentStep === 2 && !selectedCategory}
+						disabled={currentStep === 1 && !selectedCategory}
 						onclick={() => goToStep(currentStep + 1)}
-						class="px-8 py-3 bg-primary text-on-primary font-bold rounded-xl shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+						class="px-7 py-3 bg-primary text-on-primary font-bold rounded-xl shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 min-h-[48px]"
 					>
 						Next
 						<span class="material-symbols-outlined">arrow_forward</span>
@@ -333,7 +392,7 @@
 						type="button"
 						disabled={!bizName.trim() || isSaving}
 						onclick={finishOnboarding}
-						class="px-8 py-3 bg-primary text-on-primary font-bold rounded-xl shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+						class="px-7 py-3 bg-primary text-on-primary font-bold rounded-xl shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 min-h-[48px]"
 					>
 						{#if isSaving}
 							<span class="material-symbols-outlined animate-spin">refresh</span>

@@ -5,9 +5,7 @@ export interface CategoryDefaults {
 }
 
 export const categoryDefaults: Record<BusinessCategory, CategoryDefaults> = {
-	// Healthcare
-	medical_clinic: { expenseCategories: ['Medical Supplies', 'Lab Equipment', 'Rent', 'Staff Salary', 'Medicines', 'Utilities'] },
-	dental_clinic: { expenseCategories: ['Dental Supplies', 'Equipment Maintenance', 'Rent', 'Staff Salary', 'Utilities'] },
+	// Healthcare & Wellness
 	pharmacy: { expenseCategories: ['Medicine Purchase', 'Supplier Payment', 'Rent', 'Staff Salary', 'Utilities', 'Packaging'] },
 	veterinary_clinic: { expenseCategories: ['Veterinary Supplies', 'Pet Food', 'Rent', 'Staff Salary', 'Utilities'] },
 	physiotherapy: { expenseCategories: ['Therapy Equipment', 'Lotions & Oils', 'Rent', 'Staff Salary', 'Utilities'] },
@@ -47,12 +45,10 @@ export const categoryDefaults: Record<BusinessCategory, CategoryDefaults> = {
 	cloud_kitchen: { expenseCategories: ['Raw Materials', 'Gas', 'Delivery Commissions', 'Packaging', 'Rent', 'Staff'] },
 	caterer: { expenseCategories: ['Raw Materials', 'Transport', 'Staff', 'Equipment Rental', 'Gas'] },
 
-	// Education
-	school: { expenseCategories: ['Teacher Salaries', 'Books & Materials', 'Property Maintenance', 'Utilities', 'Transport'] },
+	// Education & Coaching
 	coaching_center: { expenseCategories: ['Teacher Salaries', 'Study Materials', 'Rent', 'Utilities', 'Marketing'] },
 	tutor: { expenseCategories: ['Study Materials', 'Travel', 'Internet', 'Software'] },
 	music_dance_school: { expenseCategories: ['Instruments/Equipment', 'Rent', 'Instructor Salaries', 'Marketing'] },
-	driving_school: { expenseCategories: ['Vehicle Fuel', 'Vehicle Maintenance', 'Instructor Salaries', 'Insurance'] },
 
 	// Beauty & Wellness
 	salon: { expenseCategories: ['Beauty Products', 'Equipment Maintenance', 'Rent', 'Staff', 'Utilities'] },
@@ -72,7 +68,6 @@ export const categoryDefaults: Record<BusinessCategory, CategoryDefaults> = {
 	transport_logistics: { expenseCategories: ['Fuel', 'Vehicle Maintenance', 'Driver Salaries', 'Tolls/Taxes', 'Insurance'] },
 	taxi_rental: { expenseCategories: ['Fuel', 'Vehicle Maintenance', 'Driver Salaries', 'Insurance', 'Platform Commissions'] },
 	auto_garage: { expenseCategories: ['Spare Parts', 'Tools', 'Rent', 'Staff', 'Utilities'] },
-	car_wash: { expenseCategories: ['Water', 'Cleaning Chemicals', 'Equipment Maintenance', 'Rent', 'Staff'] },
 
 	// Professional Services
 	ca_firm: { expenseCategories: ['Software Subscriptions', 'Office Rent', 'Staff Salary', 'Travel', 'Printing'] },

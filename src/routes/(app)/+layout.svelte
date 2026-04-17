@@ -55,7 +55,13 @@
 		if (!currentBusiness || !currentBusiness.business_category) {
 			goto('/onboarding');
 		} else {
-			activeTerminology.set(getTerminology(currentBusiness.business_category));
+			const terminology = getTerminology(currentBusiness.business_category);
+			// Apply user's custom person label if they chose one during onboarding
+			if (currentBusiness.custom_person_label) {
+				terminology.person = currentBusiness.custom_person_label;
+				terminology.people = currentBusiness.custom_people_label || currentBusiness.custom_person_label + 's';
+			}
+			activeTerminology.set(terminology);
 
 			// Auto Backup logic
 			const prefs = $preferences;

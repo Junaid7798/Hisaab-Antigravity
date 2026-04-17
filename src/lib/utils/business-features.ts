@@ -432,20 +432,6 @@ export const businessFeatures: Record<BusinessCategory, BusinessFeatures> = {
     isEducational: false
   },
   // === EDUCATION ===
-  school: {
-    hasPOS: false,
-    hasEstimates: false,
-    hasRecurring: true,
-    hasSuppliers: false,
-    hasPurchases: false,
-    hasInventory: false,
-    hasCustomers: true,
-    hasGST: true,
-    documentTypes: { hasInvoice: true, hasCashReceipt: true, hasEstimate: false, hasCreditNote: true, hasDebitNote: true },
-    isWalkIn: false,
-    isService: false,
-    isEducational: true
-  },
   coaching_center: {
     hasPOS: false,
     hasEstimates: false,
@@ -475,20 +461,6 @@ export const businessFeatures: Record<BusinessCategory, BusinessFeatures> = {
     isEducational: true
   },
   music_dance_school: {
-    hasPOS: false,
-    hasEstimates: false,
-    hasRecurring: true,
-    hasSuppliers: false,
-    hasPurchases: false,
-    hasInventory: false,
-    hasCustomers: true,
-    hasGST: true,
-    documentTypes: { hasInvoice: true, hasCashReceipt: true, hasEstimate: false, hasCreditNote: true, hasDebitNote: true },
-    isWalkIn: false,
-    isService: false,
-    isEducational: true
-  },
-  driving_school: {
     hasPOS: false,
     hasEstimates: false,
     hasRecurring: true,
@@ -559,35 +531,7 @@ export const businessFeatures: Record<BusinessCategory, BusinessFeatures> = {
     isService: true,
     isEducational: false
   },
-  // === HEALTHCARE (non-clinic style) ===
-  medical_clinic: {
-    hasPOS: false,
-    hasEstimates: false,
-    hasRecurring: false,
-    hasSuppliers: true,
-    hasPurchases: false,
-    hasInventory: true,
-    hasCustomers: true,
-    hasGST: true,
-    documentTypes: { hasInvoice: true, hasCashReceipt: true, hasEstimate: false, hasCreditNote: true, hasDebitNote: true },
-    isWalkIn: false,
-    isService: true,
-    isEducational: false
-  },
-  dental_clinic: {
-    hasPOS: false,
-    hasEstimates: false,
-    hasRecurring: false,
-    hasSuppliers: true,
-    hasPurchases: false,
-    hasInventory: true,
-    hasCustomers: true,
-    hasGST: true,
-    documentTypes: { hasInvoice: true, hasCashReceipt: true, hasEstimate: false, hasCreditNote: true, hasDebitNote: true },
-    isWalkIn: false,
-    isService: true,
-    isEducational: false
-  },
+  // === HEALTHCARE & WELLNESS ===
   pharmacy: {
     hasPOS: true,
     hasEstimates: false,
@@ -782,20 +726,6 @@ export const businessFeatures: Record<BusinessCategory, BusinessFeatures> = {
     hasCustomers: true,
     hasGST: true,
     documentTypes: { hasInvoice: true, hasCashReceipt: true, hasEstimate: true, hasCreditNote: true, hasDebitNote: true },
-    isWalkIn: false,
-    isService: true,
-    isEducational: false
-  },
-  car_wash: {
-    hasPOS: true,
-    hasEstimates: false,
-    hasRecurring: false,
-    hasSuppliers: false,
-    hasPurchases: false,
-    hasInventory: false,
-    hasCustomers: true,
-    hasGST: true,
-    documentTypes: { hasInvoice: true, hasCashReceipt: true, hasEstimate: false, hasCreditNote: true, hasDebitNote: false },
     isWalkIn: false,
     isService: true,
     isEducational: false

@@ -224,7 +224,13 @@
 		}
 
 		if (business_category) {
-			activeTerminology.set(getTerminology(business_category as BusinessCategory));
+			const terminology = getTerminology(business_category as BusinessCategory);
+			const biz = await getBusiness(business?.id || $activeBusinessId || '');
+			if (biz?.custom_person_label) {
+				terminology.person = biz.custom_person_label;
+				terminology.people = biz.custom_people_label || biz.custom_person_label + 's';
+			}
+			activeTerminology.set(terminology);
 		}
 
 		toast.success($_('toast.settings_saved', { default: 'Settings saved successfully' }));

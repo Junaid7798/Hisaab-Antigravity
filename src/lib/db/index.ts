@@ -14,9 +14,11 @@ export interface Business {
 	logo_base64: string;
 	invoice_counter: number;
 	fy_start: string; // ISO date string
-	business_category: string; // e.g., "medical_clinic", "kirana_store"
+	business_category: string; // e.g., "kirana_store", "pharmacy"
 	tax_registration_type: string; // "gst_registered" | "composition" | "unregistered"
 	industry_sector: string; // e.g., "healthcare", "retail", "services"
+	custom_person_label?: string;  // e.g., "Customer", "Client", "Patient" — user's choice
+	custom_people_label?: string;  // e.g., "Customers", "Clients", "Patients"
 	is_deleted: boolean;
 	created_at: string;
 	last_modified: string;
@@ -547,6 +549,14 @@ class HisaabDB extends Dexie {
 			patients: 'id, business_id, name, phone, email, state_code, is_deleted, last_modified',
 			products: 'id, business_id, name, sku, hsn_sac, is_deleted, last_modified',
 			staff: 'id, business_id, name, email, phone, role, is_active, is_deleted, last_modified'
+		});
+
+		// v13: add custom person/people labels so users can personalize terminology
+		this.version(13).stores({}).upgrade(tx => {
+			return tx.table('businesses').toCollection().modify(business => {
+				if (!business.custom_person_label) business.custom_person_label = '';
+				if (!business.custom_people_label) business.custom_people_label = '';
+			});
 		});
 	}
 }

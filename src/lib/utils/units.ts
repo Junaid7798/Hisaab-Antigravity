@@ -160,7 +160,6 @@ export function convertUnit(value: number, fromUnit: string, toUnit: string): nu
 
 export function getRecommendedUnits(businessCategory: string): string[] {
 	const recommendations: Record<string, string[]> = {
-		medical_clinic: ['pcs', 'box', 'pack', 'ml', 'l', 'g', 'kg'],
 		pharmacy: ['pcs', 'box', 'pack', 'ml', 'l', 'g', 'kg', 'tube', 'bottle'],
 		kirana_store: ['kg', 'g', 'l', 'ml', 'pack', 'bag', 'box', 'pcs'],
 		supermarket: ['kg', 'g', 'l', 'ml', 'pack', 'box', 'pcs', 'dozen'],
@@ -178,7 +177,6 @@ export function getRecommendedUnits(businessCategory: string): string[] {
 		fitness_gym: ['month', 'visit', 'session', 'pcs'],
 		salon: ['visit', 'session', 'pcs', 'ml'],
 		spa: ['visit', 'session', 'hour', 'ml', 'l'],
-		school: ['month', 'pcs', 'set'],
 		coaching_center: ['month', 'session', 'hour', 'pcs'],
 		tutor: ['hour', 'month', 'session', 'visit'],
 		freelancer: ['hour', 'day', 'job', 'month'],
@@ -191,7 +189,6 @@ export function getRecommendedUnits(businessCategory: string): string[] {
 		plumber: ['hour', 'job', 'pcs', 'ft', 'm'],
 		electrician: ['hour', 'job', 'pcs', 'm', 'ft'],
 		auto_garage: ['hour', 'job', 'pcs', 'l', 'ml'],
-		car_wash: ['pcs', 'car', 'set'],
 		taxi_rental: ['km', 'day', 'hour', 'trip'],
 		transport_logistics: ['ton', 'kg', 'cbm', 'trip', 'km']
 	};

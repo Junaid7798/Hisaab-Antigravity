@@ -1,7 +1,5 @@
 export type BusinessCategory =
-	// Healthcare
-	| 'medical_clinic'
-	| 'dental_clinic'
+	// Healthcare & Wellness
 	| 'pharmacy'
 	| 'veterinary_clinic'
 	| 'physiotherapy'
@@ -20,7 +18,7 @@ export type BusinessCategory =
 	| 'furniture_store'
 	| 'medical_equipment'
 	| 'auto_parts'
-	// Services
+	// Services & Freelance
 	| 'freelancer'
 	| 'consultant'
 	| 'marketing_agency'
@@ -37,12 +35,10 @@ export type BusinessCategory =
 	| 'sweet_shop'
 	| 'cloud_kitchen'
 	| 'caterer'
-	// Education
-	| 'school'
+	// Education & Coaching
 	| 'coaching_center'
 	| 'tutor'
 	| 'music_dance_school'
-	| 'driving_school'
 	// Beauty & Wellness
 	| 'salon'
 	| 'spa'
@@ -59,7 +55,6 @@ export type BusinessCategory =
 	| 'transport_logistics'
 	| 'taxi_rental'
 	| 'auto_garage'
-	| 'car_wash'
 	// Professional Services
 	| 'ca_firm'
 	| 'law_firm'
@@ -90,12 +85,10 @@ const defaultTerminology: Terminology = {
 };
 
 export const terminologyMap: Record<BusinessCategory, Terminology> = {
-	// Healthcare
-	medical_clinic: { person: 'Patient', people: 'Patients', document: 'Prescription', action: 'Appointments', item: 'Treatment', items: 'Treatments', venue: 'Clinic' },
-	dental_clinic: { person: 'Patient', people: 'Patients', document: 'Prescription', action: 'Appointments', item: 'Treatment', items: 'Treatments', venue: 'Clinic' },
+	// Healthcare & Wellness
 	pharmacy: { person: 'Customer', people: 'Customers', document: 'Bill', action: 'Orders', item: 'Medicine', items: 'Medicines', venue: 'Pharmacy' },
-	veterinary_clinic: { person: 'Client', people: 'Clients', document: 'Prescription', action: 'Appointments', item: 'Treatment', items: 'Treatments', venue: 'Clinic' },
-	physiotherapy: { person: 'Patient', people: 'Patients', document: 'Prescription', action: 'Sessions', item: 'Therapy', items: 'Therapies', venue: 'Center' },
+	veterinary_clinic: { person: 'Client', people: 'Clients', document: 'Invoice', action: 'Appointments', item: 'Treatment', items: 'Treatments', venue: 'Clinic' },
+	physiotherapy: { person: 'Patient', people: 'Patients', document: 'Invoice', action: 'Sessions', item: 'Therapy', items: 'Therapies', venue: 'Center' },
 	fitness_gym: { person: 'Member', people: 'Members', document: 'Invoice', action: 'Memberships', item: 'Plan', items: 'Plans', venue: 'Gym' },
 	yoga_studio: { person: 'Student', people: 'Students', document: 'Invoice', action: 'Classes', item: 'Session', items: 'Sessions', venue: 'Studio' },
 	// Retail
@@ -111,7 +104,7 @@ export const terminologyMap: Record<BusinessCategory, Terminology> = {
 	furniture_store: { person: 'Customer', people: 'Customers', document: 'Invoice', action: 'Orders', item: 'Item', items: 'Items', venue: 'Showroom' },
 	medical_equipment: { person: 'Customer', people: 'Customers', document: 'Invoice', action: 'Orders', item: 'Equipment', items: 'Equipment', venue: 'Store' },
 	auto_parts: { person: 'Customer', people: 'Customers', document: 'Bill', action: 'Orders', item: 'Part', items: 'Parts', venue: 'Store' },
-	// Services
+	// Services & Freelance
 	freelancer: { person: 'Client', people: 'Clients', document: 'Invoice', action: 'Projects', item: 'Service', items: 'Services', venue: 'Practice' },
 	consultant: { person: 'Client', people: 'Clients', document: 'Invoice', action: 'Projects', item: 'Consultation', items: 'Consultations', venue: 'Practice' },
 	marketing_agency: { person: 'Client', people: 'Clients', document: 'Invoice', action: 'Campaigns', item: 'Service', items: 'Services', venue: 'Agency' },
@@ -128,12 +121,10 @@ export const terminologyMap: Record<BusinessCategory, Terminology> = {
 	sweet_shop: { person: 'Customer', people: 'Customers', document: 'Bill', action: 'Orders', item: 'Sweet/Snack', items: 'Sweets & Snacks', venue: 'Shop' },
 	cloud_kitchen: { person: 'Customer', people: 'Customers', document: 'Bill', action: 'Orders', item: 'Dish', items: 'Dishes', venue: 'Kitchen' },
 	caterer: { person: 'Client', people: 'Clients', document: 'Invoice', action: 'Events', item: 'Package', items: 'Packages', venue: 'Service' },
-	// Education
-	school: { person: 'Student', people: 'Students', document: 'Fee Receipt', action: 'Enrollments', item: 'Fee', items: 'Fees', venue: 'School' },
+	// Education & Coaching
 	coaching_center: { person: 'Student', people: 'Students', document: 'Fee Receipt', action: 'Enrollments', item: 'Course', items: 'Courses', venue: 'Center' },
 	tutor: { person: 'Student', people: 'Students', document: 'Fee Receipt', action: 'Classes', item: 'Session', items: 'Sessions', venue: 'Practice' },
 	music_dance_school: { person: 'Student', people: 'Students', document: 'Fee Receipt', action: 'Enrollments', item: 'Class', items: 'Classes', venue: 'Academy' },
-	driving_school: { person: 'Student', people: 'Students', document: 'Fee Receipt', action: 'Enrollments', item: 'Course', items: 'Courses', venue: 'School' },
 	// Beauty & Wellness
 	salon: { person: 'Client', people: 'Clients', document: 'Bill', action: 'Appointments', item: 'Service', items: 'Services', venue: 'Salon' },
 	spa: { person: 'Client', people: 'Clients', document: 'Bill', action: 'Appointments', item: 'Therapy', items: 'Therapies', venue: 'Spa' },
@@ -150,7 +141,6 @@ export const terminologyMap: Record<BusinessCategory, Terminology> = {
 	transport_logistics: { person: 'Client', people: 'Clients', document: 'Invoice', action: 'Shipments', item: 'Freight', items: 'Freights', venue: 'Company' },
 	taxi_rental: { person: 'Customer', people: 'Customers', document: 'Invoice', action: 'Bookings', item: 'Trip/Rental', items: 'Trips & Rentals', venue: 'Service' },
 	auto_garage: { person: 'Customer', people: 'Customers', document: 'Invoice', action: 'Repairs', item: 'Service/Part', items: 'Services & Parts', venue: 'Garage' },
-	car_wash: { person: 'Customer', people: 'Customers', document: 'Bill', action: 'Services', item: 'Service', items: 'Services', venue: 'Service' },
 	// Professional Services
 	ca_firm: { person: 'Client', people: 'Clients', document: 'Invoice', action: 'Cases', item: 'Service', items: 'Services', venue: 'Firm' },
 	law_firm: { person: 'Client', people: 'Clients', document: 'Invoice', action: 'Cases', item: 'Service', items: 'Services', venue: 'Firm' },
@@ -164,18 +154,34 @@ export function getTerminology(category: string | undefined): Terminology {
 	return terminologyMap[category as BusinessCategory] || defaultTerminology;
 }
 
+// Person label options that a business owner can pick from at onboarding
+export const personLabelOptions = [
+	{ singular: 'Customer', plural: 'Customers' },
+	{ singular: 'Client', plural: 'Clients' },
+	{ singular: 'Patient', plural: 'Patients' },
+	{ singular: 'Member', plural: 'Members' },
+	{ singular: 'Student', plural: 'Students' },
+	{ singular: 'Guest', plural: 'Guests' },
+	{ singular: 'Buyer', plural: 'Buyers' },
+];
+
+/** Returns the suggested person label for a given category */
+export function getSuggestedPersonLabel(category: BusinessCategory | null): { singular: string; plural: string } {
+	if (!category) return { singular: 'Customer', plural: 'Customers' };
+	const t = terminologyMap[category] ?? defaultTerminology;
+	return { singular: t.person, plural: t.people };
+}
+
 export const categoryGroups = [
 	{
-		sector: 'Healthcare',
+		sector: 'Healthcare & Wellness',
 		icon: 'medical_services',
 		items: [
-			{ id: 'medical_clinic', label: 'Medical Clinic' },
-			{ id: 'dental_clinic', label: 'Dental Clinic' },
 			{ id: 'pharmacy', label: 'Pharmacy' },
 			{ id: 'veterinary_clinic', label: 'Veterinary Clinic' },
-			{ id: 'physiotherapy', label: 'Physiotherapy' },
+			{ id: 'physiotherapy', label: 'Physiotherapy Center' },
 			{ id: 'fitness_gym', label: 'Fitness / Gym' },
-			{ id: 'yoga_studio', label: 'Yoga Studio' }
+			{ id: 'yoga_studio', label: 'Yoga / Meditation Studio' }
 		]
 	},
 	{
@@ -215,30 +221,28 @@ export const categoryGroups = [
 		sector: 'Food & Beverage',
 		icon: 'restaurant',
 		items: [
-			{ id: 'restaurant', label: 'Restaurant' },
-			{ id: 'cafe', label: 'Cafe' },
+			{ id: 'restaurant', label: 'Restaurant / Dhaba' },
+			{ id: 'cafe', label: 'Cafe / Tea Stall' },
 			{ id: 'bakery', label: 'Bakery' },
-			{ id: 'sweet_shop', label: 'Sweet Shop' },
+			{ id: 'sweet_shop', label: 'Sweet Shop / Mithai' },
 			{ id: 'cloud_kitchen', label: 'Cloud Kitchen' },
 			{ id: 'caterer', label: 'Caterer' }
 		]
 	},
 	{
-		sector: 'Education',
+		sector: 'Education & Coaching',
 		icon: 'school',
 		items: [
-			{ id: 'school', label: 'School' },
 			{ id: 'coaching_center', label: 'Coaching Center' },
-			{ id: 'tutor', label: 'Tutor' },
-			{ id: 'music_dance_school', label: 'Music/Dance School' },
-			{ id: 'driving_school', label: 'Driving School' }
+			{ id: 'tutor', label: 'Tutor / Home Classes' },
+			{ id: 'music_dance_school', label: 'Music / Dance Academy' }
 		]
 	},
 	{
 		sector: 'Beauty & Wellness',
 		icon: 'spa',
 		items: [
-			{ id: 'salon', label: 'Salon' },
+			{ id: 'salon', label: 'Salon / Parlour' },
 			{ id: 'spa', label: 'Spa' },
 			{ id: 'makeup_artist', label: 'Makeup Artist' },
 			{ id: 'massage_therapy', label: 'Massage Therapy' }
@@ -262,8 +266,7 @@ export const categoryGroups = [
 		items: [
 			{ id: 'transport_logistics', label: 'Transport / Logistics' },
 			{ id: 'taxi_rental', label: 'Taxi / Rental' },
-			{ id: 'auto_garage', label: 'Auto Garage' },
-			{ id: 'car_wash', label: 'Car Wash' }
+			{ id: 'auto_garage', label: 'Auto Garage / Workshop' }
 		]
 	},
 	{
