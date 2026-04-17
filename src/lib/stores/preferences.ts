@@ -3,6 +3,7 @@ import { writable } from 'svelte/store';
 export interface UserPreferences {
 	theme: 'light' | 'dark' | 'auto';
 	accentColor: string;
+	accentContainer: string;
 	compactMode: boolean;
 	fontSize: 'small' | 'medium' | 'large';
 	animations: 'full' | 'reduced' | 'none';
@@ -47,6 +48,7 @@ export interface UserPreferences {
 const defaultPreferences: UserPreferences = {
 	theme: 'auto',
 	accentColor: '#003f87',
+	accentContainer: '#0056b3',
 	compactMode: false,
 	fontSize: 'medium',
 	animations: 'full',
@@ -106,6 +108,7 @@ function applyPreferencesToDOM(value: UserPreferences) {
 	if (typeof window === 'undefined') return;
 	
 	document.documentElement.style.setProperty('--sys-primary', value.accentColor);
+	document.documentElement.style.setProperty('--sys-primary-container', value.accentContainer || value.accentColor);
 	
 	document.documentElement.classList.toggle('compact', value.compactMode);
 	

@@ -39,15 +39,16 @@
 	let importing = $state(false);
 	let purging = $state(false);
 
-	const accentColors = [
-		{ id: 'blue', name: 'Ocean Blue', value: '#003f87' },
-		{ id: 'violet', name: 'Royal Purple', value: '#7c3aed' },
-		{ id: 'emerald', name: 'Forest Green', value: '#059669' },
-		{ id: 'coral', name: 'Sunset Coral', value: '#f97316' },
-		{ id: 'rose', name: 'Rose Pink', value: '#e11d48' },
-		{ id: 'cyan', name: 'Sky Cyan', value: '#0891b2' },
-		{ id: 'amber', name: 'Warm Amber', value: '#d97706' },
-		{ id: 'slate', name: 'Steel Slate', value: '#475569' }
+	// Premium palettes: [primary, container] — muted, desaturated, professional
+	const accentPalettes = [
+		{ id: 'navy', name: 'Navy',      primary: '#1e3a5f', container: '#2d5282' },
+		{ id: 'indigo', name: 'Indigo',  primary: '#3730a3', container: '#4338ca' },
+		{ id: 'slate', name: 'Slate',    primary: '#334155', container: '#475569' },
+		{ id: 'forest', name: 'Forest',  primary: '#14532d', container: '#166534' },
+		{ id: 'teal', name: 'Teal',      primary: '#0f4c5c', container: '#0e6b7c' },
+		{ id: 'plum', name: 'Plum',      primary: '#581c87', container: '#6b21a8' },
+		{ id: 'charcoal', name: 'Carbon', primary: '#1c1c1c', container: '#2d2d2d' },
+		{ id: 'sienna', name: 'Sienna',  primary: '#7c2d12', container: '#9a3412' },
 	];
 
 	const currencies = [
@@ -419,26 +420,38 @@
 					</div>
 				</div>
 
-<!-- Accent Color -->
+<!-- Brand Color -->
 			<div class="mb-8">
-				<span class="block text-[11px] font-bold text-outline uppercase tracking-wider mb-4">Accent Color</span>
-				<div class="flex flex-wrap gap-3">
-						{#each accentColors as color}
-							<button
-								type="button"
-								onclick={() => updatePreference('accentColor', color.value)}
-								class="w-12 h-12 rounded-2xl transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-								style="background-color: {color.value}; {$preferences.accentColor === color.value ? 'ring-2 ring-offset-2 ring-primary scale-110' : ''}"
-								title={color.name}
-							>
-								{#if $preferences.accentColor === color.value}
-									<span class="material-symbols-outlined text-white text-xl" style="font-variation-settings: 'FILL' 1;">check</span>
+				<span class="block text-[11px] font-bold text-outline uppercase tracking-wider mb-1">Brand Color</span>
+				<p class="text-xs text-on-surface-variant mb-4">Choose a palette that defines your app's primary color across buttons, links, and highlights.</p>
+				<div class="grid grid-cols-4 sm:grid-cols-8 gap-2">
+					{#each accentPalettes as palette}
+						{@const isActive = $preferences.accentColor === palette.primary}
+						<button
+							type="button"
+							onclick={() => {
+								preferences.update(p => ({ ...p, accentColor: palette.primary, accentContainer: palette.container }));
+								document.documentElement.style.setProperty('--sys-primary', palette.primary);
+								document.documentElement.style.setProperty('--sys-primary-container', palette.container);
+							}}
+							class="flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all border {isActive ? 'border-primary bg-primary/5' : 'border-transparent hover:border-outline-variant/40 hover:bg-surface-container'}"
+							title={palette.name}
+						>
+							<div class="w-8 h-8 rounded-lg shadow-sm relative flex items-center justify-center transition-transform {isActive ? 'scale-105' : ''}"
+								style="background: linear-gradient(135deg, {palette.primary} 0%, {palette.container} 100%)">
+								{#if isActive}
+									<span class="material-symbols-outlined text-white text-sm" style="font-variation-settings:'FILL' 1">check</span>
 								{/if}
-							</button>
-						{/each}
-					</div>
-					<p class="text-xs text-on-surface-variant mt-2">Current: {accentColors.find(c => c.value === $preferences.accentColor)?.name || 'Custom'}</p>
+							</div>
+							<span class="text-[10px] font-semibold {isActive ? 'text-primary' : 'text-on-surface-variant'} leading-none">{palette.name}</span>
+						</button>
+					{/each}
 				</div>
+				<p class="text-[11px] text-on-surface-variant mt-3 flex items-center gap-1.5">
+					<span class="w-3 h-3 rounded-sm inline-block" style="background: {$preferences.accentColor}"></span>
+					Active: {accentPalettes.find(p => p.primary === $preferences.accentColor)?.name ?? 'Custom'}
+				</p>
+			</div>
 
 <!-- Display Density -->
 			<div class="mb-8">
