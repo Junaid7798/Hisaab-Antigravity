@@ -75,11 +75,17 @@
 </svelte:head>
 
 <!-- Header -->
-<div class="mb-6 lg:mb-10">
-	<h2 class="text-2xl lg:text-3xl font-headline font-bold text-on-surface">{$_('dashboard.overview', { default: 'Dashboard Overview' })}</h2>
-	<p class="text-on-surface-variant font-body mt-1 text-sm lg:text-base">
-		{#if businessName}{$_('dashboard.financial_perf', { default: 'Financial performance for' })} {businessName}{:else}{$_('dashboard.welcome', { default: 'Welcome to Hisaab' })}{/if}
-	</p>
+<div class="mb-3 lg:mb-8 flex items-center justify-between">
+	<div>
+		<h2 class="text-base font-headline font-bold text-on-surface lg:text-2xl">{businessName || 'Dashboard'}</h2>
+		<p class="text-on-surface-variant text-xs mt-0.5 lg:text-sm">
+			{#if businessName}Financial performance{:else}Welcome to Hisaab{/if}
+		</p>
+	</div>
+	<a href="/invoices/new" class="shrink-0 flex items-center gap-1.5 bg-primary text-on-primary rounded-xl font-bold shadow-md shadow-primary/20 px-3 py-2 text-sm active:scale-95 transition-all lg:hidden">
+		<span class="material-symbols-outlined text-base">add</span>
+		New
+	</a>
 </div>
 
 <!-- Metrics -->
@@ -122,64 +128,48 @@
 		</div>
 	</div>
 {:else}
-<div class="grid grid-cols-12 gap-4 lg:gap-5 mb-8">
-	<!-- Revenue — Primary accent card -->
-	<div in:fly={{ y: 16, duration: 350, delay: 50, easing: cubicOut }} class="col-span-12 md:col-span-4 relative overflow-hidden rounded-2xl p-5 lg:p-6"
-		style="background: linear-gradient(135deg, var(--color-primary) 0%, color-mix(in srgb, var(--color-primary) 70%, #1e40af) 100%); box-shadow: 0 8px 32px color-mix(in srgb, var(--color-primary) 35%, transparent), 0 1px 3px rgba(0,0,0,0.2);">
-		<div class="relative z-10">
-			<div class="flex items-center gap-2 mb-3">
-				<div class="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center">
-					<span class="material-symbols-outlined text-white text-base" style="font-variation-settings:'FILL' 1">payments</span>
-				</div>
-				<p class="text-[11px] font-bold uppercase tracking-widest text-white/70">{$_('dashboard.total_revenue', { default: 'Total Revenue' })}</p>
-			</div>
-			<h3 class="text-3xl lg:text-4xl font-headline font-extrabold leading-none text-white">{formatINRCompact(revenue)}</h3>
-			<div class="mt-3 flex items-center gap-1.5 text-xs text-white/80">
-				{#if revenueChange !== null}
-					{#if revenueChange >= 0}
-						<span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1">trending_up</span>
-						<span class="font-semibold">+{revenueChange.toFixed(1)}%</span><span class="opacity-70">vs last month</span>
-					{:else}
-						<span class="material-symbols-outlined text-sm text-red-200" style="font-variation-settings:'FILL' 1">trending_down</span>
-						<span class="font-semibold text-red-200">{revenueChange.toFixed(1)}%</span><span class="opacity-70">vs last month</span>
-					{/if}
-				{:else}
-					<span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1">trending_up</span>
-					<span>{$_('dashboard.all_time', { default: 'All time' })}</span>
-				{/if}
-			</div>
+<!-- Stats: 3-column grid, all visible at once -->
+<div class="grid grid-cols-3 gap-2 mb-4 lg:gap-4 lg:mb-8">
+
+	<!-- Revenue -->
+	<div in:fly={{ y: 16, duration: 350, delay: 50, easing: cubicOut }}
+		class="relative overflow-hidden rounded-xl p-3 lg:p-6"
+		style="background: linear-gradient(135deg, var(--color-primary) 0%, color-mix(in srgb, var(--color-primary) 70%, #1e40af) 100%); box-shadow: 0 4px 16px color-mix(in srgb, var(--color-primary) 30%, transparent);">
+		<div class="flex items-center gap-1 mb-1">
+			<span class="material-symbols-outlined text-white/80 text-sm lg:text-base" style="font-variation-settings:'FILL' 1">payments</span>
+			<p class="text-[9px] lg:text-[10px] font-bold uppercase tracking-widest text-white/70 truncate">Revenue</p>
 		</div>
-		<div class="absolute -right-3 -bottom-3 opacity-[0.07]">
-			<span class="material-symbols-outlined text-[110px]" style="font-variation-settings:'FILL' 1">payments</span>
-		</div>
+		<h3 class="text-base lg:text-3xl font-headline font-extrabold leading-none text-white">{formatINRCompact(revenue)}</h3>
+		{#if revenueChange !== null}
+			<p class="text-[10px] text-white/80 mt-1 flex items-center gap-0.5">
+				<span class="material-symbols-outlined text-xs" style="font-variation-settings:'FILL' 1">{revenueChange >= 0 ? 'trending_up' : 'trending_down'}</span>
+				<span class="hidden sm:inline">{revenueChange >= 0 ? '+' : ''}{revenueChange.toFixed(1)}%</span>
+			</p>
+		{/if}
 	</div>
 
 	<!-- Outstanding -->
-	<div in:fly={{ y: 16, duration: 350, delay: 130, easing: cubicOut }} class="col-span-12 md:col-span-4 bg-surface-container-lowest rounded-2xl p-5 lg:p-6 relative overflow-hidden border border-outline-variant/20"
-		style="box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);">
-		<div class="absolute top-0 left-0 w-1 h-full rounded-l-2xl bg-error opacity-70"></div>
-		<div class="flex items-center gap-2 mb-3 pl-2">
-			<div class="w-7 h-7 rounded-lg bg-error/10 flex items-center justify-center">
-				<span class="material-symbols-outlined text-error text-base" style="font-variation-settings:'FILL' 1">schedule</span>
-			</div>
-			<p class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">{$_('dashboard.outstanding', { default: 'Outstanding' })}</p>
+	<div in:fly={{ y: 16, duration: 350, delay: 130, easing: cubicOut }}
+		class="bg-surface-container-lowest rounded-xl p-3 lg:p-6 relative overflow-hidden border border-outline-variant/20">
+		<div class="absolute top-0 left-0 w-1 h-full rounded-l-xl bg-error opacity-70"></div>
+		<div class="flex items-center gap-1 mb-1 pl-2">
+			<span class="material-symbols-outlined text-error text-sm lg:text-base" style="font-variation-settings:'FILL' 1">schedule</span>
+			<p class="text-[9px] lg:text-[10px] font-bold uppercase tracking-widest text-on-surface-variant truncate">Due</p>
 		</div>
-		<h3 class="text-3xl lg:text-4xl font-headline font-extrabold mt-1 text-error leading-none pl-2">{formatINRCompact(outstanding)}</h3>
-		<p class="mt-2 text-xs text-on-surface-variant pl-2">{$_('dashboard.unpaid_invoices', { default: 'Unpaid invoices pending collection' })}</p>
+		<h3 class="text-base lg:text-3xl font-headline font-extrabold text-error leading-none pl-2">{formatINRCompact(outstanding)}</h3>
+		<p class="text-[10px] text-on-surface-variant pl-2 mt-1 hidden sm:block">Unpaid</p>
 	</div>
 
 	<!-- Customers -->
-	<div in:fly={{ y: 16, duration: 350, delay: 210, easing: cubicOut }} class="col-span-12 md:col-span-4 bg-surface-container-lowest rounded-2xl p-5 lg:p-6 relative overflow-hidden border border-outline-variant/20"
-		style="box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);">
-		<div class="absolute top-0 left-0 w-1 h-full rounded-l-2xl bg-secondary opacity-70"></div>
-		<div class="flex items-center gap-2 mb-3 pl-2">
-			<div class="w-7 h-7 rounded-lg bg-secondary/10 flex items-center justify-center">
-				<span class="material-symbols-outlined text-secondary text-base" style="font-variation-settings:'FILL' 1">group</span>
-			</div>
-			<p class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">{$_('dashboard.total_patients', { default: $activeTerminology.people })}</p>
+	<div in:fly={{ y: 16, duration: 350, delay: 210, easing: cubicOut }}
+		class="bg-surface-container-lowest rounded-xl p-3 lg:p-6 relative overflow-hidden border border-outline-variant/20">
+		<div class="absolute top-0 left-0 w-1 h-full rounded-l-xl bg-secondary opacity-70"></div>
+		<div class="flex items-center gap-1 mb-1 pl-2">
+			<span class="material-symbols-outlined text-secondary text-sm lg:text-base" style="font-variation-settings:'FILL' 1">group</span>
+			<p class="text-[9px] lg:text-[10px] font-bold uppercase tracking-widest text-on-surface-variant truncate">{$activeTerminology.people}</p>
 		</div>
-		<h3 class="text-3xl lg:text-4xl font-headline font-extrabold mt-1 text-secondary leading-none pl-2">{patientCount}</h3>
-		<p class="mt-2 text-xs text-on-surface-variant pl-2">{$_('dashboard.registered_patients', { default: `Registered ${$activeTerminology.people.toLowerCase()}` })}</p>
+		<h3 class="text-base lg:text-3xl font-headline font-extrabold text-secondary leading-none pl-2">{patientCount}</h3>
+		<p class="text-[10px] text-on-surface-variant pl-2 mt-1 hidden sm:block">Registered</p>
 	</div>
 </div>
 
@@ -209,63 +199,54 @@
 
 	<!-- Smart Nudges -->
 	{#if longOverdueCount > 0 || slowMovingProducts.length > 0 || lowStockProducts.length > 0 || pendingLeaveCount > 0}
-		<div class="mb-10">
-			<h4 class="font-headline font-bold text-xl mb-4">Smart Alerts</h4>
-			<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+		<div class="mb-4 lg:mb-10">
+			<h4 class="font-headline font-bold text-sm lg:text-xl mb-2 lg:mb-3">Alerts</h4>
+			<div class="flex gap-2 overflow-x-auto pb-1 -mx-3 px-3 scrollbar-none lg:grid lg:grid-cols-2 xl:grid-cols-4 lg:mx-0 lg:px-0">
 
-				<!-- Long overdue customers (>30 days) -->
 				{#if longOverdueCount > 0}
-					<a href="/invoices" class="group bg-error-container/70 border border-error/20 rounded-xl p-4 flex items-start gap-3 hover:bg-error-container transition-colors">
-						<span class="material-symbols-outlined text-error text-xl mt-0.5 shrink-0" style="font-variation-settings:'FILL' 1">alarm</span>
-						<div>
-							<p class="font-bold text-sm text-on-error-container">{longOverdueCount} overdue 30+ days</p>
-							<p class="text-xs text-error/80 mt-0.5">Total: {formatINRCompact(longOverdueAmount)}</p>
-							<p class="text-[11px] text-error font-semibold mt-2 flex items-center gap-0.5 group-hover:underline">Collect now <span class="material-symbols-outlined text-[13px]">arrow_forward</span></p>
+					<a href="/invoices" class="shrink-0 w-48 lg:w-auto group bg-error-container/70 border border-error/20 rounded-xl p-3 flex items-center gap-2.5 active:scale-95 transition-all">
+						<span class="material-symbols-outlined text-error text-lg shrink-0" style="font-variation-settings:'FILL' 1">alarm</span>
+						<div class="min-w-0">
+							<p class="font-bold text-sm text-on-error-container leading-tight">{longOverdueCount} overdue 30+d</p>
+							<p class="text-xs text-error/80">{formatINRCompact(longOverdueAmount)}</p>
 						</div>
 					</a>
 				{:else if overdueInvoices.length > 0}
-					<a href="/invoices" class="group bg-error-container/40 border border-error/10 rounded-xl p-4 flex items-start gap-3 hover:bg-error-container/70 transition-colors">
-						<span class="material-symbols-outlined text-error text-xl mt-0.5 shrink-0">warning</span>
-						<div>
-							<p class="font-bold text-sm text-on-surface">{overdueInvoices.length} overdue invoice{overdueInvoices.length > 1 ? 's' : ''}</p>
-							<p class="text-xs text-on-surface-variant mt-0.5">Follow up with customers</p>
-							<p class="text-[11px] text-error font-semibold mt-2 flex items-center gap-0.5 group-hover:underline">View invoices <span class="material-symbols-outlined text-[13px]">arrow_forward</span></p>
+					<a href="/invoices" class="shrink-0 w-48 lg:w-auto group bg-error-container/40 border border-error/10 rounded-xl p-3 flex items-center gap-2.5 active:scale-95 transition-all">
+						<span class="material-symbols-outlined text-error text-lg shrink-0">warning</span>
+						<div class="min-w-0">
+							<p class="font-bold text-sm text-on-surface leading-tight">{overdueInvoices.length} overdue</p>
+							<p class="text-xs text-on-surface-variant">Follow up</p>
 						</div>
 					</a>
 				{/if}
 
-				<!-- Slow-moving products -->
 				{#if slowMovingProducts.length > 0}
-					<a href="/inventory" class="group bg-tertiary-container/40 border border-tertiary/10 rounded-xl p-4 flex items-start gap-3 hover:bg-tertiary-container/70 transition-colors">
-						<span class="material-symbols-outlined text-tertiary text-xl mt-0.5 shrink-0" style="font-variation-settings:'FILL' 1">trending_down</span>
-						<div>
-							<p class="font-bold text-sm text-on-surface">{slowMovingProducts.length} slow-moving item{slowMovingProducts.length > 1 ? 's' : ''}</p>
-							<p class="text-xs text-on-surface-variant mt-0.5 truncate">{slowMovingProducts.slice(0,2).map(p => p.name).join(', ')}{slowMovingProducts.length > 2 ? '…' : ''}</p>
-							<p class="text-[11px] text-tertiary font-semibold mt-2 flex items-center gap-0.5 group-hover:underline">Review stock <span class="material-symbols-outlined text-[13px]">arrow_forward</span></p>
+					<a href="/inventory" class="shrink-0 w-48 lg:w-auto group bg-tertiary-container/40 border border-tertiary/10 rounded-xl p-3 flex items-center gap-2.5 active:scale-95 transition-all">
+						<span class="material-symbols-outlined text-tertiary text-lg shrink-0" style="font-variation-settings:'FILL' 1">trending_down</span>
+						<div class="min-w-0">
+							<p class="font-bold text-sm text-on-surface leading-tight">{slowMovingProducts.length} slow items</p>
+							<p class="text-xs text-on-surface-variant truncate">{slowMovingProducts[0]?.name}</p>
 						</div>
 					</a>
 				{/if}
 
-				<!-- Low stock -->
 				{#if lowStockProducts.length > 0}
-					<a href="/inventory" class="group bg-primary-container/30 border border-primary/10 rounded-xl p-4 flex items-start gap-3 hover:bg-primary-container/50 transition-colors">
-						<span class="material-symbols-outlined text-primary text-xl mt-0.5 shrink-0" style="font-variation-settings:'FILL' 1">inventory_2</span>
-						<div>
-							<p class="font-bold text-sm text-on-surface">{lowStockProducts.length} low stock item{lowStockProducts.length > 1 ? 's' : ''}</p>
-							<p class="text-xs text-on-surface-variant mt-0.5">Reorder soon to avoid stockout</p>
-							<p class="text-[11px] text-primary font-semibold mt-2 flex items-center gap-0.5 group-hover:underline">View inventory <span class="material-symbols-outlined text-[13px]">arrow_forward</span></p>
+					<a href="/inventory" class="shrink-0 w-48 lg:w-auto group bg-primary-container/30 border border-primary/10 rounded-xl p-3 flex items-center gap-2.5 active:scale-95 transition-all">
+						<span class="material-symbols-outlined text-primary text-lg shrink-0" style="font-variation-settings:'FILL' 1">inventory_2</span>
+						<div class="min-w-0">
+							<p class="font-bold text-sm text-on-surface leading-tight">{lowStockProducts.length} low stock</p>
+							<p class="text-xs text-on-surface-variant">Reorder soon</p>
 						</div>
 					</a>
 				{/if}
 
-				<!-- Pending leave approvals -->
 				{#if pendingLeaveCount > 0}
-					<a href="/attendance" class="group bg-surface-container border border-outline-variant/30 rounded-xl p-4 flex items-start gap-3 hover:bg-surface-container-high transition-colors">
-						<span class="material-symbols-outlined text-on-surface-variant text-xl mt-0.5 shrink-0" style="font-variation-settings:'FILL' 1">pending_actions</span>
-						<div>
-							<p class="font-bold text-sm text-on-surface">{pendingLeaveCount} leave request{pendingLeaveCount > 1 ? 's' : ''} pending</p>
-							<p class="text-xs text-on-surface-variant mt-0.5">Staff waiting for approval</p>
-							<p class="text-[11px] text-on-surface-variant font-semibold mt-2 flex items-center gap-0.5 group-hover:underline">Approve now <span class="material-symbols-outlined text-[13px]">arrow_forward</span></p>
+					<a href="/staff" class="shrink-0 w-48 lg:w-auto group bg-surface-container border border-outline-variant/30 rounded-xl p-3 flex items-center gap-2.5 active:scale-95 transition-all">
+						<span class="material-symbols-outlined text-on-surface-variant text-lg shrink-0" style="font-variation-settings:'FILL' 1">pending_actions</span>
+						<div class="min-w-0">
+							<p class="font-bold text-sm text-on-surface leading-tight">{pendingLeaveCount} leave pending</p>
+							<p class="text-xs text-on-surface-variant">Needs approval</p>
 						</div>
 					</a>
 				{/if}
@@ -275,10 +256,10 @@
 	{/if}
 
 	<!-- Recent Invoices -->
-<div class="grid grid-cols-12 gap-6">
+<div class="grid grid-cols-12 gap-4 lg:gap-6">
 	<div in:fade={{ duration: 400, delay: 350 }} class="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
-		<div class="p-6 border-b border-surface-container flex justify-between items-center">
-			<h4 class="font-headline font-bold text-xl">{$_('dashboard.recent_invoices', { default: `Recent ${$activeTerminology.action}` })}</h4>
+		<div class="px-4 py-3 lg:p-6 border-b border-surface-container flex justify-between items-center">
+			<h4 class="font-headline font-bold text-base lg:text-xl">{$_('dashboard.recent_invoices', { default: `Recent ${$activeTerminology.action}` })}</h4>
 			<a href="/invoices/new" class="text-primary text-sm font-semibold hover:underline">{$_('dashboard.create_new', { default: 'Create New' })}</a>
 		</div>
 
@@ -291,110 +272,67 @@
 				actionHref="/invoices/new"
 			/>
 		{:else}
-			<div class="overflow-x-auto -mx-6 px-6 lg:mx-0 lg:px-0">
-				<table class="w-full text-left whitespace-nowrap">
-					<thead>
-						<tr class="bg-surface-container-low text-on-surface-variant">
-							<th class="px-6 py-4 text-[10px] font-bold uppercase tracking-wider">{$_('dashboard.table_patient', { default: $activeTerminology.person })}</th>
-							<th class="px-6 py-4 text-[10px] font-bold uppercase tracking-wider">{$_('dashboard.table_date', { default: 'Date' })}</th>
-							<th class="px-6 py-4 text-[10px] font-bold uppercase tracking-wider">{$_('dashboard.table_amount', { default: 'Amount' })}</th>
-							<th class="px-6 py-4 text-[10px] font-bold uppercase tracking-wider">{$_('dashboard.table_status', { default: 'Status' })}</th>
-							<th class="px-6 py-4"></th>
-						</tr>
-					</thead>
-					<tbody class="divide-y divide-surface-container-low">
-						{#each recentInvoices as inv}
-						<tr class="hover:bg-surface-container-low transition-colors cursor-pointer group" onclick={() => { window.location.href = `/invoices/${inv.id}`; }}>
-							<td class="px-6 py-4">
-								<div class="flex items-center gap-3">
-									<PatientAvatar name={inv.patient_name} size="sm" />
-									<div>
-										<p class="text-sm font-semibold">{inv.patient_name}</p>
-										<p class="text-[10px] text-on-surface-variant">{inv.invoice_number}</p>
-									</div>
-								</div>
-							</td>
-							<td class="px-6 py-4 text-sm text-on-surface-variant">{formatDate(inv.issue_date)}</td>
-							<td class="px-6 py-4 text-sm font-bold text-on-surface">{formatINR(inv.grand_total)}</td>
-							<td class="px-6 py-4">
-								<StatusChip status={inv.status} />
-							</td>
-							<td class="px-6 py-4 text-right">
-								<a href="/invoices/{inv.id}" class="text-primary text-sm font-semibold hover:underline flex items-center justify-end gap-1">
-									{$_('patients.view', { default: 'View' })} <span class="material-symbols-outlined text-xs">chevron_right</span>
-								</a>
-							</td>
-						</tr>
-					{/each}
-					</tbody>
-				</table>
+			<div class="divide-y divide-surface-container-low">
+				{#each recentInvoices as inv}
+					<a href="/invoices/{inv.id}" class="flex items-center gap-3 px-4 py-3 min-h-[56px] hover:bg-surface-container-low active:bg-surface-container transition-colors">
+						<PatientAvatar name={inv.patient_name} size="sm" />
+						<div class="flex-1 min-w-0">
+							<p class="text-sm font-semibold text-on-surface truncate">{inv.patient_name}</p>
+							<p class="text-xs text-on-surface-variant">{inv.invoice_number} · {formatDate(inv.issue_date)}</p>
+						</div>
+						<div class="shrink-0 text-right">
+							<p class="text-sm font-bold text-on-surface">{formatINR(inv.grand_total)}</p>
+							<StatusChip status={inv.status} />
+						</div>
+						<span class="material-symbols-outlined text-on-surface-variant/40 text-lg shrink-0">chevron_right</span>
+					</a>
+				{/each}
 			</div>
 		{/if}
 	</div>
 
-	<!-- Quick Actions Sidebar -->
-	<div class="col-span-12 lg:col-span-4 space-y-5">
+	<!-- Quick Actions Sidebar — hidden on mobile (already have FAB + bottom nav) -->
+	<div class="hidden lg:block col-span-12 lg:col-span-4 space-y-3 lg:space-y-5">
 		<!-- Quick Actions -->
-		<div in:fly={{ x: 20, duration: 400, delay: 450, easing: cubicOut }} class="bg-surface-container-high p-5 lg:p-6 rounded-2xl">
-			<h5 class="font-headline font-bold text-base lg:text-lg mb-4">{$_('dashboard.quick_actions', { default: 'Quick Actions' })}</h5>
-			<div class="space-y-2.5">
-				<a href="/invoices/new" class="min-h-[56px] px-3 py-3 bg-surface-container-lowest rounded-xl flex items-center gap-3 border border-transparent hover:border-primary/20 active:scale-[0.98] transition-all">
-					<div class="w-10 h-10 shrink-0 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-						<span class="material-symbols-outlined text-xl">add_circle</span>
+		<div in:fly={{ x: 20, duration: 400, delay: 450, easing: cubicOut }} class="bg-surface-container-high p-4 lg:p-6 rounded-2xl">
+			<h5 class="font-headline font-bold text-sm lg:text-lg mb-3">{$_('dashboard.quick_actions', { default: 'Quick Actions' })}</h5>
+			<div class="space-y-1.5 lg:space-y-2.5">
+				<a href="/invoices/new" class="min-h-[48px] lg:min-h-[56px] px-3 py-2 lg:py-3 bg-surface-container-lowest rounded-xl flex items-center gap-3 border border-transparent hover:border-primary/20 active:scale-[0.98] transition-all">
+					<div class="w-8 h-8 lg:w-10 lg:h-10 shrink-0 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+						<span class="material-symbols-outlined text-lg lg:text-xl">add_circle</span>
 					</div>
 					<div class="min-w-0">
 						<p class="text-sm font-semibold leading-tight">{$_('actions.new_invoice', { default: `New ${$activeTerminology.document}` })}</p>
-						<p class="text-xs text-on-surface-variant mt-0.5">{$_('dashboard.new_invoice_desc', { default: 'Create GST bill' })}</p>
+						<p class="text-[11px] text-on-surface-variant">{$_('dashboard.new_invoice_desc', { default: 'Create GST bill' })}</p>
 					</div>
 				</a>
-				<a href="/patients" class="min-h-[56px] px-3 py-3 bg-surface-container-lowest rounded-xl flex items-center gap-3 border border-transparent hover:border-primary/20 active:scale-[0.98] transition-all">
-					<div class="w-10 h-10 shrink-0 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center">
-						<span class="material-symbols-outlined text-xl">person_add</span>
+				<a href="/patients" class="min-h-[48px] lg:min-h-[56px] px-3 py-2 lg:py-3 bg-surface-container-lowest rounded-xl flex items-center gap-3 border border-transparent hover:border-primary/20 active:scale-[0.98] transition-all">
+					<div class="w-8 h-8 lg:w-10 lg:h-10 shrink-0 rounded-lg bg-secondary/10 text-secondary flex items-center justify-center">
+						<span class="material-symbols-outlined text-lg lg:text-xl">person_add</span>
 					</div>
 					<div class="min-w-0">
 						<p class="text-sm font-semibold leading-tight">{$_('actions.add_patient', { default: `Add ${$activeTerminology.person}` })}</p>
-						<p class="text-xs text-on-surface-variant mt-0.5">{$_('dashboard.add_patient_desc', { default: `Register new ${$activeTerminology.person.toLowerCase()}` })}</p>
+						<p class="text-[11px] text-on-surface-variant">{$_('dashboard.add_patient_desc', { default: `Register new ${$activeTerminology.person.toLowerCase()}` })}</p>
 					</div>
 				</a>
-				<a href="/expenses" class="min-h-[56px] px-3 py-3 bg-surface-container-lowest rounded-xl flex items-center gap-3 border border-transparent hover:border-primary/20 active:scale-[0.98] transition-all">
-					<div class="w-10 h-10 shrink-0 rounded-xl bg-tertiary-fixed text-on-tertiary-fixed-variant flex items-center justify-center">
-						<span class="material-symbols-outlined text-xl">post_add</span>
+				<a href="/expenses" class="min-h-[48px] lg:min-h-[56px] px-3 py-2 lg:py-3 bg-surface-container-lowest rounded-xl flex items-center gap-3 border border-transparent hover:border-primary/20 active:scale-[0.98] transition-all">
+					<div class="w-8 h-8 lg:w-10 lg:h-10 shrink-0 rounded-lg bg-tertiary-fixed text-on-tertiary-fixed-variant flex items-center justify-center">
+						<span class="material-symbols-outlined text-lg lg:text-xl">post_add</span>
 					</div>
 					<div class="min-w-0">
 						<p class="text-sm font-semibold leading-tight">{$_('actions.log_expense', { default: 'Log Expense' })}</p>
-						<p class="text-xs text-on-surface-variant mt-0.5">{$_('dashboard.log_expense_desc', { default: 'Track spending' })}</p>
+						<p class="text-[11px] text-on-surface-variant">{$_('dashboard.log_expense_desc', { default: 'Track spending' })}</p>
 					</div>
 				</a>
-				<a href="/attendance" class="min-h-[56px] px-3 py-3 bg-surface-container-lowest rounded-xl flex items-center gap-3 border border-transparent hover:border-primary/20 active:scale-[0.98] transition-all">
-					<div class="w-10 h-10 shrink-0 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center">
-						<span class="material-symbols-outlined text-xl">fingerprint</span>
-					</div>
-					<div class="min-w-0">
-						<p class="text-sm font-semibold leading-tight">Mark Attendance</p>
-						<p class="text-xs text-on-surface-variant mt-0.5">Staff attendance log</p>
-					</div>
-				</a>
-				<a href="/loans" class="min-h-[56px] px-3 py-3 bg-surface-container-lowest rounded-xl flex items-center gap-3 border border-transparent hover:border-primary/20 active:scale-[0.98] transition-all">
-					<div class="w-10 h-10 shrink-0 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-						<span class="material-symbols-outlined text-xl">account_balance</span>
+				<a href="/loans" class="min-h-[48px] lg:min-h-[56px] px-3 py-2 lg:py-3 bg-surface-container-lowest rounded-xl flex items-center gap-3 border border-transparent hover:border-primary/20 active:scale-[0.98] transition-all">
+					<div class="w-8 h-8 lg:w-10 lg:h-10 shrink-0 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+						<span class="material-symbols-outlined text-lg lg:text-xl">account_balance</span>
 					</div>
 					<div class="min-w-0">
 						<p class="text-sm font-semibold leading-tight">Loans & EMI</p>
-						<p class="text-xs text-on-surface-variant mt-0.5">Track repayments</p>
+						<p class="text-[11px] text-on-surface-variant">Track repayments</p>
 					</div>
 				</a>
-			</div>
-		</div>
-
-		<!-- Help Card -->
-		<div in:fly={{ x: 20, duration: 400, delay: 550, easing: cubicOut }} class="relative bg-tertiary-container text-white p-5 lg:p-6 rounded-2xl overflow-hidden min-h-[130px] flex flex-col justify-end">
-			<div class="absolute -right-4 -top-4 opacity-10">
-				<span class="material-symbols-outlined text-[80px]">support_agent</span>
-			</div>
-			<div class="relative z-10">
-				<h6 class="font-headline font-bold text-base lg:text-lg">{$_('dashboard.need_help', { default: 'Need Help?' })}</h6>
-				<p class="text-sm opacity-80 mb-3">{$_('dashboard.help_desc', { default: 'Check our guides for GST billing and setup.' })}</p>
-				<a href="/help" class="bg-surface-container-lowest text-tertiary px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-surface-variant transition-colors inline-flex items-center min-h-[40px]">{$_('dashboard.get_support', { default: 'Get Support' })}</a>
 			</div>
 		</div>
 	</div>
