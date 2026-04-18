@@ -136,13 +136,13 @@
 		class="relative overflow-hidden rounded-xl p-3 lg:p-6"
 		style="background: linear-gradient(135deg, var(--color-primary) 0%, color-mix(in srgb, var(--color-primary) 70%, #1e40af) 100%); box-shadow: 0 4px 16px color-mix(in srgb, var(--color-primary) 30%, transparent);">
 		<div class="flex items-center gap-1 mb-1">
-			<span class="material-symbols-outlined text-white/80 text-sm lg:text-base" style="font-variation-settings:'FILL' 1">payments</span>
+			<span class="material-symbols-outlined text-white/80 text-sm lg:text-base" aria-hidden="true" style="font-variation-settings:'FILL' 1">payments</span>
 			<p class="text-[9px] lg:text-[10px] font-bold uppercase tracking-widest text-white/70 truncate">Revenue</p>
 		</div>
-		<h3 class="text-base lg:text-3xl font-headline font-extrabold leading-none text-white">{formatINRCompact(revenue)}</h3>
+		<h3 class="text-base lg:text-3xl font-headline font-extrabold leading-none text-white truncate">{formatINRCompact(revenue)}</h3>
 		{#if revenueChange !== null}
 			<p class="text-[10px] text-white/80 mt-1 flex items-center gap-0.5">
-				<span class="material-symbols-outlined text-xs" style="font-variation-settings:'FILL' 1">{revenueChange >= 0 ? 'trending_up' : 'trending_down'}</span>
+				<span class="material-symbols-outlined text-xs" aria-hidden="true" style="font-variation-settings:'FILL' 1">{revenueChange >= 0 ? 'trending_up' : 'trending_down'}</span>
 				<span class="hidden sm:inline">{revenueChange >= 0 ? '+' : ''}{revenueChange.toFixed(1)}%</span>
 			</p>
 		{/if}
@@ -153,10 +153,10 @@
 		class="bg-surface-container-lowest rounded-xl p-3 lg:p-6 relative overflow-hidden border border-outline-variant/20">
 		<div class="absolute top-0 left-0 w-1 h-full rounded-l-xl bg-error opacity-70"></div>
 		<div class="flex items-center gap-1 mb-1 pl-2">
-			<span class="material-symbols-outlined text-error text-sm lg:text-base" style="font-variation-settings:'FILL' 1">schedule</span>
+			<span class="material-symbols-outlined text-error text-sm lg:text-base" aria-hidden="true" style="font-variation-settings:'FILL' 1">schedule</span>
 			<p class="text-[9px] lg:text-[10px] font-bold uppercase tracking-widest text-on-surface-variant truncate">Due</p>
 		</div>
-		<h3 class="text-base lg:text-3xl font-headline font-extrabold text-error leading-none pl-2">{formatINRCompact(outstanding)}</h3>
+		<h3 class="text-base lg:text-3xl font-headline font-extrabold text-error leading-none pl-2 truncate">{formatINRCompact(outstanding)}</h3>
 		<p class="text-[10px] text-on-surface-variant pl-2 mt-1 hidden sm:block">Unpaid</p>
 	</div>
 
@@ -165,10 +165,10 @@
 		class="bg-surface-container-lowest rounded-xl p-3 lg:p-6 relative overflow-hidden border border-outline-variant/20">
 		<div class="absolute top-0 left-0 w-1 h-full rounded-l-xl bg-secondary opacity-70"></div>
 		<div class="flex items-center gap-1 mb-1 pl-2">
-			<span class="material-symbols-outlined text-secondary text-sm lg:text-base" style="font-variation-settings:'FILL' 1">group</span>
+			<span class="material-symbols-outlined text-secondary text-sm lg:text-base" aria-hidden="true" style="font-variation-settings:'FILL' 1">group</span>
 			<p class="text-[9px] lg:text-[10px] font-bold uppercase tracking-widest text-on-surface-variant truncate">{$activeTerminology.people}</p>
 		</div>
-		<h3 class="text-base lg:text-3xl font-headline font-extrabold text-secondary leading-none pl-2">{patientCount}</h3>
+		<h3 class="text-base lg:text-3xl font-headline font-extrabold text-secondary leading-none pl-2 truncate">{patientCount}</h3>
 		<p class="text-[10px] text-on-surface-variant pl-2 mt-1 hidden sm:block">Registered</p>
 	</div>
 </div>
