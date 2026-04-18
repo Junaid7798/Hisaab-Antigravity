@@ -183,7 +183,7 @@
 				<p class="text-xs text-on-surface-variant mt-0.5 line-clamp-1 sm:line-clamp-2">{$topInsight.description}</p>
 			</div>
 			<div class="flex items-center gap-1.5 shrink-0">
-				<a href="/insights" class="text-[11px] font-bold text-primary whitespace-nowrap hidden sm:block">All →</a>
+				<a href="/insights" class="text-[11px] font-bold text-primary whitespace-nowrap">All →</a>
 				<button onclick={() => bannerDismissed = true} class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-black/10 transition-colors" aria-label="Dismiss">
 					<span class="material-symbols-outlined text-base text-on-surface-variant" aria-hidden="true">close</span>
 				</button>

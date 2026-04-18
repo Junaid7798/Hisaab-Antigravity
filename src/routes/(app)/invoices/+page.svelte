@@ -75,7 +75,7 @@
 {#if $insights.find(i => i.id === 'collection_60plus' || i.id === 'collection_30_60' || i.id === 'overdue_invoices')}
 	{@const collectionAlert = $insights.find(i => i.id === 'collection_60plus' || i.id === 'collection_30_60' || i.id === 'overdue_invoices')!}
 	<div class="mb-3 {collectionAlert.type === 'danger' ? 'bg-error-container/60 border-error/20' : 'bg-tertiary-container/50 border-tertiary/20'} border rounded-xl p-2.5 flex items-center gap-2.5">
-		<span class="material-symbols-outlined {collectionAlert.type === 'danger' ? 'text-error' : 'text-tertiary'} text-base shrink-0" style="font-variation-settings:'FILL' 1">{collectionAlert.icon}</span>
+		<span class="material-symbols-outlined {collectionAlert.type === 'danger' ? 'text-error' : 'text-tertiary'} text-base shrink-0" aria-hidden="true" style="font-variation-settings:'FILL' 1">{collectionAlert.icon}</span>
 		<p class="text-xs font-semibold text-on-surface flex-1 min-w-0 truncate">{collectionAlert.title}</p>
 		<a href="/insights" class="text-xs font-bold text-primary whitespace-nowrap shrink-0">Details →</a>
 	</div>
@@ -98,15 +98,15 @@
 <div class="grid grid-cols-3 gap-2 mb-4">
 	<div class="bg-surface-container-lowest px-3 py-2.5 rounded-xl border border-outline-variant/15">
 		<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Total</p>
-		<p class="text-lg font-headline font-bold text-on-surface">{filteredInvoices.length}</p>
+		<p class="text-lg font-headline font-bold text-on-surface truncate">{filteredInvoices.length}</p>
 	</div>
 	<div class="bg-surface-container-lowest px-3 py-2.5 rounded-xl border border-outline-variant/15">
 		<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Value</p>
-		<p class="text-lg font-headline font-bold text-secondary">{formatINRCompact(totalAmount)}</p>
+		<p class="text-lg font-headline font-bold text-secondary truncate">{formatINRCompact(totalAmount)}</p>
 	</div>
 	<div class="bg-surface-container-lowest px-3 py-2.5 rounded-xl border border-outline-variant/15">
 		<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Due</p>
-		<p class="text-lg font-headline font-bold text-error">{formatINRCompact(totalUnpaid)}</p>
+		<p class="text-lg font-headline font-bold text-error truncate">{formatINRCompact(totalUnpaid)}</p>
 	</div>
 </div>
 
@@ -200,7 +200,7 @@
 							</div>
 							<span class="text-xs text-on-surface-variant/70 mt-1 block">{formatDate(inv.issue_date)}</span>
 						</div>
-						<span class="material-symbols-outlined text-on-surface-variant/50 text-xl shrink-0">chevron_right</span>
+						<span class="material-symbols-outlined text-on-surface-variant/50 text-xl shrink-0" aria-hidden="true">chevron_right</span>
 					</a>
 				{/each}
 			</div>

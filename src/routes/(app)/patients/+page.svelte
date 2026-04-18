@@ -84,7 +84,7 @@
 {#if $insights.find(i => i.id === 'churn_risk')}
 	{@const churnAlert = $insights.find(i => i.id === 'churn_risk')!}
 	<div class="mb-5 bg-tertiary-container/50 border-tertiary/20 border rounded-xl p-3 flex items-center gap-3">
-		<span class="material-symbols-outlined text-tertiary text-lg shrink-0" style="font-variation-settings:'FILL' 1">{churnAlert.icon}</span>
+		<span class="material-symbols-outlined text-tertiary text-lg shrink-0" aria-hidden="true" style="font-variation-settings:'FILL' 1">{churnAlert.icon}</span>
 		<div class="flex-1 min-w-0">
 			<p class="text-sm font-bold text-on-surface">{churnAlert.title}</p>
 			<p class="text-xs text-on-surface-variant">{churnAlert.description}</p>
@@ -166,7 +166,7 @@
 						<p class="text-sm font-semibold text-on-surface truncate">{patient.name}</p>
 						<p class="text-xs text-on-surface-variant">{patient.phone || '—'}</p>
 					</div>
-					<span class="material-symbols-outlined text-on-surface-variant/50 text-lg shrink-0">chevron_right</span>
+					<span class="material-symbols-outlined text-on-surface-variant/50 text-lg shrink-0" aria-hidden="true">chevron_right</span>
 				</a>
 			{/each}
 		</div>
