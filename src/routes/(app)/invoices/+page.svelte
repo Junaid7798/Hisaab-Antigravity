@@ -68,89 +68,62 @@
 </script>
 
 <svelte:head>
-	<title>{$_('invoices.title', { default: 'Invoices' })} | Hisaab</title>
+	<title>{$_('invoices.list_title', { default: 'Invoices' })} | Hisaab</title>
 </svelte:head>
 
-<div class="py-6 lg:py-8">
-	{#if $insights.find(i => i.id === 'collection_60plus' || i.id === 'collection_30_60' || i.id === 'overdue_invoices')}
-		{@const collectionAlert = $insights.find(i => i.id === 'collection_60plus' || i.id === 'collection_30_60' || i.id === 'overdue_invoices')!}
-		<div class="mb-5 {collectionAlert.type === 'danger' ? 'bg-error-container/60 border-error/20' : 'bg-tertiary-container/50 border-tertiary/20'} border rounded-xl p-3 flex items-center gap-3">
-			<span class="material-symbols-outlined {collectionAlert.type === 'danger' ? 'text-error' : 'text-tertiary'} text-lg shrink-0" style="font-variation-settings:'FILL' 1">{collectionAlert.icon}</span>
-			<div class="flex-1 min-w-0">
-				<p class="text-sm font-bold text-on-surface">{collectionAlert.title}</p>
-				<p class="text-xs text-on-surface-variant">{collectionAlert.description}</p>
-			</div>
-			<a href="/insights" class="text-xs font-bold text-primary whitespace-nowrap shrink-0">Full Report →</a>
-		</div>
-	{/if}
-
-	<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 lg:mb-8">
-		<div>
-			<h1 class="text-2xl lg:text-3xl font-headline font-bold text-on-surface">{$_('invoices.title', { default: 'Invoices' })}</h1>
-			<p class="text-on-surface-variant mt-1 text-sm">Manage and track your billing</p>
-		</div>
-		<a
-			href="/invoices/new"
-			class="min-h-[48px] px-6 py-3 bg-primary text-on-primary rounded-xl font-bold shadow-lg shadow-primary/20 hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-[15px]"
-		>
-			<span class="material-symbols-outlined text-xl">add</span>
-			{$_('actions.new_invoice', { default: 'New Invoice' })}
-		</a>
+<!-- Alert banner -->
+{#if $insights.find(i => i.id === 'collection_60plus' || i.id === 'collection_30_60' || i.id === 'overdue_invoices')}
+	{@const collectionAlert = $insights.find(i => i.id === 'collection_60plus' || i.id === 'collection_30_60' || i.id === 'overdue_invoices')!}
+	<div class="mb-3 {collectionAlert.type === 'danger' ? 'bg-error-container/60 border-error/20' : 'bg-tertiary-container/50 border-tertiary/20'} border rounded-xl p-2.5 flex items-center gap-2.5">
+		<span class="material-symbols-outlined {collectionAlert.type === 'danger' ? 'text-error' : 'text-tertiary'} text-base shrink-0" style="font-variation-settings:'FILL' 1">{collectionAlert.icon}</span>
+		<p class="text-xs font-semibold text-on-surface flex-1 min-w-0 truncate">{collectionAlert.title}</p>
+		<a href="/insights" class="text-xs font-bold text-primary whitespace-nowrap shrink-0">Details →</a>
 	</div>
+{/if}
 
-	<!-- Stats -->
-	<div class="grid grid-cols-3 gap-3 lg:gap-4 mb-6 lg:mb-8">
-		<div class="bg-surface-container-lowest p-4 lg:p-6 rounded-2xl border border-outline-variant/15 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-			<div>
-				<p class="text-[11px] lg:text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Total</p>
-				<p class="text-xl lg:text-2xl font-headline font-bold text-on-surface">{filteredInvoices.length}</p>
-			</div>
-			<div class="hidden sm:flex w-11 h-11 rounded-xl bg-primary/10 items-center justify-center text-primary shrink-0">
-				<span class="material-symbols-outlined text-xl">receipt_long</span>
-			</div>
-		</div>
-		<div class="bg-surface-container-lowest p-4 lg:p-6 rounded-2xl border border-outline-variant/15 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-			<div>
-				<p class="text-[11px] lg:text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Value</p>
-				<p class="text-xl lg:text-2xl font-headline font-bold text-secondary">{formatINRCompact(totalAmount)}</p>
-			</div>
-			<div class="hidden sm:flex w-11 h-11 rounded-xl bg-secondary/10 items-center justify-center text-secondary shrink-0">
-				<span class="material-symbols-outlined text-xl">payments</span>
-			</div>
-		</div>
-		<div class="bg-surface-container-lowest p-4 lg:p-6 rounded-2xl border border-outline-variant/15 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-			<div>
-				<p class="text-[11px] lg:text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Due</p>
-				<p class="text-xl lg:text-2xl font-headline font-bold text-error">{formatINRCompact(totalUnpaid)}</p>
-			</div>
-			<div class="hidden sm:flex w-11 h-11 rounded-xl bg-error/10 items-center justify-center text-error shrink-0">
-				<span class="material-symbols-outlined text-xl">account_balance_wallet</span>
-			</div>
-		</div>
+<!-- Header: title + button inline -->
+<div class="flex items-center justify-between gap-3 mb-4">
+	<div>
+		<h1 class="text-lg font-headline font-bold text-on-surface lg:text-2xl">{$_('invoices.list_title', { default: 'Invoices' })}</h1>
+		<p class="text-on-surface-variant text-xs lg:text-sm">Manage and track your billing</p>
 	</div>
+	<a href="/invoices/new" class="shrink-0 flex items-center gap-1.5 bg-primary text-on-primary rounded-xl font-bold shadow-md shadow-primary/20 hover:opacity-90 active:scale-[0.98] transition-all px-3.5 py-2 text-sm">
+		<span class="material-symbols-outlined text-lg">add</span>
+		<span class="hidden sm:inline">{$_('actions.new_invoice', { default: 'New Invoice' })}</span>
+		<span class="sm:hidden">New</span>
+	</a>
+</div>
 
-	<!-- Filters -->
-	<div class="flex flex-col sm:flex-row gap-3 mb-5 relative z-10 w-full sm:max-w-2xl">
-		<div class="flex-1 min-w-0">
-			<Input
-				bind:value={searchQuery}
-				placeholder={`Search by invoice # or ${$activeTerminology.person.toLowerCase()} name...`}
-				icon="search"
-			/>
-		</div>
-		<div class="w-full sm:w-44 shrink-0 relative">
-			<select
-				bind:value={statusFilter}
-				class="w-full h-[52px] bg-surface-container-highest border-b-2 border-transparent focus:border-primary rounded-t-lg px-4 text-[15px] font-medium text-on-surface outline-none transition-colors cursor-pointer appearance-none"
-			>
-				<option value="ALL">All Status</option>
-				<option value="PAID">Paid</option>
-				<option value="UNPAID">Unpaid</option>
-				<option value="PARTIAL">Partial</option>
-			</select>
-			<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant text-xl">expand_more</span>
-		</div>
+<!-- Stats — 3 compact pills -->
+<div class="grid grid-cols-3 gap-2 mb-4">
+	<div class="bg-surface-container-lowest px-3 py-2.5 rounded-xl border border-outline-variant/15">
+		<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Total</p>
+		<p class="text-lg font-headline font-bold text-on-surface">{filteredInvoices.length}</p>
 	</div>
+	<div class="bg-surface-container-lowest px-3 py-2.5 rounded-xl border border-outline-variant/15">
+		<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Value</p>
+		<p class="text-lg font-headline font-bold text-secondary">{formatINRCompact(totalAmount)}</p>
+	</div>
+	<div class="bg-surface-container-lowest px-3 py-2.5 rounded-xl border border-outline-variant/15">
+		<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Due</p>
+		<p class="text-lg font-headline font-bold text-error">{formatINRCompact(totalUnpaid)}</p>
+	</div>
+</div>
+
+<!-- Search -->
+<div class="mb-3">
+	<Input bind:value={searchQuery} placeholder="Search invoice # or name..." icon="search" />
+</div>
+
+<!-- Status filter — pill tabs, not a select -->
+<div class="flex gap-1.5 mb-4 overflow-x-auto pb-0.5 scrollbar-none">
+	{#each [['ALL','All'],['PAID','Paid'],['UNPAID','Unpaid'],['PARTIAL','Partial']] as [val, label]}
+		<button
+			onclick={() => statusFilter = val as typeof statusFilter}
+			class="shrink-0 px-3 py-1.5 min-h-[36px] rounded-full text-xs font-semibold transition-all {statusFilter === val ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'}"
+		>{label}</button>
+	{/each}
+</div>
 
 	<!-- Table -->
 	<div class="bg-surface-container-lowest rounded-2xl border border-outline-variant/15 overflow-hidden w-full">
@@ -259,5 +232,4 @@
 			</div>
 		{/if}
 	</div>
-</div>
 

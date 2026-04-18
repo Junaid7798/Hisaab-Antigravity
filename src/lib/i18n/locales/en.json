@@ -102,6 +102,7 @@
   },
   "invoices": {
     "title": "Create GST Invoice",
+    "list_title": "Invoices",
     "subtitle": "Generate tax-compliant bills for your customers.",
     "btn_cancel": "Cancel",
     "btn_save": "Save Invoice",
