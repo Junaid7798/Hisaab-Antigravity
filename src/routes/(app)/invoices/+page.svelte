@@ -85,7 +85,7 @@
 <div class="flex items-center justify-between gap-3 mb-4">
 	<div>
 		<h1 class="text-lg font-headline font-bold text-on-surface lg:text-2xl">{$_('invoices.list_title', { default: 'Invoices' })}</h1>
-		<p class="text-on-surface-variant text-xs lg:text-sm">Manage and track your billing</p>
+		<p class="text-on-surface-variant text-xs lg:text-sm truncate">Manage and track your billing</p>
 	</div>
 	<a href="/invoices/new" class="shrink-0 flex items-center gap-1.5 bg-primary text-on-primary rounded-xl font-bold shadow-md shadow-primary/20 hover:opacity-90 active:scale-[0.98] transition-all px-3.5 py-2 text-sm">
 		<span class="material-symbols-outlined text-lg">add</span>

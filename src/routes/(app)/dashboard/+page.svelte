@@ -78,7 +78,7 @@
 <div class="mb-3 lg:mb-8 flex items-center justify-between">
 	<div>
 		<h2 class="text-base font-headline font-bold text-on-surface lg:text-2xl">{businessName || 'Dashboard'}</h2>
-		<p class="text-on-surface-variant text-xs mt-0.5 lg:text-sm">
+		<p class="text-on-surface-variant text-xs mt-0.5 lg:text-sm truncate">
 			{#if businessName}Financial performance{:else}Welcome to Hisaab{/if}
 		</p>
 	</div>

@@ -97,7 +97,7 @@
 <div class="flex items-center justify-between gap-3 mb-4 lg:mb-8">
 	<div>
 		<h1 class="text-xl lg:text-3xl font-headline font-extrabold text-on-surface tracking-tight">{$activeTerminology.people}</h1>
-		<p class="text-on-surface-variant font-body mt-0.5 text-xs lg:text-base">Manage your {$activeTerminology.people.toLowerCase()} and outstanding balances.</p>
+		<p class="text-on-surface-variant font-body mt-0.5 text-xs lg:text-base truncate">Manage {$activeTerminology.people.toLowerCase()} & balances</p>
 	</div>
 	<button
 		onclick={() => (showModal = true)}
