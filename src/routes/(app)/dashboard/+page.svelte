@@ -176,22 +176,16 @@
 	<!-- Top Insight Banner -->
 	{#if $topInsight && !bannerDismissed}
 		{@const isError = $topInsight.type === 'danger'}
-		<div class="mb-6 {isError ? 'bg-error-container/70 border-error/20' : 'bg-tertiary-container/50 border-tertiary/20'} border rounded-xl p-4 flex items-start gap-3">
-			<span class="material-symbols-outlined {isError ? 'text-error' : 'text-tertiary'} text-xl mt-0.5 shrink-0" style="font-variation-settings:'FILL' 1">{$topInsight.icon}</span>
+		<div class="mb-4 {isError ? 'bg-error-container/70 border-error/20' : 'bg-tertiary-container/50 border-tertiary/20'} border rounded-xl p-3 flex items-center gap-2.5">
+			<span class="material-symbols-outlined {isError ? 'text-error' : 'text-tertiary'} text-lg shrink-0" aria-hidden="true" style="font-variation-settings:'FILL' 1">{$topInsight.icon}</span>
 			<div class="flex-1 min-w-0">
-				<p class="font-bold text-sm text-on-surface">{$topInsight.title}</p>
-				<p class="text-xs text-on-surface-variant mt-0.5">{$topInsight.description}</p>
-				{#if $topInsight.action}
-					<a href={$topInsight.action.href} class="inline-flex items-center gap-0.5 text-[11px] font-semibold text-primary mt-1.5 hover:underline">
-						{$topInsight.action.label}
-						<span class="material-symbols-outlined text-[13px]">arrow_forward</span>
-					</a>
-				{/if}
+				<p class="font-bold text-sm text-on-surface leading-tight">{$topInsight.title}</p>
+				<p class="text-xs text-on-surface-variant mt-0.5 line-clamp-1 sm:line-clamp-2">{$topInsight.description}</p>
 			</div>
-			<div class="flex items-center gap-2 shrink-0">
-				<a href="/insights" class="text-[11px] font-bold text-primary whitespace-nowrap">All Insights →</a>
-				<button onclick={() => bannerDismissed = true} class="p-1 rounded-lg hover:bg-black/10 transition-colors" aria-label="Dismiss">
-					<span class="material-symbols-outlined text-base text-on-surface-variant">close</span>
+			<div class="flex items-center gap-1.5 shrink-0">
+				<a href="/insights" class="text-[11px] font-bold text-primary whitespace-nowrap hidden sm:block">All →</a>
+				<button onclick={() => bannerDismissed = true} class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-black/10 transition-colors" aria-label="Dismiss">
+					<span class="material-symbols-outlined text-base text-on-surface-variant" aria-hidden="true">close</span>
 				</button>
 			</div>
 		</div>
