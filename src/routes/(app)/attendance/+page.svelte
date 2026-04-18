@@ -129,39 +129,39 @@
 <svelte:head><title>Attendance | Hisaab</title></svelte:head>
 
 <!-- Header -->
-<div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+<div class="mb-4 flex items-start justify-between gap-3">
 	<div>
-		<h2 class="text-3xl font-headline font-bold text-on-surface">Attendance</h2>
-		<p class="text-on-surface-variant font-body mt-1">Track daily attendance and manage leave requests</p>
+		<h2 class="text-xl lg:text-3xl font-headline font-bold text-on-surface">Attendance</h2>
+		<p class="text-on-surface-variant text-xs lg:text-sm mt-0.5">Track daily attendance and leave</p>
 	</div>
-	<div class="flex items-center gap-3">
+	<div class="flex items-center gap-2 shrink-0">
 		<input
 			type="date"
 			bind:value={selectedDate}
 			onchange={handleDateChange}
-			class="px-4 py-2 bg-surface-container rounded-xl border-none text-sm font-medium focus:ring-2 focus:ring-primary/20"
+			class="px-3 py-2 bg-surface-container rounded-xl border-none text-sm font-medium focus:ring-2 focus:ring-primary/20 w-36"
 		/>
 		<button
 			onclick={() => { leaveStart = selectedDate; leaveEnd = selectedDate; showLeaveModal = true; }}
-			class="px-4 py-2.5 bg-primary text-on-primary rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-primary/90 transition-colors"
+			class="px-3 py-2 bg-primary text-on-primary rounded-xl font-bold text-sm flex items-center gap-1.5 hover:bg-primary/90 transition-colors active:scale-95"
 		>
 			<span class="material-symbols-outlined text-base">add</span>
-			Leave Request
+			<span class="hidden sm:inline">Leave</span>
 		</button>
 	</div>
 </div>
 
 <!-- Tabs -->
-<div class="flex bg-surface-container-highest rounded-xl p-1 w-full max-w-xs mb-8">
+<div class="flex gap-1.5 mb-4 scrollbar-none">
 	<button
 		onclick={() => activeTab = 'attendance'}
-		class="flex-1 py-2 px-4 text-sm font-bold rounded-lg transition-all {activeTab === 'attendance' ? 'bg-surface-container-lowest text-primary shadow-sm' : 'text-on-surface-variant'}"
+		class="px-3 py-1.5 rounded-full text-xs font-semibold transition-all {activeTab === 'attendance' ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'}"
 	>
 		Attendance
 	</button>
 	<button
 		onclick={() => activeTab = 'leave'}
-		class="flex-1 py-2 px-4 text-sm font-bold rounded-lg transition-all {activeTab === 'leave' ? 'bg-surface-container-lowest text-primary shadow-sm' : 'text-on-surface-variant'}"
+		class="px-3 py-1.5 rounded-full text-xs font-semibold transition-all {activeTab === 'leave' ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'}"
 	>
 		Leave Requests
 		{#if leaveRequests.filter(l => l.status === 'pending').length > 0}
@@ -366,11 +366,11 @@
 		<div class="grid grid-cols-2 gap-4">
 			<div>
 				<label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">From</label>
-				<input type="date" bind:value={leaveStart} required class="w-full px-4 py-3 bg-surface-container-highest border-none rounded-lg text-sm" />
+				<input type="date" bind:value={leaveStart} required class="w-full px-4 py-3 bg-surface-container-highest border-none rounded-lg text-base" />
 			</div>
 			<div>
 				<label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">To</label>
-				<input type="date" bind:value={leaveEnd} required class="w-full px-4 py-3 bg-surface-container-highest border-none rounded-lg text-sm" />
+				<input type="date" bind:value={leaveEnd} required class="w-full px-4 py-3 bg-surface-container-highest border-none rounded-lg text-base" />
 			</div>
 		</div>
 

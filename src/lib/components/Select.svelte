@@ -28,7 +28,7 @@
 		{/if}
 		<select
 			id={selectId}
-			class="w-full bg-surface-container-highest border-b-2 border-transparent focus:border-primary focus:ring-0 rounded-t-lg {icon ? 'pl-11' : 'px-4'} pr-10 py-3.5 text-[15px] text-on-surface font-medium transition-colors appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed {error ? 'border-error/50 focus:border-error bg-error/5 text-error' : ''}"
+			class="w-full bg-surface-container-highest border-b-2 border-transparent focus:border-primary focus:ring-0 rounded-t-lg {icon ? 'pl-11' : 'px-4'} pr-10 py-2.5 text-base text-on-surface font-medium transition-colors appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed {error ? 'border-error/50 focus:border-error bg-error/5 text-error' : ''}"
 			bind:value
 			{...rest}
 		>

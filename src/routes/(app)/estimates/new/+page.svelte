@@ -250,7 +250,7 @@
 											list="products-list-{i}"
 											type="text" 
 											placeholder="Item or service name" 
-											class="bg-transparent border-none p-0 text-sm focus:ring-0 w-full font-medium" 
+											class="bg-transparent border-none p-0 text-base focus:ring-0 w-full font-medium" 
 										/>
 										<datalist id="products-list-{i}">
 											{#each products as product}
@@ -267,10 +267,10 @@
 										<input bind:value={item.hsn_sac} type="text" placeholder="999311" class="bg-transparent border-none p-0 text-xs focus:ring-0 w-20 text-on-surface-variant" />
 									</td>
 									<td class="px-4 py-4">
-										<input bind:value={item.quantity} type="number" min="1" step="1" class="bg-transparent border-none p-0 text-sm focus:ring-0 w-12 text-center" />
+										<input bind:value={item.quantity} type="number" min="1" step="1" class="bg-transparent border-none p-0 text-base focus:ring-0 w-12 text-center" />
 									</td>
 									<td class="px-4 py-4 text-right">
-										<input bind:value={item.rate} type="number" min="0" step="0.01" placeholder="0.00" class="bg-transparent border-none p-0 text-sm focus:ring-0 w-24 text-right" />
+										<input bind:value={item.rate} type="number" min="0" step="0.01" placeholder="0.00" class="bg-transparent border-none p-0 text-base focus:ring-0 w-24 text-right" />
 									</td>
 									<td class="px-4 py-4">
 										<select bind:value={item.tax_rate} class="bg-transparent border-none p-0 text-xs focus:ring-0 w-16 mx-auto block text-center">

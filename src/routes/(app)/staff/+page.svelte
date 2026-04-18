@@ -410,29 +410,27 @@
 
 <div class="max-w-7xl mx-auto">
 	<!-- Header -->
-	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+	<div class="flex items-center justify-between gap-3 mb-4">
 		<div>
-			<h2 class="text-3xl font-headline font-bold text-on-surface">Staff Management</h2>
-			<p class="text-on-surface-variant mt-1">Manage your team members, salaries, and advances</p>
+			<h2 class="text-xl lg:text-3xl font-headline font-bold text-on-surface">Staff</h2>
+			<p class="text-on-surface-variant mt-0.5 text-xs lg:text-sm">Team, salaries and advances</p>
 		</div>
-		<button onclick={openAddModal} class="px-6 py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2">
-			<span class="material-symbols-outlined">person_add</span>
-			Add Staff
+		<button onclick={openAddModal} class="shrink-0 px-3.5 py-2 bg-primary text-white rounded-xl font-bold shadow-md shadow-primary/20 active:scale-[0.98] transition-all flex items-center gap-1.5 text-sm">
+			<span class="material-symbols-outlined text-lg">person_add</span>
+			<span class="hidden sm:inline">Add Staff</span>
+			<span class="sm:hidden">Add</span>
 		</button>
 	</div>
 
-	<!-- Tabs -->
-	<div class="flex gap-2 mb-6 overflow-x-auto pb-2">
-		<button onclick={() => activeTab = 'staff'} class="px-4 py-2 rounded-lg font-semibold transition-all {activeTab === 'staff' ? 'bg-primary text-white' : 'bg-surface-container text-on-surface hover:bg-surface-container-high'}">
-			<span class="material-symbols-outlined text-lg mr-1 align-middle">people</span>
+	<!-- Tabs — pill style -->
+	<div class="flex gap-1.5 mb-4 overflow-x-auto pb-0.5 scrollbar-none">
+		<button onclick={() => activeTab = 'staff'} class="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all {activeTab === 'staff' ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'}">
 			Staff ({staff.length})
 		</button>
-		<button onclick={() => activeTab = 'salary'} class="px-4 py-2 rounded-lg font-semibold transition-all {activeTab === 'salary' ? 'bg-primary text-white' : 'bg-surface-container text-on-surface hover:bg-surface-container-high'}">
-			<span class="material-symbols-outlined text-lg mr-1 align-middle">payments</span>
+		<button onclick={() => activeTab = 'salary'} class="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all {activeTab === 'salary' ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'}">
 			Salary
 		</button>
-		<button onclick={() => activeTab = 'advances'} class="px-4 py-2 rounded-lg font-semibold transition-all {activeTab === 'advances' ? 'bg-primary text-white' : 'bg-surface-container text-on-surface hover:bg-surface-container-high'}">
-			<span class="material-symbols-outlined text-lg mr-1 align-middle">account_balance</span>
+		<button onclick={() => activeTab = 'advances'} class="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all {activeTab === 'advances' ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'}">
 			Advances
 		</button>
 	</div>
@@ -449,7 +447,7 @@
 				type="text"
 				bind:value={searchQuery}
 				placeholder="Search staff by name or phone..."
-				class="w-full max-w-md bg-surface-container border-none rounded-xl px-4 py-3 text-on-surface placeholder:text-on-surface-variant/50"
+				class="w-full max-w-md bg-surface-container border-none rounded-xl px-4 py-3 text-base text-on-surface placeholder:text-on-surface-variant/50"
 			/>
 		</div>
 
@@ -664,7 +662,7 @@
 
 					<label for="adv-reason" class="block">
 						<span class="block text-[11px] font-bold text-outline uppercase tracking-wider mb-2">Reason</span>
-						<input id="adv-reason" type="text" bind:value={advanceReason} placeholder="e.g. Medical emergency" class="w-full bg-surface-container-highest border-b-2 border-transparent focus:border-primary rounded-t-lg px-4 py-3 text-on-surface font-medium transition-all" />
+						<input id="adv-reason" type="text" bind:value={advanceReason} placeholder="e.g. Medical emergency" class="w-full bg-surface-container-highest border-b-2 border-transparent focus:border-primary rounded-t-lg px-4 py-3 text-base text-on-surface font-medium transition-all" />
 					</label>
 
 					<div class="grid grid-cols-2 gap-4">
@@ -845,11 +843,11 @@
 				<div class="grid grid-cols-2 gap-3">
 					<div>
 						<label for="sal-bonus" class="block text-xs font-bold text-outline uppercase tracking-wider mb-1">Bonus</label>
-						<input id="sal-bonus" type="number" bind:value={salaryBonus} min="0" class="w-full bg-surface-container-highest rounded-lg px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-primary/20 outline-none" placeholder="0" />
+						<input id="sal-bonus" type="number" bind:value={salaryBonus} min="0" class="w-full bg-surface-container-highest rounded-lg px-3 py-2 text-base font-semibold focus:ring-2 focus:ring-primary/20 outline-none" placeholder="0" />
 					</div>
 					<div>
 						<label for="sal-deduct" class="block text-xs font-bold text-outline uppercase tracking-wider mb-1">Extra Deductions</label>
-						<input id="sal-deduct" type="number" bind:value={salaryExtraDeductions} min="0" class="w-full bg-surface-container-highest rounded-lg px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-primary/20 outline-none" placeholder="0" />
+						<input id="sal-deduct" type="number" bind:value={salaryExtraDeductions} min="0" class="w-full bg-surface-container-highest rounded-lg px-3 py-2 text-base font-semibold focus:ring-2 focus:ring-primary/20 outline-none" placeholder="0" />
 					</div>
 				</div>
 
@@ -864,7 +862,7 @@
 
 				<div>
 					<label for="sal-remarks" class="block text-xs font-bold text-outline uppercase tracking-wider mb-1">Remarks</label>
-					<input id="sal-remarks" type="text" bind:value={salaryRemarks} class="w-full bg-surface-container-highest rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none" placeholder="Optional note" />
+					<input id="sal-remarks" type="text" bind:value={salaryRemarks} class="w-full bg-surface-container-highest rounded-lg px-3 py-2 text-base focus:ring-2 focus:ring-primary/20 outline-none" placeholder="Optional note" />
 				</div>
 
 				<!-- Net salary -->

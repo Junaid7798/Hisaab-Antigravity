@@ -273,9 +273,9 @@
 	<title>Reports | Hisaab</title>
 </svelte:head>
 
-<div class="mb-8 md:mb-10">
-	<h2 class="text-3xl font-headline font-bold text-on-surface">{$_('reports.title')}</h2>
-	<p class="text-on-surface-variant font-body mt-1">{$_('reports.subtitle')}</p>
+<div class="mb-4 lg:mb-8">
+	<h2 class="text-xl lg:text-3xl font-headline font-bold text-on-surface">{$_('reports.title')}</h2>
+	<p class="text-on-surface-variant font-body mt-0.5 text-xs lg:text-sm">{$_('reports.subtitle')}</p>
 </div>
 <div class="flex flex-wrap gap-2">
 	<button onclick={handleExportInvoices} class="px-3 py-1.5 text-xs font-medium bg-surface-container-low hover:bg-surface-container rounded-lg transition-colors flex items-center gap-1.5">
@@ -299,18 +299,18 @@
 		Customers
 	</button>
 </div>
-<div class="grid grid-cols-12 gap-6 mb-6">
-	<div in:fly={{ y: 20, duration: 400, delay: 150, easing: cubicOut }} class="col-span-6 md:col-span-3 bg-surface-container-lowest p-5 lg:p-6 rounded-xl shadow-sm border border-outline-variant/20">
-		<p class="text-[11px] lg:text-xs font-label uppercase tracking-widest text-on-surface-variant mb-2">{$_('reports.expenses')}</p>
-		<h3 class="text-2xl font-headline font-extrabold text-error">{formatINRCompact(expenses)}</h3>
+<div class="flex gap-3 overflow-x-auto pb-1 -mx-3 px-3 mb-4 scrollbar-none lg:grid lg:grid-cols-3 lg:mx-0 lg:px-0 lg:mb-6">
+	<div in:fly={{ y: 20, duration: 400, delay: 150, easing: cubicOut }} class="shrink-0 w-36 lg:w-auto bg-surface-container-lowest p-3 lg:p-6 rounded-xl border border-outline-variant/15">
+		<p class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mb-1">{$_('reports.expenses')}</p>
+		<p class="text-xl font-headline font-extrabold text-error">{formatINRCompact(expenses)}</p>
 	</div>
-	<div in:fly={{ y: 20, duration: 400, delay: 250, easing: cubicOut }} class="col-span-6 md:col-span-3 bg-surface-container-lowest p-5 lg:p-6 rounded-xl shadow-sm border border-outline-variant/20">
-		<p class="text-[11px] lg:text-xs font-label uppercase tracking-widest text-on-surface-variant mb-2">{$_('reports.net_profit')}</p>
-		<h3 class="text-2xl font-headline font-extrabold {netProfit >= 0 ? 'text-secondary' : 'text-error'}">{formatINRCompact(netProfit)}</h3>
+	<div in:fly={{ y: 20, duration: 400, delay: 250, easing: cubicOut }} class="shrink-0 w-36 lg:w-auto bg-surface-container-lowest p-3 lg:p-6 rounded-xl border border-outline-variant/15">
+		<p class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mb-1">{$_('reports.net_profit')}</p>
+		<p class="text-xl font-headline font-extrabold {netProfit >= 0 ? 'text-secondary' : 'text-error'}">{formatINRCompact(netProfit)}</p>
 	</div>
-	<div in:fly={{ y: 20, duration: 400, delay: 350, easing: cubicOut }} class="col-span-6 md:col-span-3 bg-surface-container-lowest p-5 lg:p-6 rounded-xl shadow-sm border border-outline-variant/20">
-		<p class="text-[11px] lg:text-xs font-label uppercase tracking-widest text-on-surface-variant mb-2">{$_('reports.outstanding')}</p>
-		<h3 class="text-2xl font-headline font-extrabold text-tertiary">{formatINRCompact(outstanding)}</h3>
+	<div in:fly={{ y: 20, duration: 400, delay: 350, easing: cubicOut }} class="shrink-0 w-36 lg:w-auto bg-surface-container-lowest p-3 lg:p-6 rounded-xl border border-outline-variant/15">
+		<p class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mb-1">{$_('reports.outstanding')}</p>
+		<p class="text-xl font-headline font-extrabold text-tertiary">{formatINRCompact(outstanding)}</p>
 	</div>
 </div>
 

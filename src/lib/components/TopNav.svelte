@@ -74,7 +74,7 @@
 	</div>
 
 	<!-- Right Side -->
-	<div class="flex items-center gap-1 lg:gap-3 h-full px-3 lg:px-6">
+	<div class="flex items-center gap-0.5 lg:gap-3 h-full px-2 lg:px-6">
 		<!-- Language Switcher — visible on tablet+ -->
 		<div class="hidden md:flex items-center">
 			<select
@@ -89,8 +89,8 @@
 
 		<!-- Sync Status -->
 		{#if !$preferences.cloudSyncEnabled}
-			<div class="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-surface-container-high text-on-surface-variant" title="Cloud sync is off — data stored locally only">
-				<span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">lock</span>
+			<div class="hidden sm:flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-surface-container-high text-on-surface-variant" title="Cloud sync is off — data stored locally only">
+				<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">lock</span>
 				<span class="hidden md:inline">Local Only</span>
 			</div>
 		{:else if !isOnline}
@@ -119,19 +119,19 @@
 			</div>
 		{/if}
 
-		<!-- Notifications — 44×44 tap target -->
-		<button class="w-11 h-11 flex items-center justify-center text-on-surface-variant/70 hover:text-primary hover:bg-surface-container rounded-xl transition-all relative active:scale-95" aria-label="Notifications">
-			<span class="material-symbols-outlined text-[22px]">notifications</span>
-			<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+		<!-- Notifications — 40×40 tap target -->
+		<button class="w-10 h-10 flex items-center justify-center text-on-surface-variant/70 hover:text-primary hover:bg-surface-container rounded-xl transition-all relative active:scale-95" aria-label="Notifications">
+			<span class="material-symbols-outlined text-xl">notifications</span>
+			<span class="absolute top-2 right-2 w-1.5 h-1.5 bg-error rounded-full"></span>
 		</button>
 
-		<!-- User Avatar — 44×44 tap target -->
-		<a href="/settings" class="flex items-center gap-2 pl-1 lg:pl-3 lg:border-l lg:border-outline-variant/30 hover:bg-surface-container rounded-xl px-2 py-1.5 transition-colors" aria-label="Settings">
+		<!-- User Avatar -->
+		<a href="/settings" class="flex items-center gap-2 lg:pl-3 lg:border-l lg:border-outline-variant/30 hover:bg-surface-container rounded-xl px-1.5 py-1 lg:px-2 lg:py-1.5 transition-colors" aria-label="Settings">
 			<div class="hidden lg:block text-right">
 				<p class="text-xs font-bold font-headline leading-none">{userName}</p>
 				<p class="text-[11px] text-on-surface-variant font-label uppercase tracking-widest mt-0.5">Admin</p>
 			</div>
-			<div class="w-9 h-9 rounded-full bg-primary-gradient flex items-center justify-center text-white font-bold text-sm shadow-md shrink-0">
+			<div class="w-8 h-8 lg:w-9 lg:h-9 rounded-full bg-primary-gradient flex items-center justify-center text-white font-bold text-sm shadow-md shrink-0">
 				{userName.slice(0, 1).toUpperCase()}
 			</div>
 		</a>

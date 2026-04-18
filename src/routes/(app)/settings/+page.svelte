@@ -275,9 +275,9 @@
 
 <div class="max-w-7xl mx-auto">
 	<!-- Header -->
-	<div class="mb-8 md:mb-12">
-		<h2 class="text-3xl lg:text-4xl font-headline font-extrabold text-on-surface tracking-tight mb-2">{$_('settings.title')}</h2>
-		<p class="text-on-surface-variant text-base lg:text-lg">{$_('settings.subtitle')}</p>
+	<div class="mb-6 lg:mb-10">
+		<h2 class="text-xl lg:text-3xl font-headline font-extrabold text-on-surface tracking-tight mb-0.5">{$_('settings.title')}</h2>
+		<p class="text-on-surface-variant text-xs lg:text-sm">{$_('settings.subtitle')}</p>
 	</div>
 
 	<div class="grid grid-cols-12 gap-6 lg:gap-8">

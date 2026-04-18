@@ -30,8 +30,8 @@
 		: getEffectiveFeatures(undefined, undefined));
 
 	let navItems = $derived([
-		{ href: '/dashboard', icon: 'dashboard', i18nKey: 'nav.dashboard', fallback: 'Dashboard', show: true },
-		{ href: '/pos', icon: 'point_of_sale', i18nKey: 'nav.pos', fallback: 'POS Mode', show: features.hasPOS },
+		{ href: '/dashboard', icon: 'dashboard', i18nKey: 'nav.dashboard', fallback: 'Dashboard', show: true, tooltip: '' },
+		{ href: '/pos', icon: 'point_of_sale', i18nKey: 'nav.pos', fallback: 'POS Mode', show: features.hasPOS, tooltip: 'Counter billing for walk-in customers' },
 		{ href: '/patients', icon: 'group', i18nKey: 'nav.customers', fallback: $activeTerminology.people, show: features.hasCustomers },
 		{ href: '/invoices', icon: 'receipt_long', i18nKey: 'nav.invoices', fallback: 'Invoices', show: true },
 		{ href: '/estimates', icon: 'description', i18nKey: 'nav.estimates', fallback: 'Estimates', show: features.hasEstimates },
@@ -209,7 +209,12 @@
 					{/if}
 				</span>
 				{#if !collapsed}
-					<span class="leading-tight flex-1">{$_(item.i18nKey, { default: item.fallback })}</span>
+					<span class="flex-1 min-w-0">
+						<span class="block leading-tight">{$_(item.i18nKey, { default: item.fallback })}</span>
+						{#if item.tooltip && !isActive}
+							<span class="block text-[10px] text-on-surface-variant/60 leading-tight mt-0.5 truncate">{item.tooltip}</span>
+						{/if}
+					</span>
 				{/if}
 			</a>
 		{/each}

@@ -151,25 +151,22 @@
 </svelte:head>
 
 <!-- Header -->
-<div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+<div class="flex items-center justify-between gap-3 mb-4">
 	<div>
-		<h1 class="text-3xl font-headline font-extrabold text-on-surface tracking-tight">GST Summary</h1>
-		<p class="text-on-surface-variant mt-1 text-sm">
+		<h1 class="text-xl lg:text-3xl font-headline font-extrabold text-on-surface tracking-tight">GST Summary</h1>
+		<p class="text-on-surface-variant mt-0.5 text-xs lg:text-sm">
 			{#if business}
-				{business.name}
-				{#if business.gstin}
-					• GSTIN: <span class="font-mono font-semibold">{business.gstin}</span>
-				{/if}
+				{business.name}{#if business.gstin} · <span class="font-mono">{business.gstin}</span>{/if}
 			{/if}
 		</p>
 	</div>
 	<button
 		onclick={exportGSTCSV}
 		disabled={filteredInvoices.length === 0}
-		class="flex items-center gap-2 px-5 py-2.5 bg-surface border border-outline-variant text-on-surface rounded-xl font-semibold text-sm hover:bg-surface-container-low transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+		class="shrink-0 flex items-center gap-1.5 px-3.5 py-2 bg-surface border border-outline-variant text-on-surface rounded-xl font-semibold text-sm hover:bg-surface-container-low transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
 	>
-		<span class="material-symbols-outlined text-sm">download</span>
-		Export CSV
+		<span class="material-symbols-outlined text-base">download</span>
+		<span class="hidden sm:inline">Export CSV</span>
 	</button>
 </div>
 

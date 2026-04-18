@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import Input from '$lib/components/Input.svelte';
@@ -26,7 +25,7 @@
 
 	// Filters
 	let searchQuery = $state('');
-	let categoryFilter = $state('ALL');
+	let categoryFilter = $state<string>('ALL');
 
 	let filteredExpenses = $derived(
 		expenses.filter(exp => {
@@ -52,7 +51,7 @@
 	});
 
 	// Form
-	let newCategory = $state(EXPENSE_CATEGORIES[0]);
+	let newCategory = $state<string>(EXPENSE_CATEGORIES[0]);
 	let newDescription = $state('');
 	let newAmount = $state('');
 	let newDate = $state(today());
@@ -182,69 +181,56 @@
 </svelte:head>
 
 <!-- Header -->
-<div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+<div class="flex items-center justify-between mb-4 gap-3">
 	<div>
-		<h2 class="font-headline text-3xl font-extrabold text-on-surface tracking-tight">{$_('expenses.title')}</h2>
-		<p class="text-on-surface-variant mt-1 font-body">{$_('expenses.subtitle')}</p>
+		<h2 class="font-headline text-lg lg:text-3xl font-extrabold text-on-surface tracking-tight">{$_('expenses.title')}</h2>
+		<p class="text-on-surface-variant mt-0.5 text-xs lg:text-sm font-body">Track your business spending</p>
 	</div>
-	<button onclick={openAddModal} class="w-full md:w-auto bg-primary text-white px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-lg shadow-primary/20 active:scale-95">
-		<span class="material-symbols-outlined">post_add</span>
-		{$_('expenses.log_new')}
+	<button onclick={openAddModal} class="shrink-0 bg-primary text-white px-3.5 py-2 rounded-xl font-bold flex items-center gap-1.5 hover:opacity-90 transition-all shadow-md shadow-primary/20 active:scale-95 text-sm">
+		<span class="material-symbols-outlined text-lg">post_add</span>
+		<span class="hidden sm:inline">{$_('expenses.log_new')}</span>
+		<span class="sm:hidden">Add</span>
 	</button>
 </div>
 
-<!-- Summary -->
-<div class="grid grid-cols-12 gap-6 mb-10">
-	<div class="col-span-12 lg:col-span-4 bg-primary p-8 rounded-xl text-on-primary shadow-xl shadow-primary/10 relative overflow-hidden">
-		<div class="relative z-10">
-			<p class="text-on-primary-container font-label text-xs font-bold uppercase tracking-widest mb-2 opacity-80">{$_('expenses.total')}</p>
-			<h3 class="font-headline text-5xl font-black tracking-tighter">{formatINRCompact(totalExpense)}</h3>
+<!-- Stats — horizontal scroll on mobile -->
+<div class="flex gap-3 overflow-x-auto pb-1 -mx-3 px-3 mb-4 scrollbar-none lg:grid lg:grid-cols-3 lg:mx-0 lg:px-0 lg:mb-6">
+	<div class="shrink-0 w-36 lg:w-auto bg-primary p-3 lg:p-6 rounded-xl text-on-primary relative overflow-hidden">
+		<div class="flex items-center gap-1.5 mb-1">
+			<span class="material-symbols-outlined text-on-primary/80 text-base">payments</span>
+			<p class="text-[10px] font-bold text-on-primary/80 uppercase tracking-wider">Total</p>
 		</div>
-		<div class="absolute -right-10 -bottom-10 w-48 h-48 bg-white/5 rounded-full blur-3xl"></div>
+		<p class="text-xl font-headline font-bold">{formatINRCompact(totalExpense)}</p>
+		<p class="text-[11px] text-on-primary/70 mt-0.5">All expenses</p>
 	</div>
-
-	<div class="col-span-12 lg:col-span-8 grid grid-cols-2 md:grid-cols-4 gap-4">
-		{#each Object.entries(categoryBreakdown).slice(0, 4) as [cat, amount]}
-			<div class="bg-surface-container-lowest p-5 rounded-xl flex flex-col justify-between border border-outline-variant/10">
-				<div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center mb-4">
-					<span class="material-symbols-outlined text-primary">{categoryIcons[cat] || 'payments'}</span>
-				</div>
-				<div>
-					<p class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70 mb-1">{cat}</p>
-					<p class="text-lg font-bold text-on-surface">{formatINRCompact(amount)}</p>
-				</div>
+	{#each Object.entries(categoryBreakdown).slice(0, 2) as [cat, amount]}
+		<div class="shrink-0 w-36 lg:w-auto bg-surface-container-lowest p-3 lg:p-6 rounded-xl border border-outline-variant/15">
+			<div class="flex items-center gap-1.5 mb-1">
+				<span class="material-symbols-outlined text-secondary text-base">{categoryIcons[cat] || 'payments'}</span>
+				<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider truncate">{cat}</p>
 			</div>
-		{/each}
+			<p class="text-xl font-headline font-bold text-on-surface">{formatINRCompact(amount)}</p>
+		</div>
+	{/each}
+</div>
+
+<!-- Search + filter -->
+<div class="flex gap-2 mb-4">
+	<div class="flex-1">
+		<Input bind:value={searchQuery} placeholder="Search expenses..." icon="search" />
 	</div>
+</div>
+
+<!-- Category filter pills -->
+<div class="flex gap-1.5 mb-4 overflow-x-auto pb-0.5 scrollbar-none">
+	<button onclick={() => categoryFilter = 'ALL'} class="shrink-0 px-3 py-1.5 min-h-[36px] rounded-full text-xs font-semibold transition-all {categoryFilter === 'ALL' ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'}">All</button>
+	{#each EXPENSE_CATEGORIES.slice(0, 5) as cat}
+		<button onclick={() => categoryFilter = cat} class="shrink-0 px-3 py-1.5 min-h-[36px] rounded-full text-xs font-semibold transition-all {categoryFilter === cat ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'}">{cat}</button>
+	{/each}
 </div>
 
 <!-- Table -->
 <div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm border border-outline-variant/5">
-	<div class="px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-surface-container-low">
-		<h4 class="font-headline text-xl font-bold">{$_('expenses.recent_transactions')}</h4>
-		
-		<div class="flex items-center gap-3">
-			<div class="w-full sm:w-64">
-				<Input
-					bind:value={searchQuery}
-					placeholder="Search description..."
-					icon="search"
-				/>
-			</div>
-			<div class="w-40 relative">
-				<select
-					bind:value={categoryFilter}
-					class="w-full h-[52px] bg-surface-container-highest border-b-2 border-transparent focus:border-primary rounded-t-lg px-4 font-bold text-on-surface outline-none transition-colors cursor-pointer appearance-none"
-				>
-					<option value="ALL">All Categories</option>
-					{#each EXPENSE_CATEGORIES as cat}
-						<option value={cat}>{cat}</option>
-					{/each}
-				</select>
-				<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">expand_more</span>
-			</div>
-		</div>
-	</div>
 
 	{#if filteredExpenses.length === 0}
 		<EmptyState icon="payments" title={$_('expenses.no_expenses')} description={$_('expenses.no_expenses_desc')} />

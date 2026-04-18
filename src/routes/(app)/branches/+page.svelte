@@ -91,34 +91,35 @@
 </svelte:head>
 
 <!-- Header -->
-<div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+<div class="flex items-center justify-between gap-3 mb-4">
 	<div>
-		<h1 class="text-3xl font-headline font-extrabold text-on-surface tracking-tight">Branches</h1>
-		<p class="text-on-surface-variant mt-1 text-sm">Manage multiple locations or outlets for your business.</p>
+		<h1 class="text-xl lg:text-3xl font-headline font-extrabold text-on-surface tracking-tight">Branches</h1>
+		<p class="text-on-surface-variant mt-0.5 text-xs lg:text-sm">Manage locations and outlets.</p>
 	</div>
 	<button
 		onclick={openNew}
-		class="flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-on-primary rounded-xl font-semibold text-sm shadow-md hover:opacity-90 transition-all"
+		class="shrink-0 flex items-center gap-1.5 px-3.5 py-2 bg-primary text-on-primary rounded-xl font-semibold text-sm shadow-md hover:opacity-90 active:scale-95 transition-all"
 	>
-		<span class="material-symbols-outlined text-sm">add_business</span>
-		Add Branch
+		<span class="material-symbols-outlined text-lg">add_business</span>
+		<span class="hidden sm:inline">Add Branch</span>
+		<span class="sm:hidden">Add</span>
 	</button>
 </div>
 
 <!-- Stats -->
 {#if !loading}
-	<div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
-		<div class="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-5 shadow-sm">
-			<p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">Total Branches</p>
-			<p class="text-2xl font-headline font-bold text-on-surface">{branches.length}</p>
+	<div class="flex gap-3 overflow-x-auto pb-1 -mx-3 px-3 mb-4 scrollbar-none lg:grid lg:grid-cols-3 lg:mx-0 lg:px-0 lg:mb-6">
+		<div class="shrink-0 w-32 lg:w-auto bg-surface-container-lowest border border-outline-variant/15 rounded-xl p-3 lg:p-5">
+			<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">Total</p>
+			<p class="text-xl font-headline font-bold text-on-surface">{branches.length}</p>
 		</div>
-		<div class="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-5 shadow-sm">
-			<p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">Active</p>
-			<p class="text-2xl font-headline font-bold text-primary">{activeCount}</p>
+		<div class="shrink-0 w-32 lg:w-auto bg-surface-container-lowest border border-outline-variant/15 rounded-xl p-3 lg:p-5">
+			<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">Active</p>
+			<p class="text-xl font-headline font-bold text-primary">{activeCount}</p>
 		</div>
-		<div class="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-5 shadow-sm">
-			<p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">Inactive</p>
-			<p class="text-2xl font-headline font-bold text-on-surface-variant">{branches.length - activeCount}</p>
+		<div class="shrink-0 w-32 lg:w-auto bg-surface-container-lowest border border-outline-variant/15 rounded-xl p-3 lg:p-5">
+			<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">Inactive</p>
+			<p class="text-xl font-headline font-bold text-on-surface-variant">{branches.length - activeCount}</p>
 		</div>
 	</div>
 {/if}
