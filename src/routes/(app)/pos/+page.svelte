@@ -13,6 +13,7 @@
 	import { fade, fly, slide, scale } from 'svelte/transition';
 	import BarcodeScanner from '$lib/components/BarcodeScanner.svelte';
 	import { connectPrinter, printReceipt, isBtPrintSupported, getConnectionStatus } from '$lib/services/bluetooth-printer';
+	import { createProduct } from '$lib/db/crud';
 
 	let patients = $state<Patient[]>([]);
 	let products = $state<Product[]>([]);
@@ -239,6 +240,44 @@
 			toast.error(err.message || 'Failed to connect printer');
 		}
 	}
+
+	// Quick-add product from POS
+	let showAddProduct = $state(false);
+	let newProductName = $state('');
+	let newProductPrice = $state('');
+	let newProductStock = $state('');
+	let newProductIsService = $state(false);
+	let savingProduct = $state(false);
+
+	function openAddProduct() {
+		newProductName = searchQuery.trim();
+		newProductPrice = '';
+		newProductStock = '';
+		newProductIsService = false;
+		showAddProduct = true;
+	}
+
+	async function handleSaveProduct() {
+		if (!newProductName.trim() || !newProductPrice) return;
+		savingProduct = true;
+		try {
+			const product = await createProduct(businessId, {
+				name: newProductName.trim(),
+				selling_price: Math.round(Number(newProductPrice) * 100),
+				stock_quantity: newProductIsService ? 0 : Math.round(Number(newProductStock || 1) * 100),
+				is_service: newProductIsService,
+				tax_rate: 0
+			});
+			products = [...products, product];
+			addToCart(product);
+			showAddProduct = false;
+			toast.success(`${product.name} added`);
+		} catch (err) {
+			toast.error('Failed to add product');
+		} finally {
+			savingProduct = false;
+		}
+	}
 </script>
 
 <svelte:head>
@@ -267,16 +306,23 @@
 						class="w-full pl-10 pr-4 py-3 bg-surface-container-low rounded-xl border-none text-sm font-body focus:ring-2 focus:ring-primary/30 placeholder:text-on-surface-variant/40"
 					/>
 					{#if searchQuery}
-						<button onclick={() => { searchQuery = ''; searchInputRef?.focus(); }} class="absolute right-12 top-1/2 -translate-y-1/2 text-on-surface-variant/50 hover:text-on-surface">
+						<button onclick={() => { searchQuery = ''; searchInputRef?.focus(); }} class="absolute right-20 top-1/2 -translate-y-1/2 text-on-surface-variant/50 hover:text-on-surface">
 							<span class="material-symbols-outlined text-lg">close</span>
 						</button>
 					{/if}
-					<button 
-						onclick={() => showScanner = true} 
-						class="absolute right-3 top-1/2 -translate-y-1/2 text-primary hover:bg-primary/5 p-1.5 rounded-lg transition-colors"
+					<button
+						onclick={() => showScanner = true}
+						class="absolute right-11 top-1/2 -translate-y-1/2 text-primary hover:bg-primary/5 p-1.5 rounded-lg transition-colors"
 						title="Scan Barcode"
 					>
 						<span class="material-symbols-outlined text-xl">qr_code_scanner</span>
+					</button>
+					<button
+						onclick={openAddProduct}
+						class="absolute right-2 top-1/2 -translate-y-1/2 text-primary hover:bg-primary/5 p-1.5 rounded-lg transition-colors"
+						title="Add New Product"
+					>
+						<span class="material-symbols-outlined text-xl">add_circle</span>
 					</button>
 				</div>
 			</div>
@@ -429,6 +475,77 @@
 
 	{#if showScanner}
 		<BarcodeScanner onScan={handleBarcodeScan} onClose={() => showScanner = false} />
+	{/if}
+
+	{#if showAddProduct}
+		<div class="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4" role="dialog" aria-modal="true" onkeydown={(e) => e.key === 'Escape' && (showAddProduct = false)}>
+			<div class="bg-surface-container-lowest rounded-2xl w-full max-w-sm shadow-2xl p-6 space-y-4">
+				<h2 class="font-headline font-bold text-lg text-on-surface">Add Product</h2>
+
+				<div class="space-y-3">
+					<div>
+						<label for="qap-name" class="text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1">Name *</label>
+						<input
+							id="qap-name"
+							bind:value={newProductName}
+							type="text"
+							placeholder="Product name"
+							class="w-full bg-surface-container-high rounded-lg px-3 py-2.5 text-base text-on-surface border-none focus:ring-2 focus:ring-primary/30 outline-none"
+						/>
+					</div>
+
+					<div>
+						<label for="qap-price" class="text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1">Selling Price (₹) *</label>
+						<input
+							id="qap-price"
+							bind:value={newProductPrice}
+							type="number"
+							min="0"
+							step="0.01"
+							placeholder="0.00"
+							class="w-full bg-surface-container-high rounded-lg px-3 py-2.5 text-base text-on-surface border-none focus:ring-2 focus:ring-primary/30 outline-none"
+						/>
+					</div>
+
+					<label class="flex items-center gap-3 cursor-pointer py-1">
+						<input type="checkbox" bind:checked={newProductIsService} class="w-4 h-4 rounded accent-primary" />
+						<span class="text-sm font-medium text-on-surface">This is a service (no stock tracking)</span>
+					</label>
+
+					{#if !newProductIsService}
+						<div>
+							<label for="qap-stock" class="text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1">Opening Stock (units)</label>
+							<input
+								id="qap-stock"
+								bind:value={newProductStock}
+								type="number"
+								min="0"
+								placeholder="1"
+								class="w-full bg-surface-container-high rounded-lg px-3 py-2.5 text-base text-on-surface border-none focus:ring-2 focus:ring-primary/30 outline-none"
+							/>
+						</div>
+					{/if}
+				</div>
+
+				<div class="flex gap-3 pt-2">
+					<button
+						type="button"
+						onclick={() => showAddProduct = false}
+						class="flex-1 py-2.5 rounded-xl border border-outline-variant text-on-surface-variant font-semibold text-sm"
+					>
+						Cancel
+					</button>
+					<button
+						type="button"
+						onclick={handleSaveProduct}
+						disabled={!newProductName.trim() || !newProductPrice || savingProduct}
+						class="flex-1 py-2.5 rounded-xl bg-primary text-on-primary font-bold text-sm shadow-md disabled:opacity-50"
+					>
+						{savingProduct ? 'Saving…' : 'Add & Cart'}
+					</button>
+				</div>
+			</div>
+		</div>
 	{/if}
 
 	<style>

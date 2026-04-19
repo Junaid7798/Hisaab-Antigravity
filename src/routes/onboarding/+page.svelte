@@ -162,10 +162,10 @@
 									{#each group.items as item}
 										<button
 											type="button"
-											class="text-left px-4 py-3 rounded-xl border text-[13px] font-medium transition-all min-h-[48px]
+											class="text-left px-4 py-3 rounded-xl border text-[13px] font-semibold transition-all min-h-[48px]
 											{selectedCategory === item.id
 												? 'border-primary bg-primary text-on-primary ring-2 ring-primary ring-offset-2 ring-offset-surface'
-												: 'border-outline-variant bg-surface hover:bg-surface-container hover:border-outline text-on-surface'}"
+												: 'border-outline-variant/60 bg-surface-container-low hover:bg-surface-container hover:border-primary/40 text-on-surface'}"
 											onclick={() => selectedCategory = item.id as BusinessCategory}
 										>
 											{item.label}

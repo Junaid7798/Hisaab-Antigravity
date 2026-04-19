@@ -115,41 +115,151 @@
 	}
 
 	async function handleDownloadPdf() {
+		if (!invoice || !business) return;
 		generatingPdf = true;
 		try {
-			const html2canvas = (await import('html2canvas')).default;
 			const { jsPDF } = await import('jspdf');
+			const autoTable = (await import('jspdf-autotable')).default;
 
-			const el = document.getElementById('invoice-printable');
-			if (!el) return;
-
-			const canvas = await html2canvas(el, {
-				scale: 2,
-				useCORS: true,
-				backgroundColor: '#ffffff'
-			});
-
-			const imgData = canvas.toDataURL('image/png');
 			const pdf = new jsPDF('p', 'mm', 'a4');
-			const pageWidth = pdf.internal.pageSize.getWidth();
-			const pageHeight = pdf.internal.pageSize.getHeight();
-			const imgWidth = pageWidth - 20;
-			const imgHeight = (canvas.height * imgWidth) / canvas.width;
+			const W = pdf.internal.pageSize.getWidth();
+			let y = 0;
 
-			let heightLeft = imgHeight;
-			let position = 10;
+			// Header band
+			pdf.setFillColor(30, 30, 30);
+			pdf.rect(0, 0, W, 40, 'F');
 
-			pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-			heightLeft -= pageHeight;
+			pdf.setTextColor(255, 255, 255);
+			pdf.setFontSize(16);
+			pdf.setFont('helvetica', 'bold');
+			pdf.text(business.name || 'Business', 14, 14);
 
-			while (heightLeft > 0) {
-				position = heightLeft - imgHeight + 10;
-				pdf.addPage();
-				pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-				heightLeft -= pageHeight;
+			if (business.gstin) {
+				pdf.setFontSize(8);
+				pdf.setFont('helvetica', 'normal');
+				pdf.setTextColor(180, 180, 180);
+				pdf.text(`GSTIN: ${business.gstin}`, 14, 20);
+			}
+			if (business.address) {
+				pdf.setFontSize(8);
+				pdf.setTextColor(180, 180, 180);
+				pdf.text(business.address, 14, 25);
+			}
+			if (business.phone || business.email) {
+				pdf.setFontSize(8);
+				pdf.setTextColor(180, 180, 180);
+				pdf.text([business.phone, business.email].filter(Boolean).join('  •  '), 14, 30);
 			}
 
-			pdf.save(`${invoice?.invoice_number || 'invoice'}.pdf`);
+			// Invoice number & status (right side of header)
+			pdf.setFontSize(12);
+			pdf.setFont('helvetica', 'bold');
+			pdf.setTextColor(255, 255, 255);
+			pdf.text(invoice.invoice_number, W - 14, 14, { align: 'right' });
+			pdf.setFontSize(8);
+			pdf.setFont('helvetica', 'normal');
+			pdf.setTextColor(180, 180, 180);
+			pdf.text(`Issued: ${invoice.issue_date}`, W - 14, 20, { align: 'right' });
+			if (invoice.due_date) pdf.text(`Due: ${invoice.due_date}`, W - 14, 25, { align: 'right' });
+			pdf.text(invoice.document_type === 'ESTIMATE' ? 'ESTIMATE' : invoice.status, W - 14, 31, { align: 'right' });
+
+			y = 48;
+
+			// Bill To section
+			pdf.setTextColor(120, 120, 120);
+			pdf.setFontSize(8);
+			pdf.setFont('helvetica', 'bold');
+			pdf.text('BILL TO', 14, y);
+			y += 5;
+			if (patient) {
+				pdf.setFont('helvetica', 'bold');
+				pdf.setFontSize(11);
+				pdf.setTextColor(30, 30, 30);
+				pdf.text(patient.name, 14, y);
+				y += 5;
+				pdf.setFont('helvetica', 'normal');
+				pdf.setFontSize(9);
+				pdf.setTextColor(80, 80, 80);
+				if (patient.phone) { pdf.text(patient.phone, 14, y); y += 4; }
+				if (patient.address) { pdf.text(patient.address, 14, y); y += 4; }
+			}
+			y += 4;
+
+			// Line items table
+			const tableBody = items.map((item, i) => [
+				i + 1,
+				item.description,
+				item.hsn_sac || '—',
+				item.quantity,
+				formatINR(item.rate),
+				`${(item.tax_rate / 100).toFixed(1)}%`,
+				formatINR(item.amount)
+			]);
+
+			autoTable(pdf, {
+				startY: y,
+				head: [['#', 'Description', 'HSN/SAC', 'Qty', 'Rate', 'Tax%', 'Amount']],
+				body: tableBody,
+				theme: 'striped',
+				headStyles: { fillColor: [30, 30, 30], textColor: 255, fontStyle: 'bold', fontSize: 8 },
+				bodyStyles: { fontSize: 9, textColor: [30, 30, 30] },
+				columnStyles: {
+					0: { cellWidth: 8 },
+					3: { halign: 'right' },
+					4: { halign: 'right' },
+					5: { halign: 'right' },
+					6: { halign: 'right', fontStyle: 'bold' }
+				},
+				margin: { left: 14, right: 14 }
+			});
+
+			// Totals block
+			const afterTable = (pdf as any).lastAutoTable.finalY + 6;
+			const totalsX = W - 80;
+			let ty = afterTable;
+
+			const addRow = (label: string, value: string, bold = false) => {
+				pdf.setFontSize(9);
+				pdf.setFont('helvetica', bold ? 'bold' : 'normal');
+				pdf.setTextColor(bold ? 30 : 80, bold ? 30 : 80, bold ? 30 : 80);
+				pdf.text(label, totalsX, ty);
+				pdf.text(value, W - 14, ty, { align: 'right' });
+				ty += 5;
+			};
+
+			addRow('Subtotal', formatINR(invoice.subtotal));
+			if (invoice.tax_type === 'INTRA_STATE') {
+				addRow('CGST', formatINR(invoice.cgst));
+				addRow('SGST', formatINR(invoice.sgst));
+			} else if (invoice.tax_type === 'INTER_STATE') {
+				addRow('IGST', formatINR(invoice.igst));
+			}
+			pdf.setDrawColor(30, 30, 30);
+			pdf.line(totalsX, ty, W - 14, ty);
+			ty += 3;
+			addRow('Grand Total', formatINR(invoice.grand_total), true);
+
+			// Notes
+			if (invoice.notes) {
+				ty += 8;
+				pdf.setFontSize(8);
+				pdf.setFont('helvetica', 'bold');
+				pdf.setTextColor(120, 120, 120);
+				pdf.text('NOTES', 14, ty);
+				ty += 4;
+				pdf.setFont('helvetica', 'normal');
+				pdf.setTextColor(60, 60, 60);
+				pdf.text(invoice.notes, 14, ty);
+			}
+
+			// Footer
+			const pageH = pdf.internal.pageSize.getHeight();
+			pdf.setFontSize(7);
+			pdf.setTextColor(160, 160, 160);
+			pdf.setFont('helvetica', 'normal');
+			pdf.text('Generated by Hisaab — Modern Business Platform', W / 2, pageH - 8, { align: 'center' });
+
+			pdf.save(`${invoice.invoice_number}.pdf`);
 			toast.success($_('toast.pdf_downloaded', { default: 'PDF downloaded successfully' }));
 		} catch (err) {
 			console.error(err);
